@@ -18,7 +18,7 @@ directorio = r'C:/Users/alonso.flores/Documents/Revisor2/'
 # Se importa un módulo personalizado llamado Funciones
 Lista_meses=func.generar_listado_meses(2020,2023,6,7)
 
-
+#Listado de nombres de BDD a 
 Listado_BDD= ["Observaciones Clientes Libres", "Observaciones Clientes Regulados", "Revisor Clientes Libres", "Revisor Clientes Regulados", "Revisor_Clientes"]
 # Observación Clientes Libres
 
