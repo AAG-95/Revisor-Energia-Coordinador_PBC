@@ -2,6 +2,7 @@
 import openpyxl
 import pandas as pd
 from datetime import datetime, timedelta
+import tkinter as tk
 
 # Versiones de las bibliotecas utilizadas
 # python version: 3.9.13
@@ -10,7 +11,7 @@ from datetime import datetime, timedelta
 
 # Función para obtener tablas desde una hoja de cálculo
 def obtencion_Tablas(data_total, primera_fila, primera_columna):
-    primera_fila = primera_fila - 2
+    primera_fila = primera_fila - 1
     primera_columna = primera_columna - 1
 
     # Seleccionar las columnas relevantes
@@ -48,8 +49,26 @@ def obtencion_Tablas(data_total, primera_fila, primera_columna):
         # Crear un DataFrame con las filas recolectadas
         new_rows_df = pd.DataFrame(rows_to_add, columns=selected_columns)
 
+
+ # Obtén la primera fila
+    first_row = new_rows_df.iloc[0]
+
+# Inicializa un diccionario para realizar un seguimiento de las ocurrencias de valores
+    value_counts = {}
+
+# Recorre cada elemento de la primera fila
+    for i, value in enumerate(first_row):
+    # Verifica si el valor ya ha aparecido antes
+     if value in value_counts:
+        # Incrementa el contador y modifica el valor actual
+        value_counts[value] += 1
+        first_row[i] = f"{value}_{value_counts[value]}"
+     else:
+        # Si es la primera aparición, registra el valor en el diccionario
+        value_counts[value] = 1
+
     # Asignar la primera fila como encabezados de columna
-    new_rows_df.columns = new_rows_df.iloc[0]
+    new_rows_df.columns = first_row
 
     # Reindexar el DataFrame para omitir la primera fila
     new_rows_df = new_rows_df.reindex(new_rows_df.index.drop(0)).reset_index(drop=True)
@@ -78,6 +97,9 @@ def generar_pares(primer_año, último_año, primer_mes_primer_año, último_mes
     return pares_lista
 
 
+
+
+
 # Genera listado de datos 
 def generar_listado_meses(primer_año, último_año, primer_mes_primer_año, último_mes_último_año):
     pares_lista = []
@@ -101,18 +123,21 @@ def generar_listado_meses(primer_año, último_año, primer_mes_primer_año, úl
     return pares_lista
 
 
-
-# Ejemplo de uso: generar pares desde 2020 hasta 2021, meses 1 a 2
-pares = generar_pares(2020, 2021, 1, 2)
-print(pares)
-
 # Función para procesar datos y guardarlos en archivos CSV
 def process_data(carpeta_salida, dataframes, titulo, par):
+
     # Concatenar todos los dataframes en un solo dataframe
-    combined_df = pd.concat(dataframes, ignore_index=True)
+    if len(dataframes) >=2: 
+        combined_df = pd.concat(dataframes, ignore_index=True)
+    else: 
+        combined_df = dataframes[0]
 
     carpeta_carga = carpeta_salida
-    archivo = carpeta_carga + titulo + str(par[1]) + '.csv'  # Agregar '.csv' al nombre del archivo
+
+    if isinstance(par, str):
+     archivo = carpeta_carga + titulo + par + '.csv'  # Agregar '.csv' al nombre del archivo 
+    else:   
+     archivo = carpeta_carga + titulo + str(par[1]) + '.csv'  # Agregar '.csv' al nombre del archivo
 
     # Guardar el dataframe combinado en un archivo CSV
     combined_df.to_csv(archivo, encoding='utf-8', index=False, sep=";")
@@ -120,8 +145,6 @@ def process_data(carpeta_salida, dataframes, titulo, par):
     # Eliminar dataframes de la memoria después de guardar en CSV
     del dataframes
     del combined_df
-
-
 
 
 
@@ -176,12 +199,49 @@ def combinar_y_guardar_csv(lista_nombres_archivos, directorio, lista_meses):
 
 
 
+""" 
+# Crear la ventana principal
+ventana = tk.Tk()
+ventana.title("Ingreso de Datos")
+
+# Etiqueta y entrada para "Mes Repartición"
+etiqueta_año_reparticion = tk.Label(ventana, text="Año (ejemplo Formato: 2023):")
+etiqueta_año_reparticion.pack()
+entrada_año_reparticion = tk.Entry(ventana)
+entrada_año_reparticion.pack()
+
+# Etiqueta y entrada para "Mes Repartición"
+etiqueta_mes_reparticion = tk.Label(ventana, text="Mes (ejemplo Formato: Junio):")
+etiqueta_mes_reparticion.pack()
+entrada_mes_reparticion = tk.Entry(ventana)
+entrada_mes_reparticion.pack()
+
+
+# Etiqueta y entrada para "Fecha Generación"
+etiqueta_fecha_generacion = tk.Label(ventana, text="Fecha Generación (ejemplo Formato: 5/6/2023):")
+etiqueta_fecha_generacion.pack()
+entrada_fecha_generacion = tk.Entry(ventana)
+entrada_fecha_generacion.pack()
+
+# Etiqueta y entrada para "Fecha Emisión"
+etiqueta_fecha_emision = tk.Label(ventana, text="Fecha Emisión (ejemplo Formato: 5/6/2023):")
+etiqueta_fecha_emision.pack()
+entrada_fecha_emision = tk.Entry(ventana)
+entrada_fecha_emision.pack()
+
+
+# Botón para procesar la entrada
+boton_procesar = tk.Button(ventana, text="Procesar", command=visualizador)
+boton_procesar.pack()
+# Iniciar la interfaz gráfica
+ventana.mainloop()
+ """
+
 
 
 
 # Función comparador de valores (TRUE si son iguales, Falso si no)
 def comparador(valor1, valor2):
-    #print(valor1,valor2)
     return round(valor1, 3) == round(valor2, 3)
 
 # Función que muestra resultado correcto si entrada es True, Falso en caso contrario
