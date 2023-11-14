@@ -23,13 +23,13 @@ import Funciones as func  # Se importa un módulo personalizado llamado Funcione
 warnings.filterwarnings("ignore")
 
 # Carpeta salida de archivos
-carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Recaudación\\BDD Agosto 2023\\"
+carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Recaudación\\BDD Septiembre 2023\\"
 
 # Definición de variables de año y mes
 primer_año = 2023
 último_año = 2023
-primer_mes_primer_año = 8
-último_mes_último_año = 8
+primer_mes_primer_año = 9
+último_mes_último_año = 9
 
 # Genera una lista de pares de años y meses
 pares_lista = func.generar_pares(
@@ -39,6 +39,8 @@ pares_lista = func.generar_pares(
 # Procesar cada par de años y meses
 for par in pares_lista:
     count = 0  # Contador de archivos encontrados
+
+    # Carpeta de entrada de archivos IFC por Carpeta
     carpeta = (
         r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\"
         + str(par[0])
@@ -96,7 +98,7 @@ for par in pares_lista:
         for column in df.columns[9:]:
             df[column] = df[column].astype(str).str.replace(".", ",", regex=False)
 
-        df = df.assign(Empresa_Planilla=nombre_empresa[0])
+        
 
         # Convertir nombres de columnas de fecha
         timestamps = df.columns[9:]
@@ -120,6 +122,9 @@ for par in pares_lista:
 
         # Reemplazar valor SISTEMA por Sistema
         df["Zonal"] = df["Zonal"].str.replace(r"\bSISTEMA\b", "Sistema", regex=True)
+        
+        # Agregar columna Empresa
+        df = df.assign(Empresa_Planilla=nombre_empresa[0])
 
         # Agregar el dataframe a la lista
         dataframes.append(df)
@@ -140,7 +145,7 @@ for par in pares_lista:
         for column in df_Nvs.columns[9:]:
             df_Nvs[column] = df_Nvs[column].astype(str).str.replace(".", ",", regex=False)
 
-        df_Nvs = df_Nvs.assign(Empresa_Planilla=nombre_empresa[0])
+        
 
         # Convertir nombres de columnas de fecha
         timestamps = df_Nvs.columns[9:]
@@ -164,7 +169,10 @@ for par in pares_lista:
 
         # Reemplazar valor SISTEMA por Sistema
         df_Nvs["Zonal"] = df_Nvs["Zonal"].str.replace(r"\bSISTEMA\b", "Sistema", regex=True)
-
+       
+        # Agregar columna Empresa
+        df_Nvs = df_Nvs.assign(Empresa_Planilla=nombre_empresa[0])
+        
         # Agregar el dataframe a la lista
         dataframes_Nvs.append(df_Nvs)
         
@@ -232,6 +240,10 @@ for par in pares_lista:
 
     # Procesar los dataframes y guardar los resultados
     func.process_data(carpeta_salida, dataframes, "Revisor_Clientes", par)
+
+    func.process_data(carpeta_salida,  dataframes_Nvs, "Revisor_Clientes_Nuevos", par)
+   
+
     func.process_data(
         carpeta_salida, dataframes_libres_E, "Observaciones Clientes Libres", par
     )
@@ -248,6 +260,7 @@ for par in pares_lista:
     # Eliminar los dataframes para liberar memoria
     del (
         dataframes,
+        dataframes_Nvs,
         dataframes_libres_E,
         dataframes_libres_R,
         dataframes_regulados_E,

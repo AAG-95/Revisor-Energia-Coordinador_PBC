@@ -23,13 +23,13 @@ import Funciones as func  # Se importa un módulo personalizado llamado Funcione
 warnings.filterwarnings("ignore")
 
 # Carpeta salida de archivos
-carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Diferencias\\Revisión Engie y Andina Diferencias 2023\\"
+carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Diferencias\\2023\\Revisión Neomas Diferencias 2023\\Balance de Energía\\"
 
 # Definición de variables de año y mes
-primer_año = 2022
+primer_año = 2023
 último_año = 2023
-primer_mes_primer_año = 11
-último_mes_último_año = 6
+primer_mes_primer_año = 1
+último_mes_último_año = 7
 
 
 # Genera una lista de pares de años y meses
@@ -63,8 +63,8 @@ for val in entries:
         archivos.append(val.name)
 
 # Empresas a analizar
-empresas_analizadas = ["ENGIE", "ANDINA"]
-
+#empresas_analizadas = ["ENGIE", "ANDINA"]
+empresas_analizadas = ["NEOMAS"]
 # Listas para almacenar los dataframes resultantes
 dataframes = []  # Datos Clientes Libres
 
@@ -80,7 +80,10 @@ for i in archivos:
     # Remove columns with NaN names
     df = df.drop(columns=nan_columns)
     dataframes.append(df)
-
+    df["Medida 1"] = df["Medida 1"].astype(str).str.replace(".", ",", regex=False)
+    df["Medida 2"] = df["Medida 2"].astype(str).str.replace(".", ",", regex=False)
+    df["Medida 3"] = df["Medida 3"].astype(str).str.replace(".", ",", regex=False)
+    df = df[df["Suministrador_final"].isin(empresas_analizadas)]
     print(df)
 
-func.process_data(carpeta_salida, dataframes, "Retiros_Engie_y_Andina", "")
+func.process_data(carpeta_salida, dataframes, "Retiros_NEOMAS", "")

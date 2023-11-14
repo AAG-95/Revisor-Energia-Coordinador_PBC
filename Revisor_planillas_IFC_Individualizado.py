@@ -23,13 +23,14 @@ import Funciones as func  # Se importa un módulo personalizado llamado Funcione
 warnings.filterwarnings("ignore")
 
 # Carpeta salida de archivos
-carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Diferencias\\Revisión Engie y Andina Diferencias 2023\\"
+#carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Diferencias\\Revisión Engie y Andina Diferencias 2023\\Información Recaudada\\"
+carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Diferencias\\2023\\Revisión Neomas Diferencias\\Información Recaudada\\"
 
 # Definición de variables de año y mes
 primer_año = 2022
 último_año = 2023
-primer_mes_primer_año = 11
-último_mes_último_año = 6
+primer_mes_primer_año = 1
+último_mes_último_año = 8
 
 # Genera una lista de pares de años y meses
 pares_lista = func.generar_pares(
@@ -37,7 +38,7 @@ pares_lista = func.generar_pares(
 )
 
 # Empresas a analizar
-empresas_analizadas = ["ENGIE", "ANDINA"]
+empresas_analizadas = ["NEOMAS"]
 
 # Listas para almacenar los dataframes resultantes
 dataframes = []  # Datos Clientes Libres
@@ -50,14 +51,17 @@ dataframes_libres_R = []
 # Procesar cada par de años y meses
 for par in pares_lista:
     count = 0  # Contador de archivos encontrados
+
+    # Carpeta de entrada de archivos IFC por Carpeta
     carpeta = (
         r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\"
         + str(par[0])
         + "\\"
         + str(par[1])
         + "\\00 InfoRecibida\\IFC\\"
-    )
-    
+    ) 
+    # Carpeta de entrada de archivos IFC Individualizado
+    # carpeta = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Diferencias\\Revisión Engie y Andina Diferencias 2023\\Información Recaudada\\"
     # Obtener la lista de archivos en la carpeta
     entries = os.scandir(carpeta)
 
@@ -107,10 +111,7 @@ for par in pares_lista:
             ]
             Mes_Rep = df.columns[9]
 
-            # Agregar columnas de Mes Repartición y Empresa Planilla
-            df = df.assign(Mes_Repartición=Mes_Rep)
-            df = df.assign(Empresa_Planilla=nombre_empresa[0])
-
+       
             # Seleccionar columnas relevantes y derretir el dataframe
             selected_columns = df.columns[:9].tolist() + [df.columns[-1]]
             df = pd.melt(
@@ -119,6 +120,10 @@ for par in pares_lista:
                 var_name="Mes Consumo",
                 value_name="Energía [kWh]",
             )
+
+                 # Agregar columnas de Mes Repartición y Empresa Planilla
+            df = df.assign(Mes_Repartición=Mes_Rep)
+            df = df.assign(Empresaa_Planilla=nombre_empresa[0])
 
             # Filtrar filas con valores no nulos
             df = df[(~df["Energía [kWh]"].isnull()) & (df["Energía [kWh]"] != "")]
@@ -185,9 +190,9 @@ for par in pares_lista:
             # Procesar datos de Clientes Libres
 
             df_FCL_E = df_FCL.iloc[:, :11]
-            df_FCL_E = df_FCL_E[
+            """    df_FCL_E = df_FCL_E[
                 (~df_FCL_E["Observación"].isnull()) & (df_FCL_E["Observación"] != "")
-            ]
+            ] """
             df_FCL_E = df_FCL_E.assign(Mes_Repartición=Mes_Rep)
             df_FCL_E = df_FCL_E.assign(Recaudador=nombre_empresa[0])
 
@@ -260,12 +265,15 @@ for par in pares_lista:
 if dataframes_Nvs:
     func.process_data(carpeta_salida, dataframes_Nvs, "Revisor_Nvs_Clientes", " ")
 
+if dataframes_Nvs:
+    func.process_data(carpeta_salida,  dataframes_Nvs, "Revisor_Clientes_Nuevos", " ")
+
 if dataframes:
     func.process_data(carpeta_salida, dataframes, "Revisor_Clientes", " ")
 
 if dataframes_libres_E:
     func.process_data(
-        carpeta_salida, dataframes_libres_E, "Observaciones Clientes Libres", " "
+        carpeta_salida, dataframes_libres_E, "Formulario Clientes Libres", " "
     )
 if dataframes_libres_R:
     func.process_data(
@@ -273,7 +281,7 @@ if dataframes_libres_R:
     )
 if dataframes_regulados_E:
     func.process_data(
-        carpeta_salida, dataframes_regulados_E, "Observaciones Clientes Regulados", " "
+        carpeta_salida, dataframes_regulados_E, "Formulario Clientes Regulados", " "
     )
 
 if dataframes_regulados_R:
@@ -284,8 +292,11 @@ if dataframes_regulados_R:
 # Eliminar los dataframes para liberar memoria
 del (
     dataframes,
+    dataframes_Nvs,
     dataframes_libres_E,
     dataframes_libres_R,
     dataframes_regulados_E,
     dataframes_regulados_R,
 )
+
+
