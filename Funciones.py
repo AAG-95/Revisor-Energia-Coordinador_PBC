@@ -102,6 +102,7 @@ def generar_pares(primer_año, último_año, primer_mes_primer_año, último_mes
 def generar_listado_meses(
     primer_año, último_año, primer_mes_primer_año, último_mes_último_año
 ):
+  
     pares_lista = []
 
     for año in range(primer_año, último_año + 1):
