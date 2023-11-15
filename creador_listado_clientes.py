@@ -163,11 +163,11 @@ df_empresas_eliminadas = df_registro_cambios_mes_anterior[
 
 # Column of df to list
 print(
-    "Empresas nuevas mes_fecha Actual:",
+    "Empresas nuevas Mes Actual:",
     df_nuevas_empresas["Suministrador_final"].to_list(),
 )
 print(
-    "Empresas eliminadas respecto a mes_fecha Anterior:",
+    "Empresas eliminadas respecto a Mes Anterior:",
     df_empresas_eliminadas["Suministrador_final"].to_list(),
 )
 
