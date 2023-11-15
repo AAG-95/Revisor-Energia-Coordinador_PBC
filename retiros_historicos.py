@@ -1,9 +1,9 @@
 import pandas as pd
 
-ruta_balances = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\2023\Balances"
+ruta_balances = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\2021\Balances"
 
 # List of years from 2021 to 2023
-years = [str(i) for i in range(21, 24)]
+years = [str(i) for i in range(20, 22)]
 
 # List of months from 01 to 12
 months = [str(i).zfill(2) for i in range(1, 13)]
@@ -12,7 +12,7 @@ months = [str(i).zfill(2) for i in range(1, 13)]
 year_month = [y + m for y in years for m in months]
 
 # Filter the list to include only the months from February 2021 to September 2023
-year_month = [ym for ym in year_month if ym >= '2102' and ym <= '2309']
+year_month = [ym for ym in year_month if ym >= '2001' and ym <= '2102']
 
 print(year_month)
 
@@ -27,7 +27,7 @@ for i in year_month:
     dataframe.append(df)
     print(df)
 dataframe = pd.concat(dataframe)
-ruta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\2023\Balances"
+ruta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\2021\Balances"
 
 dataframe.to_excel(ruta_salida + "\\" + "Retiros_histórico" +".xlsx", engine="openpyxl", index=False)
 

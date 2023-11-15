@@ -109,8 +109,8 @@ with zipfile.ZipFile(zip_path) as myzip:
 
             # Check if Column Suministrador_final has NaN, if Column has NaN, print this row and end program
             if retiros_clientes["Suministrador_final"].isnull().values.any():
-                print("Columnas con NaN en Suministrador_Final")
-                print(df_clientes[df_clientes["Suministrador_final"].isnull()])
+                print("Columnas con NaN en Suministrador_Final al no coincidir con Propietario:")
+                print(retiros_clientes[retiros_clientes["Suministrador_final"].isnull()]["Propietario"].to_list())
                 exit()
 
             # retiros divided in R and L
@@ -133,7 +133,7 @@ df_clientes_L = pd.concat(listado_clientes_L)
 # Get unique values from df_clientes
 df_clientes_unique = df_clientes.drop_duplicates(subset=["Suministrador_final"])
 # Get only column Suministrador_final and mes_fecha
-df_clientes_unique = df_clientes_unique[["Suministrador_final", "mes_fecha"]]
+df_clientes_unique = df_clientes_unique[["Suministrador_final", "Mes"]]
 
 
 # Get database from ruta_registro_cambios
