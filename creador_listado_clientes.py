@@ -15,9 +15,9 @@ import os
 
 # Open data from a ZIP file Abril-2020-R03D-1.zip in \\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Balances de Energía\Archivos Fuente\2020
 
-mes = "Nov22"
+mes = "Ene20"
 mes_fecha = fc.convertir_fecha(mes)
-mes_numeral = "2211"
+mes_numeral = "2001"
 
 # Get previous month from mes_fecha
 mes_anterior = mes_fecha - relativedelta(months=1)
@@ -31,7 +31,7 @@ ruta_homologa_propietarios = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Re
 ruta_registro_cambios = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Registro de Cambios\Registro_de_Cambios_Empresas.csv"
 
 # Path to ZIP file, balance fisico
-zip_path = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Balances de Energía\Archivos Fuente\2022\Nov2022-B01D.zip"
+zip_path = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Balances de Energía\Archivos Fuente\2020\Ene2020-R02D.zip"
 
 # Get dataframe from ruta_homologa_propietarios sheet 'Homologa'
 df_homologa_propietarios = pd.read_excel(
@@ -42,6 +42,7 @@ df_homologa_propietarios = pd.read_excel(
 lista_balance_fisico = [
     "REVISION_NORTE_",
     "REVISION_NORTE_DX_",
+    "REVISION_CENTRO_",
     "REVISION_SUR_",
     "REVISION_SUR_DX_",
 ]
@@ -67,10 +68,13 @@ with zipfile.ZipFile(zip_path) as myzip:
                 with myzip.open(path + i + mes_numeral + ".xls") as myfile:
                     df_balance_fisico = pd.read_excel(myfile)
                     print(f"File exists at {path}")
-                    correct_path = path  # store the correct path
+                    correct_path = path   # store the correct path
                     break  # if file is found and opened successfully, break the loop
             except KeyError:
-                continue  # if file is not found, continue to the next path
+                continue  # if file is not found, try the next path
+        else:
+            print(f"File not found for {i}")
+            continue  # if file is not found for any path, move on to the next i
 
         with myzip.open(
             correct_path + i + mes_numeral + ".xls"
@@ -193,5 +197,3 @@ with pd.ExcelWriter(
     df_clientes_L.to_excel(writer, sheet_name="Listado_Clientes_L", index=False)
 
 
-# Get database
-# Comparador con proceso del mes_fecha pasado
