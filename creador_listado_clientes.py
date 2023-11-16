@@ -39,7 +39,7 @@ ruta_control_versiones = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Reparti
 # Get dataframe from ruta_control_versiones sheet 'Versiones' 
 df_control_versiones = pd.read_excel(ruta_control_versiones, sheet_name="Versiones")
 
-df_control_versiones = fc.obtencion_tablas_cliente(df_control_versiones, 4, 9, 10)
+df_control_versiones = fc.obtencion_tablas_clientes(df_control_versiones, 4, 9, 10)
 
 print(df_control_versiones)
 
