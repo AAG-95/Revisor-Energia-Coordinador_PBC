@@ -17,7 +17,6 @@ ventana = gui.VentanaIngresoDatos()
 ventana.iniciar()
 mes = ventana.visualizador()
 
-
 # Open data from a ZIP file Abril-2020-R03D-1.zip in \\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Balances de Energía\Archivos Fuente\2020
 
 #mes = "Ene2020"
@@ -48,7 +47,6 @@ df_control_versiones = pd.read_excel(ruta_control_versiones, sheet_name="Version
 
 df_control_versiones = fc.obtencion_tablas_clientes(df_control_versiones, 5, 8, 9)
 
-
 #? Listado de Posibles Archivos y Rutas
 # List of sheets to read from ZIP file
 lista_balance_fisico = [
@@ -75,7 +73,7 @@ for mes in lista_meses:
     print("Mes a evaluar: " + str(mes))
     # Convert mes to datetime
     mes_fecha = fc.convertir_fecha(mes)
-    mes_numeral = "2002"
+    mes_numeral = fc.convertir_fecha_numeral(mes)
 
     # Get previous month from mes_fecha
     mes_anterior = mes_fecha - relativedelta(months=1)
@@ -112,6 +110,9 @@ for mes in lista_meses:
 
                 # Seleted table from sheet Balance por Barra
                 df_clientes = fc.obtencion_tablas_clientes(df_balance_fisico, 6, 2, 17)
+                
+                # Drop Column names N if it exists
+                df_clientes = df_clientes.drop(columns="N")
 
                 # Change Nombre_2 to Barra
                 df_clientes.rename(columns={"Nombre_2": "Barra"}, inplace=True)
@@ -155,7 +156,6 @@ for mes in lista_meses:
                 listado_clientes_R.append(retiros_clientes_R)
                 listado_clientes_L.append(retiros_clientes_L)
 
-
     # Concatenate all dataframes from listado_clientes
     df_clientes = pd.concat(listado_clientes)
     df_clientes_R = pd.concat(listado_clientes_R)
@@ -165,7 +165,6 @@ for mes in lista_meses:
     df_clientes_unique = df_clientes.drop_duplicates(subset=["Suministrador_final"])
     # Get only column Suministrador_final and mes_fecha
     df_clientes_unique = df_clientes_unique[["Suministrador_final", "Mes"]]
-
 
     # Get database from ruta_registro_cambios
     df_registro_cambios = pd.read_csv(ruta_registro_cambios, sep=";")
@@ -206,7 +205,6 @@ for mes in lista_meses:
     df_registro_cambios_final = pd.concat(
         [df_registro_cambios_mes_anterior, df_clientes_unique]
     )
-
 
     #! Output of program
     # Path to save output
