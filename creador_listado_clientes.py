@@ -14,6 +14,7 @@ import entrada_datos_gui_clientes as gui
 
 #! Month Selection
 ventana = gui.VentanaIngresoDatos()
+ventana.iniciar()
 a,b,c,d= ventana.visualizador()
 
 print(a)

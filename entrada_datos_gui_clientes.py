@@ -52,9 +52,8 @@ class VentanaIngresoDatos:
         print("Mes Repartición:", self.mes_reparticion)
         print("Fecha Generación:", self.fecha_generacion)
         print("Fecha Emisión:", self.fecha_emision)
-        
-
         self.ventana.quit()  # Cerrar la ventana
+        return self.año_reparticion, self.mes_reparticion, self.fecha_generacion, self.fecha_emision 
 
     def iniciar(self):
         # Iniciar la interfaz gráfica
