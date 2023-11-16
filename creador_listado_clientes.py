@@ -64,10 +64,8 @@ rutas_posibles = [
     "01 Resultados/01 Resultados/01 Balance de Energía/02 Balance Físico/"
 ]
 
-
-
 for mes in lista_meses:
-    print("Mes a evaluar: " + str(mes))
+    
     # Convert mes to datetime
     mes_fecha = fc.ConversionDatos().convertir_fecha(mes)
     mes_numeral = fc.ConversionDatos().convertir_fecha_numeral(mes)
@@ -86,6 +84,8 @@ for mes in lista_meses:
     listado_clientes_R = []
     listado_clientes_L = []
     ruta_correcta = None
+   
+    print("Mes a evaluar: " + str(mes) + "Mes a evaluar: " + str(version))
 
     with zipfile.ZipFile(ruta_zip) as myzip:
         for i in lista_balance_fisico:
