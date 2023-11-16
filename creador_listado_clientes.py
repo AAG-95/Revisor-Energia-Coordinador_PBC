@@ -10,9 +10,13 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import openpyxl
 import os
+import entrada_datos_gui_clientes as gui
 
 #! Month Selection
+ventana = gui.VentanaIngresoDatos()
+a,b,c,d= ventana.visualizador()
 
+print(a)
 # Open data from a ZIP file Abril-2020-R03D-1.zip in \\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Balances de Energía\Archivos Fuente\2020
 
 mes = "Ene2020"

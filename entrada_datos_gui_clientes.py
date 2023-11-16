@@ -1,224 +1,61 @@
-# Creador Listado Clientes
-
-import pandas as pd
-import zipfile
-import pandas as pd
-import zipfile
-import xlrd
-import Funciones as fc
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-import openpyxl
-import os
-
-#! Month Selection
-
-# Open data from a ZIP file Abril-2020-R03D-1.zip in \\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Balances de Energía\Archivos Fuente\2020
-
-a,b,v,d = 
-
-mes = "Ene2020"
-# Lista Meses a Evaluar
-lista_meses = [mes] 
+import tkinter as tk
 
 
+class VentanaIngresoDatos:
+    def __init__(self):
+        self.año_reparticion = None
+        self.mes_reparticion = None
+        self.fecha_generacion = None
+        self.fecha_emision = None
 
-#! Main Program
-#? Paths inputs
-# Path to Homologacion_Propietarios_Balance_Fisico.xlsx
-ruta_homologa_propietarios = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Homologaciones\Homologacion_Propietarios_Balance_Fisico.xlsx"
+        # Crear la ventana principal
+        self.ventana = tk.Tk()
+        self.ventana.title("Ingreso de Datos")
 
-# Path to Control de Versiones
-ruta_control_versiones = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Versiones_Balances.xlsx"
+        # Etiqueta y entrada para "Año Repartición"
+        self.etiqueta_año_reparticion = tk.Label(self.ventana, text="Año (ejemplo Formato: 2023):")
+        self.etiqueta_año_reparticion.pack()
+        self.entrada_año_reparticion = tk.Entry(self.ventana)
+        self.entrada_año_reparticion.pack()
 
-# Path to Homologacion Listado Clientes
-ruta_registro_cambios = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Registro de Cambios\Registro_de_Cambios_Empresas.csv"
+        # Etiqueta y entrada para "Mes Repartición"
+        self.etiqueta_mes_reparticion = tk.Label(self.ventana, text="Mes (ejemplo Formato: Junio):")
+        self.etiqueta_mes_reparticion.pack()
+        self.entrada_mes_reparticion = tk.Entry(self.ventana)
+        self.entrada_mes_reparticion.pack()
 
-#? Get Propietarios Names as they are in the Balance Físico
-# Get dataframe from ruta_homologa_propietarios sheet 'Homologa'
-df_homologa_propietarios = pd.read_excel(
-    ruta_homologa_propietarios, sheet_name="Homologa"
-)
+        # Etiqueta y entrada para "Fecha Generación"
+        self.etiqueta_fecha_generacion = tk.Label(self.ventana, text="Fecha Generación (ejemplo Formato: 5/6/2023):")
+        self.etiqueta_fecha_generacion.pack()
+        self.entrada_fecha_generacion = tk.Entry(self.ventana)
+        self.entrada_fecha_generacion.pack()
 
-#? Get Versión
-# Get dataframe from ruta_control_versiones sheet 'Versiones' 
-df_control_versiones = pd.read_excel(ruta_control_versiones, sheet_name="Versiones", header=None)
+        # Etiqueta y entrada para "Fecha Emisión"
+        self.etiqueta_fecha_emision = tk.Label(self.ventana, text="Fecha Emisión (ejemplo Formato: 5/6/2023):")
+        self.etiqueta_fecha_emision.pack()
+        self.entrada_fecha_emision = tk.Entry(self.ventana)
+        self.entrada_fecha_emision.pack()
 
-df_control_versiones = fc.obtencion_tablas_clientes(df_control_versiones, 5, 8, 9)
+        # Botón para procesar la entrada
+        self.boton_procesar = tk.Button(self.ventana, text="Procesar", command=self.visualizador)
+        self.boton_procesar.pack()
 
+    # Función para procesar la entrada
+    def visualizador(self):
+        self.año_reparticion = self.entrada_año_reparticion.get()
+        self.mes_reparticion = self.entrada_mes_reparticion.get()
+        self.fecha_generacion = self.entrada_fecha_generacion.get()
+        self.fecha_emision = self.entrada_fecha_emision.get()
 
-#? Listado de Posibles Archivos y Rutas
-# List of sheets to read from ZIP file
-lista_balance_fisico = [
-    "REVISION_NORTE_",
-    "REVISION_NORTE_DX_",
-    "REVISION_CENTRO_",
-    "REVISION_SUR_",
-    "REVISION_SUR_DX_",
-]
+        # Aquí puedes realizar alguna acción con los valores ingresados, por ejemplo, imprimirlos
+        print("Año Repartición:", self.año_reparticion)
+        print("Mes Repartición:", self.mes_reparticion)
+        print("Fecha Generación:", self.fecha_generacion)
+        print("Fecha Emisión:", self.fecha_emision)
+        
 
-# List of possible file paths
-rutas_posibles = [
-    "01 Resultados/02 Balance Físico/",
-    "01 Resultados/01 Balance de Energía/02 Balance Físico/",
-]
+        self.ventana.quit()  # Cerrar la ventana
 
-#? Dataframes a guardar
-listado_clientes = []
-listado_clientes_R = []
-listado_clientes_L = []
-ruta_correcta = None
-
-for mes in lista_meses:
-    print("Mes a evaluar: " + str(mes))
-    # Convert mes to datetime
-    mes_fecha = fc.convertir_fecha(mes)
-    mes_numeral = "2001"
-
-    # Get previous month from mes_fecha
-    mes_anterior = mes_fecha - relativedelta(months=1)
-    
-    # Get Value from column Versiones when mes fecha match value in column Mes
-    version = df_control_versiones.loc[df_control_versiones["Mes"] == mes_fecha, "Versión"].iloc[0]
-
-    # Path to ZIP file, Balance Físico
-    ruta_zip = rf"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Balances de Energía\Archivos Fuente\20{mes_numeral[:2]}\{mes}-{version}.zip"
-
-    with zipfile.ZipFile(ruta_zip) as myzip:
-        for i in lista_balance_fisico:
-            print("Archivo " + i +  " Analizado en "+ str(mes) + " :", end='')
-
-            for path in rutas_posibles:
-                try:
-                    with myzip.open(path + i + mes_numeral + ".xls") as myfile:
-                        df_balance_fisico = pd.read_excel(myfile)
-                        print(f" Ruta en ZIP EXISTE con {path}")
-                        ruta_correcta = path   # store the correct path
-                        break  # if file is found and opened successfully, break the loop
-                except KeyError:
-                    continue  # if file is not found, try the next path
-            else:
-                print(f" Ruta NO EXISTE para {i}")
-                continue  # if file is not found for any path, move on to the next i
-
-            with myzip.open(
-                ruta_correcta + i + mes_numeral + ".xls"
-            ) as myfile:
-                df_balance_fisico = pd.read_excel(
-                    myfile, sheet_name="Balance por Barra", header=None
-                )
-
-                # Seleted table from sheet Balance por Barra
-                df_clientes = fc.obtencion_tablas_clientes(df_balance_fisico, 6, 2, 17)
-
-                # Change Nombre_2 to Barra
-                df_clientes.rename(columns={"Nombre_2": "Barra"}, inplace=True)
-                # Change (0/1)_2 into Medidas 2 and (0/1)_3 into Medidas 3
-                df_clientes.rename(
-                    columns={"(0/1)_2": "Medidas 2", "(0/1)_3": "Medidas 3"}, inplace=True
-                )
-
-                # If values is found in column Barra, replace all nan values in bottom rows from same column with that value and stop when find another value
-                df_clientes["Barra"] = df_clientes["Barra"].ffill()
-
-                # Add month column
-                df_clientes["Mes"] = mes_fecha
-
-                # Drop Rows from column df_clientes['Nombre'] that contains 'TOTAL' or NaN
-                df_clientes = df_clientes[df_clientes["Nombre"] != "TOTAL"]
-                df_clientes = df_clientes[df_clientes["Nombre"] != "NaN"]
-
-                # From Column Tipo filter 'R', 'L' or 'L_D'
-                retiros_clientes = df_clientes[df_clientes["Tipo"].isin(["R", "L", "L_D"])]
-
-                # Merge dataframe df_clientes with df_homologa_propietarios based in column Propietario from both df
-                retiros_clientes = pd.merge(
-                    retiros_clientes, df_homologa_propietarios, on="Propietario", how="left"
-                )
-
-                # Check if Column Suministrador_final has NaN, if Column has NaN, print this row and end program
-                if retiros_clientes["Suministrador_final"].isnull().values.any():
-                    print("Columnas con NaN en Suministrador_Final al no coincidir con Propietario:")
-                    print(retiros_clientes[retiros_clientes["Suministrador_final"].isnull()]["Propietario"].to_list())
-                    exit()
-
-                # retiros divided in R and L
-                retiros_clientes_R = retiros_clientes[retiros_clientes["Tipo"].isin(["R"])]
-
-                retiros_clientes_L = retiros_clientes[
-                    retiros_clientes["Tipo"].isin(["L", "L_D"])
-                ]
-
-                listado_clientes.append(retiros_clientes)
-                listado_clientes_R.append(retiros_clientes_R)
-                listado_clientes_L.append(retiros_clientes_L)
-
-
-    # Concatenate all dataframes from listado_clientes
-    df_clientes = pd.concat(listado_clientes)
-    df_clientes_R = pd.concat(listado_clientes_R)
-    df_clientes_L = pd.concat(listado_clientes_L)
-
-    # Get unique values from df_clientes
-    df_clientes_unique = df_clientes.drop_duplicates(subset=["Suministrador_final"])
-    # Get only column Suministrador_final and mes_fecha
-    df_clientes_unique = df_clientes_unique[["Suministrador_final", "Mes"]]
-
-
-    # Get database from ruta_registro_cambios
-    df_registro_cambios = pd.read_csv(ruta_registro_cambios, sep=";")
-
-    # Change column mes_fecha to datetime, example input 1-08-2020
-    df_registro_cambios["Mes"] = pd.to_datetime(df_registro_cambios["Mes"], dayfirst=True)
-
-    # Filter month column from df_registro_cambios with mes_anterior
-    df_registro_cambios_mes_anterior = df_registro_cambios[
-        df_registro_cambios["Mes"] == mes_anterior
-    ]
-
-    # Get Values that are in df_clientes_unique and not in df_registro_cambios_mes_anterior
-    df_nuevas_empresas = df_clientes_unique[
-        ~df_clientes_unique["Suministrador_final"].isin(
-            df_registro_cambios_mes_anterior["Suministrador_final"]
-        )
-    ]
-
-    # Empresas Eliminadas
-    df_empresas_eliminadas = df_registro_cambios_mes_anterior[
-        ~df_registro_cambios_mes_anterior["Suministrador_final"].isin(
-            df_clientes_unique["Suministrador_final"]
-        )
-    ]
-
-    # Column of df to list
-    print(
-        "Empresas nuevas Mes Actual:",
-        df_nuevas_empresas["Suministrador_final"].to_list(),
-    )
-    print(
-        "Empresas eliminadas respecto a Mes Anterior:",
-        df_empresas_eliminadas["Suministrador_final"].to_list(),
-    )
-
-    # Concatenate df_registro_cambios_mes_anterior with df_clientes_unique
-    df_registro_cambios_final = pd.concat(
-        [df_registro_cambios_mes_anterior, df_clientes_unique]
-    )
-
-
-    #! Output of program
-    # Path to save output
-    ruta_salida = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes"
-
-    # Open an excel file to start saving dataframe each sheet
-    with pd.ExcelWriter(
-        ruta_salida + "\\" + "Retiros_" + str(mes) + ".xlsx", engine="openpyxl"
-    ) as writer:
-        # Write each dataframe to a different worksheet.
-        df_clientes.to_excel(writer, sheet_name="Listado_Clientes", index=False)
-
-        df_clientes_R.to_excel(writer, sheet_name="Listado_Clientes_R", index=False)
-
-        df_clientes_L.to_excel(writer, sheet_name="Listado_Clientes_L", index=False)
-
-
+    def iniciar(self):
+        # Iniciar la interfaz gráfica
+        self.ventana.mainloop()
