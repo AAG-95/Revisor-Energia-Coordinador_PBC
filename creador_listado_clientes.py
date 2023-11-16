@@ -15,7 +15,7 @@ import os
 
 # Open data from a ZIP file Abril-2020-R03D-1.zip in \\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Balances de Energía\Archivos Fuente\2020
 
-mes = "Ene20"
+mes = "Ene2020"
 mes_fecha = fc.convertir_fecha(mes)
 mes_numeral = "2001"
 
@@ -31,7 +31,21 @@ ruta_homologa_propietarios = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Re
 ruta_registro_cambios = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Registro de Cambios\Registro_de_Cambios_Empresas.csv"
 
 # Path to ZIP file, balance fisico
-zip_path = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Balances de Energía\Archivos Fuente\2020\Ene2020-R02D.zip"
+ruta_zip = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Balances de Energía\Archivos Fuente\2020\Ene2020-R02D.zip"
+
+# Path to Control de Versiones
+ruta_control_versiones = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Versiones_Balances.xlsx"
+
+# Get dataframe from ruta_control_versiones sheet 'Versiones' 
+df_control_versiones = pd.read_excel(ruta_control_versiones, sheet_name="Versiones")
+
+df_control_versiones = fc.obtencion_tablas_cliente(df_control_versiones, 4, 9, 10)
+
+print(df_control_versiones)
+
+
+
+
 
 # Get dataframe from ruta_homologa_propietarios sheet 'Homologa'
 df_homologa_propietarios = pd.read_excel(
@@ -59,7 +73,7 @@ file_paths = [
 
 correct_path = None
 
-with zipfile.ZipFile(zip_path) as myzip:
+with zipfile.ZipFile(ruta_zip) as myzip:
     for i in lista_balance_fisico:
         print(i)
 

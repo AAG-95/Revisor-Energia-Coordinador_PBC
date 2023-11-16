@@ -257,7 +257,7 @@ def convertir_fecha(Mes):
         "Dic": 12,
     }
     month = months[Mes[:3]]
-    year = int("20" + Mes[-2:])
+    year = int(Mes[-4:])
     return datetime(year, month, 1)
 
 
