@@ -342,3 +342,8 @@ def obtencion_tablas_clientes(data_total, primera_fila, primera_columna, ultima_
     new_rows_df = new_rows_df.reindex(new_rows_df.index.drop(0)).reset_index(drop=True)
 
     return new_rows_df
+
+
+
+    
+
