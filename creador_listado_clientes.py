@@ -206,13 +206,20 @@ for mes in lista_meses:
         df_empresas_eliminadas["Suministrador_final"].to_list(),
     )
 
-    # Concatenate df_registro_cambios_mes_anterior with df_clientes_unique
-    df_registro_cambios_final = pd.concat(
-        [df_registro_cambios_mes_anterior, df_clientes_unique]
-    )
 
     #! Output of program
-    # Path to save output
+    # If mes is not in registro_cambios, column Mes, add Columns Mes and Suministrador_final of df_clientes into registro_cambios
+    if mes_fecha not in df_registro_cambios["Mes"].to_list():
+        df_registro_cambios_final = pd.concat(
+            [df_registro_cambios, df_clientes_unique[["Suministrador_final", "Mes"]]]
+        )
+
+    # Rewrite df_registro_cambios_final into ruta_registro_cambios
+    df_registro_cambios_final.to_csv(
+        ruta_registro_cambios, sep=";", index=False
+    )
+
+    # Path to save output Listado de Clientes
     ruta_salida = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes"
 
     # Open an excel file to start saving dataframe each sheet
