@@ -61,13 +61,10 @@ lista_balance_fisico = [
 rutas_posibles = [
     "01 Resultados/02 Balance Físico/",
     "01 Resultados/01 Balance de Energía/02 Balance Físico/",
+    "01 Resultados/01 Resultados/01 Balance de Energía/02 Balance Físico/"
 ]
 
-#? Dataframes a guardar
-listado_clientes = []
-listado_clientes_R = []
-listado_clientes_L = []
-ruta_correcta = None
+
 
 for mes in lista_meses:
     print("Mes a evaluar: " + str(mes))
@@ -83,6 +80,12 @@ for mes in lista_meses:
 
     # Path to ZIP file, Balance Físico
     ruta_zip = rf"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Balances de Energía\Archivos Fuente\20{mes_numeral[:2]}\{mes}-{version}.zip"
+
+    #? Dataframes a guardar
+    listado_clientes = []
+    listado_clientes_R = []
+    listado_clientes_L = []
+    ruta_correcta = None
 
     with zipfile.ZipFile(ruta_zip) as myzip:
         for i in lista_balance_fisico:
@@ -155,6 +158,8 @@ for mes in lista_meses:
                 listado_clientes.append(retiros_clientes)
                 listado_clientes_R.append(retiros_clientes_R)
                 listado_clientes_L.append(retiros_clientes_L)
+            
+            
 
     # Concatenate all dataframes from listado_clientes
     df_clientes = pd.concat(listado_clientes)
@@ -221,4 +226,5 @@ for mes in lista_meses:
 
         df_clientes_L.to_excel(writer, sheet_name="Listado_Clientes_L", index=False)
 
-
+    del listado_clientes, listado_clientes_R, listado_clientes_L
+   
