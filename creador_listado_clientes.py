@@ -171,6 +171,9 @@ for mes in lista_meses:
     # Get only column Suministrador_final and mes_fecha
     df_clientes_unique = df_clientes_unique[["Suministrador_final", "Mes"]]
 
+    # order by column Suministrador_final alfabetically
+    df_clientes_unique = df_clientes_unique.sort_values(by=["Suministrador_final"])
+
     # Get database from ruta_registro_cambios
     df_registro_cambios = pd.read_csv(ruta_registro_cambios, sep=";")
 
