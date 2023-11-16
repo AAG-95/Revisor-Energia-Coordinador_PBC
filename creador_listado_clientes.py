@@ -15,7 +15,7 @@ import entrada_datos_gui_clientes as gui
 #! Month Selection
 ventana = gui.VentanaIngresoDatos()
 ventana.iniciar()
-a,b,c,d= ventana.visualizador()
+a = ventana.visualizador()
 
 print(a)
 # Open data from a ZIP file Abril-2020-R03D-1.zip in \\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Balances de Energía\Archivos Fuente\2020
@@ -23,8 +23,6 @@ print(a)
 mes = "Ene2020"
 # Lista Meses a Evaluar
 lista_meses = [mes] 
-
-
 
 #! Main Program
 #? Paths inputs
