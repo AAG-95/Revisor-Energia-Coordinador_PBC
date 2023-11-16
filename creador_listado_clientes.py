@@ -68,7 +68,7 @@ listado_clientes_L = []
 ruta_correcta = None
 
 for mes in lista_meses:
-    print("Mes a evaluar:" + str(mes))
+    print("Mes a evaluar: " + str(mes))
     # Convert mes to datetime
     mes_fecha = fc.convertir_fecha(mes)
     mes_numeral = "2001"
