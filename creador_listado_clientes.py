@@ -15,14 +15,15 @@ import entrada_datos_gui_clientes as gui
 #! Month Selection
 ventana = gui.VentanaIngresoDatos()
 ventana.iniciar()
-a = ventana.visualizador()
+mes = ventana.visualizador()
 
-print(a)
+
 # Open data from a ZIP file Abril-2020-R03D-1.zip in \\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Balances de Energía\Archivos Fuente\2020
 
-mes = "Ene2020"
+#mes = "Ene2020"
 # Lista Meses a Evaluar
-lista_meses = [mes] 
+# Split mes into list by comma
+lista_meses = [x.strip() for x in mes.split(", ")] 
 
 #! Main Program
 #? Paths inputs
@@ -74,7 +75,7 @@ for mes in lista_meses:
     print("Mes a evaluar: " + str(mes))
     # Convert mes to datetime
     mes_fecha = fc.convertir_fecha(mes)
-    mes_numeral = "2001"
+    mes_numeral = "2002"
 
     # Get previous month from mes_fecha
     mes_anterior = mes_fecha - relativedelta(months=1)

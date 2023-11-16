@@ -10,7 +10,7 @@ class VentanaIngresoDatos:
         self.ventana.title("Ingreso de Datos")
 
         # Etiqueta y entrada para "Año Repartición"
-        self.etiqueta_año_reparticion = tk.Label(self.ventana, text="Mes procesado (ejemplo Formato 1 Mes: Ene2023): - ejemplo Formato 2 meses o más: Ene2023,Febr2023,Mar2023)")
+        self.etiqueta_año_reparticion = tk.Label(self.ventana, text="Mes Procesado:\nEjemplo Formato 1 Mes: Ene2023\nEjemplo Formato 2 Meses o Más: Ene2023, Feb2023, Mar2023")
         self.etiqueta_año_reparticion.pack()
         self.entrada_año_reparticion = tk.Entry(self.ventana)
         self.entrada_año_reparticion.pack(fill=tk.BOTH, expand=True)
