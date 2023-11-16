@@ -5,7 +5,7 @@ import zipfile
 import pandas as pd
 import zipfile
 import xlrd
-import Funciones as fc
+import funciones as fc
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import openpyxl
@@ -45,7 +45,7 @@ df_homologa_propietarios = pd.read_excel(
 # Get dataframe from ruta_control_versiones sheet 'Versiones' 
 df_control_versiones = pd.read_excel(ruta_control_versiones, sheet_name="Versiones", header=None)
 
-df_control_versiones = fc.obtencion_tablas_clientes(df_control_versiones, 5, 8, 9)
+df_control_versiones = fc.ObtencionDatos().obtencion_tablas_clientes(df_control_versiones, 5, 8, 9)
 
 #? Listado de Posibles Archivos y Rutas
 # List of sheets to read from ZIP file
@@ -72,8 +72,8 @@ ruta_correcta = None
 for mes in lista_meses:
     print("Mes a evaluar: " + str(mes))
     # Convert mes to datetime
-    mes_fecha = fc.convertir_fecha(mes)
-    mes_numeral = fc.convertir_fecha_numeral(mes)
+    mes_fecha = fc.ConversionDatos().convertir_fecha(mes)
+    mes_numeral = fc.ConversionDatos().convertir_fecha_numeral(mes)
 
     # Get previous month from mes_fecha
     mes_anterior = mes_fecha - relativedelta(months=1)
@@ -109,7 +109,7 @@ for mes in lista_meses:
                 )
 
                 # Seleted table from sheet Balance por Barra
-                df_clientes = fc.obtencion_tablas_clientes(df_balance_fisico, 6, 2, 17)
+                df_clientes = fc.ObtencionDatos().obtencion_tablas_clientes(df_balance_fisico, 6, 2, 17)
                 
                 # Drop Column names N if it exists
                 df_clientes = df_clientes.drop(columns="N")

@@ -12,7 +12,7 @@ import tkinter as tk
 
 class ObtencionDatos:
     # Función para obtener tablas desde una hoja de cálculo
-    def obtencion_Tablas(data_total, primera_fila, primera_columna):
+    def obtencion_Tablas(self, data_total, primera_fila, primera_columna):
         primera_fila = primera_fila - 1
         primera_columna = primera_columna - 1
 
@@ -79,7 +79,7 @@ class ObtencionDatos:
         return new_rows_df
 
     # Función para obtener tablas desde una hoja de cálculo
-    def obtencion_tablas_clientes(
+    def obtencion_tablas_clientes(self, 
         data_total, primera_fila, primera_columna, ultima_columna
     ):
         """
@@ -162,7 +162,7 @@ class ObtencionDatos:
         return new_rows_df
 
 # Función para generar una lista de pares de años y meses
-def generar_pares(primer_año, último_año, primer_mes_primer_año, último_mes_último_año):
+def generar_pares(self, primer_año, último_año, primer_mes_primer_año, último_mes_último_año):
     pares_lista = []
 
     for año in range(primer_año, último_año + 1):
@@ -184,7 +184,7 @@ def generar_pares(primer_año, último_año, primer_mes_primer_año, último_mes
 
 
 # Genera listado de datos
-def generar_listado_meses(
+def generar_listado_meses(self,
     primer_año, último_año, primer_mes_primer_año, último_mes_último_año
 ):
     pares_lista = []
@@ -210,7 +210,7 @@ def generar_listado_meses(
 
 class ProcesamientosDeDatos:
     # Función para procesar datos y guardarlos en archivos CSV
-    def process_data(carpeta_salida, dataframes, titulo, par):
+    def process_data(self, carpeta_salida, dataframes, titulo, par):
         """
         Combines a list of dataframes into a single dataframe and saves it as a CSV file.
 
@@ -248,7 +248,7 @@ class ProcesamientosDeDatos:
         del dataframes
         del combined_df
 
-    def combinar_y_guardar_csv(lista_nombres_archivos, directorio, lista_meses):
+    def combinar_y_guardar_csv(self, lista_nombres_archivos, directorio, lista_meses):
         """
         Combina y guarda archivos CSV en una carpeta específica.
 
@@ -323,7 +323,7 @@ class ProcesamientosDeDatos:
 
 class ConversionDatos:
     # Define a function to convert month abbreviations to date, example input: "Ene20"
-    def convertir_fecha(Mes):
+    def convertir_fecha(self, Mes):
         months = {
             "Ene": 1,
             "Feb": 2,
@@ -343,7 +343,7 @@ class ConversionDatos:
         return datetime(year, month, 1)
 
     # Define a function to convert month abbreviations as for example "Ene20" converts to 2001
-    def convertir_fecha_numeral(Mes):
+    def convertir_fecha_numeral(self, Mes):
         months = {
             "Ene": "01",
             "Feb": "02",
