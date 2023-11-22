@@ -12,7 +12,7 @@ from datetime import datetime
 import numpy as np
 import openpyxl
 import warnings
-import Funciones as func  # Se importa un módulo personalizado llamado Funciones
+import funciones as func  # Se importa un módulo personalizado llamado Funciones
 
 # Versiones de las librerías utilizadas
 # python version: 3.9.13
@@ -23,22 +23,22 @@ import Funciones as func  # Se importa un módulo personalizado llamado Funcione
 warnings.filterwarnings("ignore")
 
 # Carpeta salida de archivos
-#carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Diferencias\\Revisión Engie y Andina Diferencias 2023\\Información Recaudada\\"
-carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Diferencias\\2023\\Revisión Neomas Diferencias\\Información Recaudada\\"
+carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Diferencias\\2023\\Revisión Engie y Andina Diferencias\\Información Recaudada\\"
+#carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Diferencias\\2023\\Revisión Neomas Diferencias\\Información Recaudada\\"
 
 # Definición de variables de año y mes
 primer_año = 2022
 último_año = 2023
-primer_mes_primer_año = 1
-último_mes_último_año = 8
+primer_mes_primer_año = 11
+último_mes_último_año = 6
 
 # Genera una lista de pares de años y meses
-pares_lista = func.generar_pares(
+pares_lista = func.ConversionDatos().generar_pares(
     primer_año, último_año, primer_mes_primer_año, último_mes_último_año
 )
 
 # Empresas a analizar
-empresas_analizadas = ["NEOMAS"]
+empresas_analizadas = ["ENGIE", "ANDINA"]
 
 # Listas para almacenar los dataframes resultantes
 dataframes = []  # Datos Clientes Libres
@@ -92,7 +92,7 @@ for par in pares_lista:
             df = pd.read_excel(
                 excel_file_path, sheet_name="Detalle-Clientes L", engine="openpyxl", header=None
             )
-            df = func.obtencion_Tablas(df, 11, 2)
+            df = func.ObtencionDatos().obtencion_Tablas(df, 11, 2)
             Columnas_energía = df.columns[9:]
             df[Columnas_energía] = df[Columnas_energía].replace({0: np.nan})
             df[Columnas_energía] = df[Columnas_energía].replace({np.nan: None})
@@ -123,7 +123,7 @@ for par in pares_lista:
 
                  # Agregar columnas de Mes Repartición y Empresa Planilla
             df = df.assign(Mes_Repartición=Mes_Rep)
-            df = df.assign(Empresaa_Planilla=nombre_empresa[0])
+            df = df.assign(Empresa_Planilla=nombre_empresa[0])
 
             # Filtrar filas con valores no nulos
             df = df[(~df["Energía [kWh]"].isnull()) & (df["Energía [kWh]"] != "")]
@@ -135,7 +135,7 @@ for par in pares_lista:
             df_Nvs = pd.read_excel(
                 excel_file_path, sheet_name="Detalle-Nvs Clientes L", engine="openpyxl", header=None
             )
-            df_Nvs = func.obtencion_Tablas(df_Nvs, 11, 2)
+            df_Nvs = func.ObtencionDatos().obtencion_Tablas(df_Nvs, 11, 2)
             Columnas_energía = df_Nvs.columns[9:]
             df_Nvs[Columnas_energía] = df_Nvs[Columnas_energía].replace({0: np.nan})
             df_Nvs[Columnas_energía] = df_Nvs[Columnas_energía].replace({np.nan: None})
@@ -185,7 +185,7 @@ for par in pares_lista:
             df_FCL = pd.read_excel(
                 excel_file_path, sheet_name="Formulario-Clientes L", engine="openpyxl", header=None
             )
-            df_FCL = func.obtencion_Tablas(df_FCL, 19, 3)
+            df_FCL = func.ObtencionDatos().obtencion_Tablas(df_FCL, 19, 3)
 
             # Procesar datos de Clientes Libres
 
@@ -263,29 +263,29 @@ for par in pares_lista:
 
 # Procesar los dataframes y guardar los resultados
 if dataframes_Nvs:
-    func.process_data(carpeta_salida, dataframes_Nvs, "Revisor_Nvs_Clientes", " ")
+    func.ProcesamientosDeDatos().process_data(carpeta_salida, dataframes_Nvs, "Revisor_Nvs_Clientes", " ")
 
 if dataframes_Nvs:
-    func.process_data(carpeta_salida,  dataframes_Nvs, "Revisor_Clientes_Nuevos", " ")
+    func.ProcesamientosDeDatos().process_data(carpeta_salida,  dataframes_Nvs, "Revisor_Clientes_Nuevos", " ")
 
 if dataframes:
-    func.process_data(carpeta_salida, dataframes, "Revisor_Clientes", " ")
+    func.ProcesamientosDeDatos().process_data(carpeta_salida, dataframes, "Revisor_Clientes", " ")
 
 if dataframes_libres_E:
-    func.process_data(
+    func.ProcesamientosDeDatos().process_data(
         carpeta_salida, dataframes_libres_E, "Formulario Clientes Libres", " "
     )
 if dataframes_libres_R:
-    func.process_data(
+    func.ProcesamientosDeDatos().process_data(
         carpeta_salida, dataframes_libres_R, "Revisor Clientes Libres", " "
     )
 if dataframes_regulados_E:
-    func.process_data(
+    func.ProcesamientosDeDatos().process_data(
         carpeta_salida, dataframes_regulados_E, "Formulario Clientes Regulados", " "
     )
 
 if dataframes_regulados_R:
-    func.process_data(
+    func.ProcesamientosDeDatos().process_data(
         carpeta_salida, dataframes_regulados_R, "Revisor Clientes Regulados", " "
     )
 

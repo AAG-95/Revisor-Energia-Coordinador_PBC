@@ -161,51 +161,7 @@ class ObtencionDatos:
 
         return new_rows_df
 
-# Función para generar una lista de pares de años y meses
-def generar_pares(self, primer_año, último_año, primer_mes_primer_año, último_mes_último_año):
-    pares_lista = []
 
-    for año in range(primer_año, último_año + 1):
-        if año == primer_año:
-            mes_inicio = primer_mes_primer_año
-        else:
-            mes_inicio = 1
-
-        if año == último_año:
-            mes_fin = último_mes_último_año
-        else:
-            mes_fin = 12
-
-        for mes in range(mes_inicio, mes_fin + 1):
-            año_mes = int(str(año % 100) + "{:02d}".format(mes))
-            pares_lista.append((año, año_mes))
-
-    return pares_lista
-
-
-# Genera listado de datos
-def generar_listado_meses(self,
-    primer_año, último_año, primer_mes_primer_año, último_mes_último_año
-):
-    pares_lista = []
-
-    for año in range(primer_año, último_año + 1):
-        if año == primer_año:
-            mes_inicio = primer_mes_primer_año
-        else:
-            mes_inicio = 1
-
-        if año == último_año:
-            mes_fin = último_mes_último_año
-        else:
-            mes_fin = 12
-
-        for mes in range(mes_inicio, mes_fin + 1):
-            # Formatear el año y el mes como "YYMM" y convertirlos a entero
-            año_mes = int(str(año % 100) + "{:02d}".format(mes))
-            pares_lista.append(año_mes)
-
-    return pares_lista
 
 
 class ProcesamientosDeDatos:
@@ -319,6 +275,10 @@ class ProcesamientosDeDatos:
             print(f"{Nombre} Correcto")
         else:
             print(f"Error en {Nombre}")
+    
+    
+
+
 
 
 class ConversionDatos:
@@ -361,3 +321,50 @@ class ConversionDatos:
         month = months[Mes[:3]]
         year = int(Mes[-2:])
         return str(year) + str(month)
+    
+
+    # Función para generar una lista de pares de años y meses
+    def generar_pares(self, primer_año, último_año, primer_mes_primer_año, último_mes_último_año):
+        pares_lista = []
+
+        for año in range(primer_año, último_año + 1):
+            if año == primer_año:
+                mes_inicio = primer_mes_primer_año
+            else:
+                mes_inicio = 1
+
+            if año == último_año:
+                mes_fin = último_mes_último_año
+            else:
+                mes_fin = 12
+
+            for mes in range(mes_inicio, mes_fin + 1):
+                año_mes = int(str(año % 100) + "{:02d}".format(mes))
+                pares_lista.append((año, año_mes))
+
+        return pares_lista
+
+
+    # Genera listado de datos
+    def generar_listado_meses(self,
+        primer_año, último_año, primer_mes_primer_año, último_mes_último_año
+    ):
+        pares_lista = []
+
+        for año in range(primer_año, último_año + 1):
+            if año == primer_año:
+                mes_inicio = primer_mes_primer_año
+            else:
+                mes_inicio = 1
+
+            if año == último_año:
+                mes_fin = último_mes_último_año
+            else:
+                mes_fin = 12
+
+            for mes in range(mes_inicio, mes_fin + 1):
+                # Formatear el año y el mes como "YYMM" y convertirlos a entero
+                año_mes = int(str(año % 100) + "{:02d}".format(mes))
+                pares_lista.append(año_mes)
+
+        return pares_lista

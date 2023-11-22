@@ -211,23 +211,24 @@ for mes in lista_meses:
 
 
     #! Output of program
-    # If mes is not in registro_cambios, column Mes, add Columns Mes and Suministrador_final of df_clientes into registro_cambios
+    # If mes is not in registro_cambios by column Mes, add Columns Mes and Suministrador_final of df_clientes into registro_cambios
     if mes_fecha not in df_registro_cambios["Mes"].to_list():
+        print("Se actualiza el archivo Registro de Cambios con registro mes " + str(mes_fecha))
         df_registro_cambios_final = pd.concat(
             [df_registro_cambios, df_clientes_unique[["Suministrador_final", "Mes"]]]
         )
 
-    # Rewrite df_registro_cambios_final into ruta_registro_cambios
-    df_registro_cambios_final.to_csv(
-        ruta_registro_cambios, sep=";", index=False
-    )
+        # Rewrite df_registro_cambios_final into ruta_registro_cambios
+        df_registro_cambios_final.to_csv(
+            ruta_registro_cambios, sep=";", index=False
+        )
 
     # Path to save output Listado de Clientes
     ruta_salida = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes"
 
     # Open an excel file to start saving dataframe each sheet
     with pd.ExcelWriter(
-        ruta_salida + "\\" + "Retiros_" + str(mes) + ".xlsx", engine="openpyxl"
+        ruta_salida + "\\" + "Retiros_" + str(mes_numeral) + ".xlsx", engine="openpyxl"
     ) as writer:
         # Write each dataframe to a different worksheet.
         df_clientes.to_excel(writer, sheet_name="Listado_Clientes", index=False)
