@@ -196,13 +196,19 @@ for par in pares_lista:
             df_FCL_E = df_FCL_E.assign(Mes_Repartición=Mes_Rep)
             df_FCL_E = df_FCL_E.assign(Recaudador=nombre_empresa[0])
 
-            # Procesar datos de Clientes Regulados
+            # Procesar datos de Clientes Libres
             df_FCL_R = df_FCL.iloc[:, 14:18]
             df_FCL_R = df_FCL_R[
                 (~df_FCL_R["Observación"].isnull()) & (df_FCL_R["Observación"] != "")
             ]
             df_FCL_R = df_FCL_R.assign(Mes_Repartición=Mes_Rep)
             df_FCL_R = df_FCL_R.assign(Recaudador=nombre_empresa[0])
+            
+            # Convertir a float las columnas de energía, recaudacion y cargo
+            df_FCL_E['Recaudación [$]'] = df_FCL_E['Recaudación [$]'].astype(str).str.replace(".", ",")
+            df_FCL_E['Energía facturada [kWh]'] = df_FCL_E['Energía facturada [kWh]'].astype(str).str.replace(".", ",")
+            df_FCL_E['Cargo [$/kWh]'] = df_FCL_E['Cargo [$/kWh]'].astype(str).str.replace(".", ",")
+
 
             # Dataframe Hoja 'Formulario-Clientes R'
             df_FCR_E = None  # Inicializar a None
