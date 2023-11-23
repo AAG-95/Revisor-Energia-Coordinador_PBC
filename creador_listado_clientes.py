@@ -32,8 +32,15 @@ ruta_homologa_propietarios = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Re
 # Path to Control de Versiones
 ruta_control_versiones = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Versiones_Balances.xlsx"
 
-# Path to Homologacion Listado Clientes
-ruta_registro_cambios = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Registro de Cambios\Registro_de_Cambios_Empresas.csv"
+# Listado de Clientes Histórico
+ruta_retiros_historicos_L = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Registro Histórico Clientes\Retiros_históricos_Clientes_L.csv"
+
+# Path to Registro Cambio Empresas
+ruta_registro_cambios_empresas = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Registro de Cambios\Registro_de_Cambios_Empresas.csv"
+
+# Path to Registro Cambio Clientes
+ruta_registro_cambios_empresas = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Registro de Cambios\Registro_de_Cambios_Empresas.csv"
+
 
 #? Get Propietarios Names as they are in the Balance Físico
 # Get dataframe from ruta_homologa_propietarios sheet 'Homologa'
@@ -85,11 +92,11 @@ for mes in lista_meses:
     listado_clientes_L = []
     ruta_correcta = None
    
-    print("Mes a evaluar: " + str(mes) + "Mes a evaluar: " + str(version))
+    print("Mes a evaluar: " + str(mes) + " Versión a evaluar: " + str(version))
 
     with zipfile.ZipFile(ruta_zip) as myzip:
         for i in lista_balance_fisico:
-            print("Archivo " + i +  " Analizado en "+ str(mes) + " :", end='')
+            print("Archivo " + i +  " Analizado en "+ str(mes) + ":", end='')
 
             for path in rutas_posibles:
                 try:
@@ -174,27 +181,27 @@ for mes in lista_meses:
     # order by column Suministrador_final alfabetically
     df_clientes_unique = df_clientes_unique.sort_values(by=["Suministrador_final"])
 
-    # Get database from ruta_registro_cambios
-    df_registro_cambios = pd.read_csv(ruta_registro_cambios, sep=";")
+    # Get database from ruta_registro_cambios_empresas
+    df_registro_cambios_empresas = pd.read_csv(ruta_registro_cambios_empresas, sep=";")
 
     # Change column mes_fecha to datetime, example input 1-08-2020
-    df_registro_cambios["Mes"] = pd.to_datetime(df_registro_cambios["Mes"], dayfirst=True)
+    df_registro_cambios_empresas["Mes"] = pd.to_datetime(df_registro_cambios_empresas["Mes"], dayfirst=True)
 
-    # Filter month column from df_registro_cambios with mes_anterior
-    df_registro_cambios_mes_anterior = df_registro_cambios[
-        df_registro_cambios["Mes"] == mes_anterior
+    # Filter month column from df_registro_cambios_empresas with mes_anterior
+    df_registro_cambios_empresas_mes_anterior = df_registro_cambios_empresas[
+        df_registro_cambios_empresas["Mes"] == mes_anterior
     ]
 
-    # Get Values that are in df_clientes_unique and not in df_registro_cambios_mes_anterior
+    # Get Values that are in df_clientes_unique and not in df_registro_cambios_empresas_mes_anterior
     df_nuevas_empresas = df_clientes_unique[
         ~df_clientes_unique["Suministrador_final"].isin(
-            df_registro_cambios_mes_anterior["Suministrador_final"]
+            df_registro_cambios_empresas_mes_anterior["Suministrador_final"]
         )
     ]
 
     # Empresas Eliminadas
-    df_empresas_eliminadas = df_registro_cambios_mes_anterior[
-        ~df_registro_cambios_mes_anterior["Suministrador_final"].isin(
+    df_empresas_eliminadas = df_registro_cambios_empresas_mes_anterior[
+        ~df_registro_cambios_empresas_mes_anterior["Suministrador_final"].isin(
             df_clientes_unique["Suministrador_final"]
         )
     ]
@@ -211,16 +218,35 @@ for mes in lista_meses:
 
 
     #! Output of program
+    #? Update Registro Cambios Empresas
     # If mes is not in registro_cambios by column Mes, add Columns Mes and Suministrador_final of df_clientes into registro_cambios
-    if mes_fecha not in df_registro_cambios["Mes"].to_list():
+    if mes_fecha not in df_registro_cambios_empresas["Mes"].to_list():
         print("Se actualiza el archivo Registro de Cambios con registro mes " + str(mes_fecha))
-        df_registro_cambios_final = pd.concat(
-            [df_registro_cambios, df_clientes_unique[["Suministrador_final", "Mes"]]]
+        df_registro_cambios_empresas_final = pd.concat(
+            [df_registro_cambios_empresas, df_clientes_unique[["Suministrador_final", "Mes"]]]
         )
 
-        # Rewrite df_registro_cambios_final into ruta_registro_cambios
-        df_registro_cambios_final.to_csv(
-            ruta_registro_cambios, sep=";", index=False
+        # Rewrite df_registro_cambios_empresas_final into ruta_registro_cambios_empresas
+        df_registro_cambios_empresas_final.to_csv(
+            ruta_registro_cambios_empresas, sep=";", index=False
+        )
+    
+    #? Update Registros Históricos
+    df_historico_clientes_L = pd.read_csv(ruta_retiros_historicos_L, sep=";", encoding='latin1',header= None)
+    #If value in first row is
+    # Convert column Mes to datetime
+    df_historico_clientes_L["Mes"] = pd.to_datetime(df_historico_clientes_L["Mes"], dayfirst=True)
+
+    if mes_fecha not in df_historico_clientes_L["Mes"].unique().tolist():
+        print("Se actualiza el archivo Registro de Cambios con registro mes " + str(mes_fecha))
+        t= df_historico_clientes_L["Mes"].unique().tolist()
+        df_retiros_historico_L_final = pd.concat(
+            [df_historico_clientes_L, df_clientes_L]
+        )
+
+        # Rewrite df_registro_cambios_empresas_final into ruta_registro_cambios_Empresas
+        df_retiros_historico_L_final.to_csv(
+            ruta_retiros_historicos_L, sep=";", index=False
         )
 
     # Path to save output Listado de Clientes

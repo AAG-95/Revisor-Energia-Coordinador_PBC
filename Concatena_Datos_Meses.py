@@ -7,7 +7,7 @@ Created on Tue Jul 18 11:12:18 2023
 # Importación de librerías necesarias
 import os
 import pandas as pd
-import Funciones as func
+import funciones as func
 
 # Directorio donde se encuentran los archivos CSV
 directorio = r'C:/Users/alonso.flores/Documents/Revisor2/'
