@@ -125,8 +125,6 @@ for mes in lista_meses:
                 # Seleted table from sheet Balance por Barra
                 df_clientes = fc.ObtencionDatos().obtencion_tablas_clientes(df_balance_fisico, 6, 2, 17)
 
-                
-                
                 # Drop Column names N if it exists
                 df_clientes = df_clientes.drop(columns="N")
 
@@ -242,17 +240,27 @@ for mes in lista_meses:
     #If value in first row is
     # Convert column Mes to datetime with format datetime.datetime(2023, 9, 1, 0, 0)
     df_historico_clientes_L["Mes"] = pd.to_datetime(df_historico_clientes_L["Mes"])
-    if mes_fecha not in df_historico_clientes_L["Mes"].unique().tolist():
+    if mes_fecha  in df_historico_clientes_L["Mes"].unique().tolist():
         print("Se actualiza el archivo Registro de Cambios con registro mes " + str(mes_fecha))
-        t= df_historico_clientes_L["Mes"].unique().tolist()
+       
         df_retiros_historico_L_final = pd.concat(
             [df_historico_clientes_L, df_clientes_L]
         )
 
         # Rewrite df_registro_cambios_empresas_final into ruta_registro_cambios_Empresas
-        df_retiros_historico_L_final.to_csv(
-            ruta_retiros_historicos_L, sep=";", index=False
-        )
+        #df_retiros_historico_L_final.to_csv(
+         #   ruta_retiros_historicos_L, sep=";", index=False
+        #)
+        
+        df_unique_clientes_set = df_retiros_historico_L_final.drop_duplicates(subset=['Nombre', 'Clave', 'Suministrador_final'])
+
+        # Sort by 'Mes'
+        df_sorted_month = df_unique_clientes_set.sort_values('Mes')
+
+        # Drop duplicates based on 'Clave', keep last
+        df_unique_claves = df_sorted_month.drop_duplicates(subset='Clave', keep='last')
+
+
 
     # Path to save output Listado de Clientes
     ruta_salida = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes"
