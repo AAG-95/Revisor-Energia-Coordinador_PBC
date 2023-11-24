@@ -39,7 +39,7 @@ ruta_retiros_historicos_L = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Rep
 ruta_registro_cambios_empresas = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Registro de Cambios\Registro_de_Cambios_Empresas.csv"
 
 # Path to Registro Cambio Clientes
-ruta_registro_cambios_empresas = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Registro de Cambios\Registro_de_Cambios_Empresas.csv"
+ruta_registro_cambios_clientes = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Registro de Cambios\Registro_de_Cambios_Clientes.csv"
 
 
 #? Get Propietarios Names as they are in the Balance Físico
@@ -92,7 +92,7 @@ for mes in lista_meses:
     listado_clientes_L = []
     ruta_correcta = None
    
-    print("Mes a evaluar: " + str(mes) + "// Versión a evaluar: " + str(version))
+    print("Mes a evaluar: " + str(mes) + " // Versión a evaluar: " + str(version))
 
     with zipfile.ZipFile(ruta_zip) as myzip:
         for i in lista_balance_fisico:
@@ -132,7 +132,7 @@ for mes in lista_meses:
                 df_clientes.rename(columns={"Nombre_2": "Barra"}, inplace=True)
                 # Change (0/1)_2 into Medidas 2 and (0/1)_3 into Medidas 3
                 df_clientes.rename(
-                    columns={"(0/1)_2": "Medidas 2", "(0/1)_3": "Medidas 3"}, inplace=True
+                    columns={"(0/1)_2": "Medida 2", "(0/1)_3": "Medida 3"}, inplace=True
                 )
 
                 # If values is found in column Barra, replace all nan values in bottom rows from same column with that value and stop when find another value
@@ -237,9 +237,11 @@ for mes in lista_meses:
     
     #? Update Registros Históricos
     df_historico_clientes_L = pd.read_csv(ruta_retiros_historicos_L, sep=";", encoding='latin1')
+
     #If value in first row is
     # Convert column Mes to datetime with format datetime.datetime(2023, 9, 1, 0, 0)
     df_historico_clientes_L["Mes"] = pd.to_datetime(df_historico_clientes_L["Mes"])
+
     if mes_fecha  in df_historico_clientes_L["Mes"].unique().tolist():
         print("Se actualiza el archivo Registro de Cambios con registro mes " + str(mes_fecha))
        
@@ -247,20 +249,25 @@ for mes in lista_meses:
             [df_historico_clientes_L, df_clientes_L]
         )
 
-        # Rewrite df_registro_cambios_empresas_final into ruta_registro_cambios_Empresas
-        #df_retiros_historico_L_final.to_csv(
-         #   ruta_retiros_historicos_L, sep=";", index=False
-        #)
+        """  # Rewrite df_registro_cambios_empresas_final into ruta_registro_cambios_Empresas
+        df_retiros_historico_L_final.to_csv(
+            ruta_retiros_historicos_L, sep=";", index=False
+        )
+         """
+        #? Update and save Registro Cambios Clientes
+
+        df_registro_cambios_clientes = df_retiros_historico_L_final[['Nombre', 'Clave', 'Suministrador_final', 'Mes']].drop_duplicates(subset=['Nombre', 'Clave', 'Suministrador_final'])
         
-        df_unique_clientes_set = df_retiros_historico_L_final.drop_duplicates(subset=['Nombre', 'Clave', 'Suministrador_final'])
+        df_registro_cambios_clientes['Clave_Actual'] = df_registro_cambios_clientes.sort_values('Mes').reset_index(drop=True).groupby('Clave')['Nombre'].transform('last')
 
-        # Sort by 'Mes'
-        df_sorted_month = df_unique_clientes_set.sort_values('Mes')
+        df_registro_cambios_clientes['Mes_Actual'] = df_registro_cambios_clientes.sort_values('Mes').reset_index(drop=True).groupby('Clave')['Mes'].transform('last')
+        
+        df_registro_cambios_clientes.rename(columns={'Nombre': 'Cliente'} )
 
-        # Drop duplicates based on 'Clave', keep last
-        df_unique_claves = df_sorted_month.drop_duplicates(subset='Clave', keep='last')
-
-
+        df_registro_cambios_clientes.to_csv(
+            ruta_registro_cambios_clientes, sep=";", index=False
+        )
+       
 
     # Path to save output Listado de Clientes
     ruta_salida = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes"
