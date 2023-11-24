@@ -255,14 +255,23 @@ for mes in lista_meses:
         )
          """
         #? Update and save Registro Cambios Clientes
-
-        df_registro_cambios_clientes = df_retiros_historico_L_final[['Nombre', 'Clave', 'Suministrador_final', 'Mes']].drop_duplicates(subset=['Nombre', 'Clave', 'Suministrador_final'])
         
-        df_registro_cambios_clientes['Clave_Actual'] = df_registro_cambios_clientes.sort_values('Mes').reset_index(drop=True).groupby('Clave')['Nombre'].transform('last')
+        df_registro_cambios_clientes = df_retiros_historico_L_final.reset_index(drop=True)
 
-        df_registro_cambios_clientes['Mes_Actual'] = df_registro_cambios_clientes.sort_values('Mes').reset_index(drop=True).groupby('Clave')['Mes'].transform('last')
+        df_registro_cambios_clientes = df_registro_cambios_clientes[['Nombre', 'Clave', 'Suministrador_final', 'Mes']]
+
+        df_registro_cambios_clientes['Nombre_Cliente_Actual_Para_Clave'] = df_registro_cambios_clientes.sort_values('Mes').groupby('Clave')['Nombre'].transform('last')
+
+        df_registro_cambios_clientes['Mes_Actual_De_Nombre_Cliente'] = df_registro_cambios_clientes.sort_values('Mes').groupby('Clave')['Mes'].transform('last')
         
-        df_registro_cambios_clientes.rename(columns={'Nombre': 'Cliente'} )
+        df_registro_cambios_clientes['Nombre'] = df_registro_cambios_clientes['Nombre'].str.strip() 
+        df_registro_cambios_clientes['Clave'] = df_registro_cambios_clientes['Clave'].str.strip()    
+        df_registro_cambios_clientes['Suministrador_final'] = df_registro_cambios_clientes['Suministrador_final'].str.strip() 
+        df_registro_cambios_clientes = df_registro_cambios_clientes.dropna(subset=['Nombre', 'Clave', 'Suministrador_final'])  # Drop rows with NaN values in specified columns
+
+        df_registro_cambios_clientes = df_registro_cambios_clientes.drop_duplicates(subset=['Nombre', 'Clave', 'Suministrador_final'])
+
+        df_registro_cambios_clientes.rename(columns={'Nombre': 'Cliente'}, inplace=True)
 
         df_registro_cambios_clientes.to_csv(
             ruta_registro_cambios_clientes, sep=";", index=False
