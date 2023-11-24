@@ -12,7 +12,7 @@ from datetime import datetime
 import numpy as np
 import openpyxl
 import warnings
-import Funciones as func  # Se importa un módulo personalizado llamado Funciones
+import funciones as func  # Se importa un módulo personalizado llamado Funciones
 
 # Versiones de las librerías utilizadas
 # python version: 3.9.13

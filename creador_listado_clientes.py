@@ -92,7 +92,7 @@ for mes in lista_meses:
     listado_clientes_L = []
     ruta_correcta = None
    
-    print("Mes a evaluar: " + str(mes) + " Versión a evaluar: " + str(version))
+    print("Mes a evaluar: " + str(mes) + "// Versión a evaluar: " + str(version))
 
     with zipfile.ZipFile(ruta_zip) as myzip:
         for i in lista_balance_fisico:
@@ -118,8 +118,14 @@ for mes in lista_meses:
                     myfile, sheet_name="Balance por Barra", header=None
                 )
 
+                # Replace (0/1) in other columns
+                df_balance_fisico.iloc[:,11] = df_balance_fisico.iloc[:,11].replace("(0/1)", "(0/1).1")
+                df_balance_fisico.iloc[:,13] = df_balance_fisico.iloc[:,13].replace("(0/1)", "(0/1).2")
+
                 # Seleted table from sheet Balance por Barra
                 df_clientes = fc.ObtencionDatos().obtencion_tablas_clientes(df_balance_fisico, 6, 2, 17)
+
+                
                 
                 # Drop Column names N if it exists
                 df_clientes = df_clientes.drop(columns="N")
@@ -232,11 +238,10 @@ for mes in lista_meses:
         )
     
     #? Update Registros Históricos
-    df_historico_clientes_L = pd.read_csv(ruta_retiros_historicos_L, sep=";", encoding='latin1',header= None)
+    df_historico_clientes_L = pd.read_csv(ruta_retiros_historicos_L, sep=";", encoding='latin1')
     #If value in first row is
-    # Convert column Mes to datetime
-    df_historico_clientes_L["Mes"] = pd.to_datetime(df_historico_clientes_L["Mes"], dayfirst=True)
-
+    # Convert column Mes to datetime with format datetime.datetime(2023, 9, 1, 0, 0)
+    df_historico_clientes_L["Mes"] = pd.to_datetime(df_historico_clientes_L["Mes"])
     if mes_fecha not in df_historico_clientes_L["Mes"].unique().tolist():
         print("Se actualiza el archivo Registro de Cambios con registro mes " + str(mes_fecha))
         t= df_historico_clientes_L["Mes"].unique().tolist()
