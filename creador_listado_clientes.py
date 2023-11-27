@@ -242,18 +242,18 @@ for mes in lista_meses:
     # Convert column Mes to datetime with format datetime.datetime(2023, 9, 1, 0, 0)
     df_historico_clientes_L["Mes"] = pd.to_datetime(df_historico_clientes_L["Mes"])
 
-    if mes_fecha  in df_historico_clientes_L["Mes"].unique().tolist():
+    if mes_fecha not in df_historico_clientes_L["Mes"].unique().tolist():
         print("Se actualiza el archivo Registro de Cambios con registro mes " + str(mes_fecha))
        
         df_retiros_historico_L_final = pd.concat(
             [df_historico_clientes_L, df_clientes_L]
         )
 
-        """  # Rewrite df_registro_cambios_empresas_final into ruta_registro_cambios_Empresas
+         # Rewrite df_registro_cambios_empresas_final into ruta_registro_cambios_Empresas
         df_retiros_historico_L_final.to_csv(
             ruta_retiros_historicos_L, sep=";", index=False
         )
-         """
+         
         #? Update and save Registro Cambios Clientes
         
         df_registro_cambios_clientes = df_retiros_historico_L_final.reset_index(drop=True)
@@ -274,7 +274,7 @@ for mes in lista_meses:
         df_registro_cambios_clientes.rename(columns={'Nombre': 'Cliente'}, inplace=True)
 
         df_registro_cambios_clientes.to_csv(
-            ruta_registro_cambios_clientes, sep=";", index=False
+            ruta_registro_cambios_clientes, sep=";", index=False,enncofing='latin1'
         )
        
 
