@@ -249,10 +249,10 @@ for mes in lista_meses:
             [df_historico_clientes_L, df_clientes_L]
         )
 
-         # Rewrite df_registro_cambios_empresas_final into ruta_registro_cambios_Empresas
+       # Rewrite df_registro_cambios_empresas_final into ruta_registro_cambios_Empresas
         df_retiros_historico_L_final.to_csv(
             ruta_retiros_historicos_L, sep=";", index=False
-        )
+        ) 
          
         #? Update and save Registro Cambios Clientes
         
@@ -264,17 +264,34 @@ for mes in lista_meses:
 
         df_registro_cambios_clientes['Mes_Actual_De_Nombre_Cliente'] = df_registro_cambios_clientes.sort_values('Mes').groupby('Clave')['Mes'].transform('last')
         
-        df_registro_cambios_clientes['Nombre'] = df_registro_cambios_clientes['Nombre'].str.strip() 
-        df_registro_cambios_clientes['Clave'] = df_registro_cambios_clientes['Clave'].str.strip()    
-        df_registro_cambios_clientes['Suministrador_final'] = df_registro_cambios_clientes['Suministrador_final'].str.strip() 
-        df_registro_cambios_clientes = df_registro_cambios_clientes.dropna(subset=['Nombre', 'Clave', 'Suministrador_final'])  # Drop rows with NaN values in specified columns
+        #Replaces Na column with -
+        df_registro_cambios_clientes['Nombre'] = df_registro_cambios_clientes['Nombre'].fillna('-')
 
-        df_registro_cambios_clientes = df_registro_cambios_clientes.drop_duplicates(subset=['Nombre', 'Clave', 'Suministrador_final'])
+        # Replace whitespace with a special character
+        cols = ['Nombre', 'Clave', 'Suministrador_final']
+        for col in cols:
+            df_registro_cambios_clientes[col] = df_registro_cambios_clientes[col].str.replace(' ', '##_#')
+
+        # Perform your operations
+        df_registro_cambios_clientes = df_registro_cambios_clientes.drop_duplicates(subset=cols, keep='last')
+
+        #Replaces Na column with -
+        df_registro_cambios_clientes['Nombre'] = df_registro_cambios_clientes['Nombre'].fillna('-')
+
+        df_registro_cambios_clientes = df_registro_cambios_clientes.dropna(subset=['Nombre','Clave','Suministrador_final']) 
+
+        df_registro_cambios_clientes = df_registro_cambios_clientes.drop_duplicates(subset=['Nombre', 'Clave', 'Suministrador_final'], keep='last')
+
+        # Replace the special character back to whitespace
+        for col in cols:
+            df_registro_cambios_clientes[col] = df_registro_cambios_clientes[col].str.replace('##_#', ' ')
+       
+       
 
         df_registro_cambios_clientes.rename(columns={'Nombre': 'Cliente'}, inplace=True)
 
         df_registro_cambios_clientes.to_csv(
-            ruta_registro_cambios_clientes, sep=";", index=False,enncofing='latin1'
+            ruta_registro_cambios_clientes, sep=";", index=False,encoding='latin1'
         )
        
 
