@@ -23,16 +23,16 @@ import funciones as func  # Se importa un módulo personalizado llamado Funcione
 warnings.filterwarnings("ignore")
 
 # Carpeta salida de archivos
-carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Recaudación\\BDD Septiembre 2023\\"
+carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Recaudación\\BDD Octubre 2023\\"
 
 # Definición de variables de año y mes
 primer_año = 2023
 último_año = 2023
-primer_mes_primer_año = 9
-último_mes_último_año = 9
+primer_mes_primer_año = 10
+último_mes_último_año = 10
 
 # Genera una lista de pares de años y meses
-pares_lista = func.generar_pares(
+pares_lista = func.ConversionDatos().generar_pares(
     primer_año, último_año, primer_mes_primer_año, último_mes_último_año
 )
 
@@ -86,7 +86,7 @@ for par in pares_lista:
         df = pd.read_excel(
             excel_file_path, sheet_name="Detalle-Clientes L", engine="openpyxl", header=None
         )
-        df = func.obtencion_Tablas(df, 11, 2)
+        df = func.ObtencionDatos().obtencion_Tablas(df, 11, 2)
         Columnas_energía = df.columns[9:]
         df[Columnas_energía] = df[Columnas_energía].replace({0: np.nan})
         df[Columnas_energía] = df[Columnas_energía].replace({np.nan: None})
@@ -133,7 +133,7 @@ for par in pares_lista:
         df_Nvs = pd.read_excel(
             excel_file_path, sheet_name="Detalle-Nvs Clientes L", engine="openpyxl", header=None
         )
-        df_Nvs = func.obtencion_Tablas(df_Nvs, 11, 2)
+        df_Nvs = func.ObtencionDatos().obtencion_Tablas(df_Nvs, 11, 2)
         Columnas_energía = df_Nvs.columns[9:]
         df_Nvs[Columnas_energía] = df_Nvs[Columnas_energía].replace({0: np.nan})
         df_Nvs[Columnas_energía] = df_Nvs[Columnas_energía].replace({np.nan: None})
@@ -181,7 +181,7 @@ for par in pares_lista:
         df_FCL = pd.read_excel(
             excel_file_path, sheet_name="Formulario-Clientes L", engine="openpyxl", header=None
         )
-        df_FCL = func.obtencion_Tablas(df_FCL, 19, 3)
+        df_FCL = func.ObtencionDatos().obtencion_Tablas(df_FCL, 19, 3)
 
         # Procesar datos de Clientes Libres
 
@@ -209,7 +209,7 @@ for par in pares_lista:
             df_FCR = pd.read_excel(
                 excel_file_path, sheet_name="Formulario-Clientes R", engine="openpyxl", header=None
             )
-            df_FCR = func.obtencion_Tablas(df_FCR, 19, 3)
+            df_FCR = func.ObtencionDatos().obtencion_Tablas(df_FCR, 19, 3)
 
             # Procesar datos de Clientes Regulados
             df_FCR_E = df_FCR.iloc[:, :11]

@@ -16,12 +16,6 @@ import entrada_datos_gui_clientes as gui
 ventana = gui.VentanaIngresoDatos()
 ventana.iniciar()
 mes = ventana.visualizador()
-
-# Open data from a ZIP file Abril-2020-R03D-1.zip in \\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Balances de Energía\Archivos Fuente\2020
-
-#mes = "Ene2020"
-# Lista Meses a Evaluar
-# Split mes into list by comma
 lista_meses = [x.strip() for x in mes.split(", ")] 
 
 #! Main Program
@@ -169,8 +163,6 @@ for mes in lista_meses:
                 listado_clientes.append(retiros_clientes)
                 listado_clientes_R.append(retiros_clientes_R)
                 listado_clientes_L.append(retiros_clientes_L)
-            
-            
 
     # Concatenate all dataframes from listado_clientes
     df_clientes = pd.concat(listado_clientes)
@@ -220,7 +212,6 @@ for mes in lista_meses:
         df_empresas_eliminadas["Suministrador_final"].to_list(),
     )
 
-
     #! Output of program
     #? Update Registro Cambios Empresas
     # If mes is not in registro_cambios by column Mes, add Columns Mes and Suministrador_final of df_clientes into registro_cambios
@@ -255,7 +246,6 @@ for mes in lista_meses:
         ) 
          
         #? Update and save Registro Cambios Clientes
-        
         df_registro_cambios_clientes = df_retiros_historico_L_final.reset_index(drop=True)
 
         df_registro_cambios_clientes = df_registro_cambios_clientes[['Nombre', 'Clave', 'Suministrador_final', 'Mes']]
@@ -285,8 +275,6 @@ for mes in lista_meses:
         # Replace the special character back to whitespace
         for col in cols:
             df_registro_cambios_clientes[col] = df_registro_cambios_clientes[col].str.replace('##_#', ' ')
-       
-       
 
         df_registro_cambios_clientes.rename(columns={'Nombre': 'Cliente'}, inplace=True)
 
@@ -294,7 +282,6 @@ for mes in lista_meses:
             ruta_registro_cambios_clientes, sep=";", index=False,encoding='latin1'
         )
        
-
     # Path to save output Listado de Clientes
     ruta_salida = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes"
 
