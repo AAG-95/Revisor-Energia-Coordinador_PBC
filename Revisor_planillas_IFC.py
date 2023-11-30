@@ -47,8 +47,7 @@ for par in pares_lista:
         + "\\"
         + str(par[1])
         + "\\00 InfoRecibida\\IFC\\"
-    ) 
-
+    )
 
     entries = os.scandir(carpeta)
 
@@ -78,13 +77,16 @@ for par in pares_lista:
     for file_name in file_list:
         print(file_name)
         excel_file_path = carpeta + file_name
-        
+
         # Obtener el nombre de la empresa
         nombre_empresa = re.findall(r"FIFC_(.*?)_RCUT", file_name)
 
         # todo Dataframe Hoja 'Detalle-Clientes L'
         df = pd.read_excel(
-            excel_file_path, sheet_name="Detalle-Clientes L", engine="openpyxl", header=None
+            excel_file_path,
+            sheet_name="Detalle-Clientes L",
+            engine="openpyxl",
+            header=None,
         )
         df = func.ObtencionDatos().obtencion_Tablas(df, 11, 2)
         Columnas_energía = df.columns[9:]
@@ -97,8 +99,6 @@ for par in pares_lista:
         # Procesar columnas numéricas para reemplazar '.' con ','
         for column in df.columns[9:]:
             df[column] = df[column].astype(str).str.replace(".", ",", regex=False)
-
-        
 
         # Convertir nombres de columnas de fecha
         timestamps = df.columns[9:]
@@ -122,16 +122,23 @@ for par in pares_lista:
 
         # Reemplazar valor SISTEMA por Sistema
         df["Zonal"] = df["Zonal"].str.replace(r"\bSISTEMA\b", "Sistema", regex=True)
-        
+
         # Agregar columna Empresa
         df = df.assign(Empresa_Planilla=nombre_empresa[0])
+
+        df["Empresa_Planilla_Recauda_Cliente"] = np.where(
+            df["Recaudador"] == df["Empresa_Planilla"], 1, 0
+        )
 
         # Agregar el dataframe a la lista
         dataframes.append(df)
 
         # todo Dataframe Hoja 'Detalle- Nvs Clientes L'
         df_Nvs = pd.read_excel(
-            excel_file_path, sheet_name="Detalle-Nvs Clientes L", engine="openpyxl", header=None
+            excel_file_path,
+            sheet_name="Detalle-Nvs Clientes L",
+            engine="openpyxl",
+            header=None,
         )
         df_Nvs = func.ObtencionDatos().obtencion_Tablas(df_Nvs, 11, 2)
         Columnas_energía = df_Nvs.columns[9:]
@@ -143,9 +150,9 @@ for par in pares_lista:
 
         # Procesar columnas numéricas para reemplazar '.' con ','
         for column in df_Nvs.columns[9:]:
-            df_Nvs[column] = df_Nvs[column].astype(str).str.replace(".", ",", regex=False)
-
-        
+            df_Nvs[column] = (
+                df_Nvs[column].astype(str).str.replace(".", ",", regex=False)
+            )
 
         # Convertir nombres de columnas de fecha
         timestamps = df_Nvs.columns[9:]
@@ -165,21 +172,32 @@ for par in pares_lista:
         )
 
         # Filtrar filas con valores no nulos
-        df_Nvs = df_Nvs[(~df_Nvs["Energía [kWh]"].isnull()) & (df_Nvs["Energía [kWh]"] != "")]
+        df_Nvs = df_Nvs[
+            (~df_Nvs["Energía [kWh]"].isnull()) & (df_Nvs["Energía [kWh]"] != "")
+        ]
 
         # Reemplazar valor SISTEMA por Sistema
-        df_Nvs["Zonal"] = df_Nvs["Zonal"].str.replace(r"\bSISTEMA\b", "Sistema", regex=True)
-       
+        df_Nvs["Zonal"] = df_Nvs["Zonal"].str.replace(
+            r"\bSISTEMA\b", "Sistema", regex=True
+        )
+
         # Agregar columna Empresa
         df_Nvs = df_Nvs.assign(Empresa_Planilla=nombre_empresa[0])
-        
+
+        df["Empresa_Planilla_Recauda_Cliente"] = np.where(
+            df["Recaudador"] == df["Empresa_Planilla"], 1, 0
+        )
+
         # Agregar el dataframe a la lista
         dataframes_Nvs.append(df_Nvs)
-        
+
         # todo Dataframe Hoja 'Formulario-Clientes L'
 
         df_FCL = pd.read_excel(
-            excel_file_path, sheet_name="Formulario-Clientes L", engine="openpyxl", header=None
+            excel_file_path,
+            sheet_name="Formulario-Clientes L",
+            engine="openpyxl",
+            header=None,
         )
         df_FCL = func.ObtencionDatos().obtencion_Tablas(df_FCL, 19, 3)
 
@@ -189,6 +207,14 @@ for par in pares_lista:
         df_FCL_E = df_FCL_E[
             (~df_FCL_E["Observación"].isnull()) & (df_FCL_E["Observación"] != "")
         ]
+        df_FCL_E["Cargo [$/kWh]"] = df_FCL_E["Cargo [$/kWh]"].str.replace(".", ",")
+        df_FCL_E["Energía Facturada [kWh]"] = df_FCL_E[
+            "Energía Facturada [kWh]"
+        ].str.replace(".", ",")
+        df_FCL_E["Recaudación [$/kWh]"] = df_FCL_E["Recaudación [$/kWh]"].str.replace(
+            ".", ","
+        )
+
         df_FCL_E = df_FCL_E.assign(Mes_Repartición=Mes_Rep)
         df_FCL_E = df_FCL_E.assign(Recaudador=nombre_empresa[0])
 
@@ -199,6 +225,7 @@ for par in pares_lista:
         ]
         df_FCL_R = df_FCL_R.assign(Mes_Repartición=Mes_Rep)
         df_FCL_R = df_FCL_R.assign(Recaudador=nombre_empresa[0])
+        df_FCL_R["Observación"] = df_FCL_R["Observación"].str.replace(".", ",")
 
         # Dataframe Hoja 'Formulario-Clientes R'
         df_FCR_E = None  # Inicializar a None
@@ -207,7 +234,10 @@ for par in pares_lista:
         # todo Intentar leer la hoja 'Formulario-Clientes R' si existe
         try:
             df_FCR = pd.read_excel(
-                excel_file_path, sheet_name="Formulario-Clientes R", engine="openpyxl", header=None
+                excel_file_path,
+                sheet_name="Formulario-Clientes R",
+                engine="openpyxl",
+                header=None,
             )
             df_FCR = func.ObtencionDatos().obtencion_Tablas(df_FCR, 19, 3)
 
@@ -219,12 +249,37 @@ for par in pares_lista:
             df_FCR_E = df_FCR_E.assign(Mes_Repartición=Mes_Rep)
             df_FCR_E = df_FCR_E.assign(Recaudador=nombre_empresa[0])
 
+            df_FCR_E["Cargo [$/kWh]"] = df_FCR_E["Cargo [$/kWh]"].str.replace(".", ",")
+            df_FCR_E["Energía Facturada [kWh]"] = df_FCR_E[
+                "Energía Facturada [kWh]"
+            ].str.replace(".", ",")
+            df_FCR_E["Recaudación [$/kWh]"] = df_FCR_E[
+                "Recaudación [$/kWh]"
+            ].str.replace(".", ",")
+
             df_FCR_R = df_FCR.iloc[:, 14:22]
             df_FCR_R = df_FCR_R[
                 (~df_FCR_R["Observación"].isnull()) & (df_FCR_R["Observación"] != "")
             ]
+
             df_FCR_R = df_FCR_R.assign(Mes_Repartición=Mes_Rep)
             df_FCR_R = df_FCR_R.assign(Recaudador=nombre_empresa[0])
+
+            df_FCR_R["Nacional"] = df_FCR_R["Nacional"].str.replace(".", ",")
+
+            df_FCR_R["Exenciones Peajes de Inyección"] = df_FCR_R[
+                "Exenciones Peajes de Inyección"
+            ].str.replace(".", ",")
+
+            df_FCR_R["Pago Peajes de Inyección"] = df_FCR_R[
+                "Pago Peajes de Inyección"
+            ].str.replace(".", ",")
+
+            df_FCR_R["Zonal"] = df_FCR_R["Zonal"].str.replace(".", ",")
+
+            df_FCR_R["SSCC"] = df_FCR_R["SSCC"].str.replace(".", ",")
+
+            df_FCR_R["Dedicado"] = df_FCR_R["Dedicado"].str.replace(".", ",")
 
         except:
             pass
@@ -241,8 +296,7 @@ for par in pares_lista:
     # Procesar los dataframes y guardar los resultados
     func.process_data(carpeta_salida, dataframes, "Revisor_Clientes", par)
 
-    func.process_data(carpeta_salida,  dataframes_Nvs, "Revisor_Clientes_Nuevos", par)
-   
+    func.process_data(carpeta_salida, dataframes_Nvs, "Revisor_Clientes_Nuevos", par)
 
     func.process_data(
         carpeta_salida, dataframes_libres_E, "Observaciones Clientes Libres", par
