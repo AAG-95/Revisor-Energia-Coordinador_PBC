@@ -14,6 +14,7 @@ import openpyxl
 import warnings
 import funciones as func  # Se importa un módulo personalizado llamado Funciones
 
+
 # Versiones de las librerías utilizadas
 # python version: 3.9.13
 # openpyxl version: 3.0.10
@@ -76,6 +77,7 @@ for par in pares_lista:
     # Procesar cada archivo encontrado
     for file_name in file_list:
         print(file_name)
+        
         excel_file_path = carpeta + file_name
 
         # Obtener el nombre de la empresa
@@ -176,7 +178,9 @@ for par in pares_lista:
             (~df_Nvs["Energía [kWh]"].isnull()) & (df_Nvs["Energía [kWh]"] != "")
         ]
 
-        # Reemplazar valor SISTEMA por Sistema
+  
+        df_Nvs["Zonal"] = df_Nvs["Zonal"].astype(str)
+    
         df_Nvs["Zonal"] = df_Nvs["Zonal"].str.replace(
             r"\bSISTEMA\b", "Sistema", regex=True
         )
@@ -207,11 +211,16 @@ for par in pares_lista:
         df_FCL_E = df_FCL_E[
             (~df_FCL_E["Observación"].isnull()) & (df_FCL_E["Observación"] != "")
         ]
+        
+        # Columnas a string
+        df_FCL_E[["Cargo [$/kWh]", "Recaudación [$]", "Energía facturada [kWh]"]] = df_FCL_E[["Cargo [$/kWh]", "Recaudación [$]", "Energía facturada [kWh]"]].astype(str)
+
+        df_FCL_E["Cargo [$/kWh]"]= df_FCL_E["Cargo [$/kWh]"].astype(str)
         df_FCL_E["Cargo [$/kWh]"] = df_FCL_E["Cargo [$/kWh]"].str.replace(".", ",")
-        df_FCL_E["Energía Facturada [kWh]"] = df_FCL_E[
-            "Energía Facturada [kWh]"
+        df_FCL_E["Energía facturada [kWh]"] = df_FCL_E[
+            "Energía facturada [kWh]"
         ].str.replace(".", ",")
-        df_FCL_E["Recaudación [$/kWh]"] = df_FCL_E["Recaudación [$/kWh]"].str.replace(
+        df_FCL_E["Recaudación [$]"] = df_FCL_E["Recaudación [$]"].str.replace(
             ".", ","
         )
 
@@ -249,12 +258,15 @@ for par in pares_lista:
             df_FCR_E = df_FCR_E.assign(Mes_Repartición=Mes_Rep)
             df_FCR_E = df_FCR_E.assign(Recaudador=nombre_empresa[0])
 
+            # Columnas a string
+            df_FCR_E[["Cargo [$/kWh]", "Recaudación [$]", "Energía facturada [kWh]"]] = df_FCR_E[["Cargo [$/kWh]", "Recaudación [$]", "Energía facturada [kWh]"]].astype(str)
+
             df_FCR_E["Cargo [$/kWh]"] = df_FCR_E["Cargo [$/kWh]"].str.replace(".", ",")
-            df_FCR_E["Energía Facturada [kWh]"] = df_FCR_E[
-                "Energía Facturada [kWh]"
+            df_FCR_E["Energía facturada [kWh]"] = df_FCR_E[
+                "Energía facturada [kWh]"
             ].str.replace(".", ",")
-            df_FCR_E["Recaudación [$/kWh]"] = df_FCR_E[
-                "Recaudación [$/kWh]"
+            df_FCR_E["Recaudación [$]"] = df_FCR_E[
+                "Recaudación [$]"
             ].str.replace(".", ",")
 
             df_FCR_R = df_FCR.iloc[:, 14:22]
@@ -293,24 +305,23 @@ for par in pares_lista:
         # Eliminar dataframes para liberar memoria
         del df, df_FCL_E, df_FCL_R, df_FCR_E, df_FCR_R
 
-    # Procesar los dataframes y guardar los resultados
-    func.process_data(carpeta_salida, dataframes, "Revisor_Clientes", par)
+    # Define the list of dataframes and corresponding output file names
+    dataframes_list = [
+        (dataframes, "Revisor_Clientes"),
+        (dataframes_Nvs, "Revisor_Clientes_Nuevos"),
+        (dataframes_libres_E, "Observaciones Clientes Libres"),
+        (dataframes_libres_R, "Revisor Clientes Libres"),
+        (dataframes_regulados_E, "Observaciones Clientes Regulados"),
+        (dataframes_regulados_R, "Revisor Clientes Regulados")
+    ]
 
-    func.process_data(carpeta_salida, dataframes_Nvs, "Revisor_Clientes_Nuevos", par)
+    # Process the dataframes and save the results
+    for df, filename in dataframes_list:
+        print(filename)
+        func.ProcesamientosDeDatos().process_data(carpeta_salida, df, filename, par)
 
-    func.process_data(
-        carpeta_salida, dataframes_libres_E, "Observaciones Clientes Libres", par
-    )
-    func.process_data(
-        carpeta_salida, dataframes_libres_R, "Revisor Clientes Libres", par
-    )
-    func.process_data(
-        carpeta_salida, dataframes_regulados_E, "Observaciones Clientes Regulados", par
-    )
-    func.process_data(
-        carpeta_salida, dataframes_regulados_R, "Revisor Clientes Regulados", par
-    )
-
+    # Eliminar los dataframes para liberar memoria
+    del dataframes_list
     # Eliminar los dataframes para liberar memoria
     del (
         dataframes,
@@ -320,3 +331,4 @@ for par in pares_lista:
         dataframes_regulados_E,
         dataframes_regulados_R,
     )
+ 

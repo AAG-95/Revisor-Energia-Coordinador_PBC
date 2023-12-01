@@ -198,7 +198,7 @@ class ProcesamientosDeDatos:
             )  # Agregar '.csv' al nombre del archivo
 
         # Guardar el dataframe combinado en un archivo CSV
-        combined_df.to_csv(archivo, encoding="utf-8", index=False, sep=";")
+        combined_df.to_csv(archivo, encoding="latin1", index=False, sep=";")
 
         # Eliminar dataframes de la memoria después de guardar en CSV
         del dataframes
