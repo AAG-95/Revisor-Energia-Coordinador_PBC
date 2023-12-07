@@ -13,6 +13,7 @@ import tkinter as tk
 class ObtencionDatos:
     # Función para obtener tablas desde una hoja de cálculo
     def obtencion_Tablas(self, data_total, primera_fila, primera_columna):
+        
         primera_fila = primera_fila - 1
         primera_columna = primera_columna - 1
 
@@ -21,7 +22,7 @@ class ObtencionDatos:
 
         # Crear una lista para almacenar las filas
         rows_to_add = []
-        all_null = False  # Inicializar la variable all_null como False
+
         Contador = 0
 
         # Iterar a través de las filas
@@ -30,26 +31,17 @@ class ObtencionDatos:
             values = data_total.loc[i, selected_columns].values
             Contador += 1
 
-            # Verificar si todas las columnas son nulas
-            if pd.isnull(values).all():
-                all_null = True
-                break
-
             # Agregar la fila a la lista
             rows_to_add.append(values)
 
-        Largo_DF = len(data_total) - primera_fila
+        
 
-        # Verificar si se ha revisado la última fila
-        if Largo_DF == Contador:
-            all_null = True
+         
+        
+        # Crear un DataFrame con las filas recolectadas
+        new_rows_df = pd.DataFrame(rows_to_add, columns=selected_columns)
 
-        # Verificar si se encontraron filas con valores no nulos
-        if not all_null:
-            print("No se encontraron filas con todos los valores nulos.")
-        else:
-            # Crear un DataFrame con las filas recolectadas
-            new_rows_df = pd.DataFrame(rows_to_add, columns=selected_columns)
+        new_rows_df = new_rows_df.dropna(how="all")
 
         # Obtén la primera fila
         first_row = new_rows_df.iloc[0]

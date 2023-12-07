@@ -26,6 +26,7 @@ warnings.filterwarnings("ignore")
 # Carpeta salida de archivos
 carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Recaudación\\BDD Octubre 2023\\"
 
+
 # Definición de variables de año y mes
 primer_año = 2023
 último_año = 2023
@@ -270,6 +271,10 @@ for par in pares_lista:
             ].str.replace(".", ",")
 
             df_FCR_R = df_FCR.iloc[:, 14:22]
+            # si existe columns llamada Observación_2 cambiar el nombre a Observación
+            if "Observación_2" in df_FCR_R.columns:
+                df_FCR_R = df_FCR_R.rename(columns={"Observación_2": "SSCC"})
+
             df_FCR_R = df_FCR_R[
                 (~df_FCR_R["Observación"].isnull()) & (df_FCR_R["Observación"] != "")
             ]

@@ -27,10 +27,10 @@ carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\R
 #carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Diferencias\\2023\\Revisión Neomas Diferencias\\Información Recaudada\\"
 
 # Definición de variables de año y mes
-primer_año = 2022
+primer_año = 2023
 último_año = 2023
 primer_mes_primer_año = 11
-último_mes_último_año = 6
+último_mes_último_año = 11
 
 # Genera una lista de pares de años y meses
 pares_lista = func.ConversionDatos().generar_pares(
@@ -38,7 +38,7 @@ pares_lista = func.ConversionDatos().generar_pares(
 )
 
 # Empresas a analizar
-empresas_analizadas = ["ENGIE", "ANDINA"]
+empresas_analizadas = ["ANDINA","ENGIE"]
 
 # Listas para almacenar los dataframes resultantes
 dataframes = []  # Datos Clientes Libres
@@ -50,18 +50,19 @@ dataframes_libres_R = []
 
 # Procesar cada par de años y meses
 for par in pares_lista:
+    print(par,"dddd")
     count = 0  # Contador de archivos encontrados
 
     # Carpeta de entrada de archivos IFC por Carpeta
-    carpeta = (
+    """ carpeta = (
         r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\"
         + str(par[0])
         + "\\"
         + str(par[1])
         + "\\00 InfoRecibida\\IFC\\"
-    ) 
+    )  """
     # Carpeta de entrada de archivos IFC Individualizado
-    # carpeta = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Diferencias\\Revisión Engie y Andina Diferencias 2023\\Información Recaudada\\"
+    carpeta = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Diferencias\\2023\\Revisión Engie y Andina Diferencias\\Información Recaudada\\"
     # Obtener la lista de archivos en la carpeta
     entries = os.scandir(carpeta)
 
@@ -83,9 +84,9 @@ for par in pares_lista:
     for file_name in file_list:
         # Obtener el nombre de la empresa
         nombre_empresa = re.findall(r"FIFC_(.*?)_RCUT", file_name)
-
+ 
         if nombre_empresa[0] in empresas_analizadas:
-            print(file_name)
+            print(file_name, "aaaa")
             excel_file_path = carpeta + file_name
 
             # todo Dataframe Hoja 'Detalle-Clientes L'
@@ -93,12 +94,14 @@ for par in pares_lista:
                 excel_file_path, sheet_name="Detalle-Clientes L", engine="openpyxl", header=None
             )
             df = func.ObtencionDatos().obtencion_Tablas(df, 11, 2)
-            Columnas_energía = df.columns[9:]
-            df[Columnas_energía] = df[Columnas_energía].replace({0: np.nan})
-            df[Columnas_energía] = df[Columnas_energía].replace({np.nan: None})
-            df[Columnas_energía] = df[Columnas_energía].replace({None: np.nan})
-            df = df.dropna(subset=Columnas_energía, how="all")
-            df[Columnas_energía] = df[Columnas_energía].replace({np.nan: ""})
+            columnas_energía = df.columns[9:]
+            columnas_clientes = df.columns[:3]
+            df[columnas_energía] = df[columnas_energía].replace({0: np.nan})
+            df[columnas_energía] = df[columnas_energía].replace({np.nan: None})
+            df[columnas_energía] = df[columnas_energía].replace({None: np.nan})
+            df = df.dropna(subset=columnas_energía, how="all")
+            df = df.dropna(subset=columnas_clientes, how="all")
+            df[columnas_energía] = df[columnas_energía].replace({np.nan: ""})
 
             # Procesar columnas numéricas para reemplazar '.' con ','
             for column in df.columns[9:]:
@@ -136,12 +139,14 @@ for par in pares_lista:
                 excel_file_path, sheet_name="Detalle-Nvs Clientes L", engine="openpyxl", header=None
             )
             df_Nvs = func.ObtencionDatos().obtencion_Tablas(df_Nvs, 11, 2)
-            Columnas_energía = df_Nvs.columns[9:]
-            df_Nvs[Columnas_energía] = df_Nvs[Columnas_energía].replace({0: np.nan})
-            df_Nvs[Columnas_energía] = df_Nvs[Columnas_energía].replace({np.nan: None})
-            df_Nvs[Columnas_energía] = df_Nvs[Columnas_energía].replace({None: np.nan})
-            df_Nvs = df_Nvs.dropna(subset=Columnas_energía, how="all")
-            df_Nvs[Columnas_energía] = df_Nvs[Columnas_energía].replace({np.nan: ""})
+            columnas_energía = df_Nvs.columns[9:]
+            columnas_clientes = df_Nvs.columns[:3]
+            df_Nvs[columnas_energía] = df_Nvs[columnas_energía].replace({0: np.nan})
+            df_Nvs[columnas_energía] = df_Nvs[columnas_energía].replace({np.nan: None})
+            df_Nvs[columnas_energía] = df_Nvs[columnas_energía].replace({None: np.nan})
+            df_Nvs = df_Nvs.dropna(subset=columnas_energía, how="all")
+            df_Nvs = df_Nvs.dropna(subset=columnas_clientes, how="all")
+            df_Nvs[columnas_energía] = df_Nvs[columnas_energía].replace({np.nan: ""})
 
             # Procesar columnas numéricas para reemplazar '.' con ','
             for column in df_Nvs.columns[9:]:
