@@ -163,10 +163,10 @@ for par in pares_lista:
             ]
             
             # Seleccionar columnas relevantes y derretir el dataframe
-            selected_columns = df_Nvs.columns[:9].tolist() + [df_Nvs.columns[-1]]
+            columnas_melt = df_Nvs.columns[:9].tolist() + [df_Nvs.columns[-1]]
             df_Nvs = pd.melt(
                 df_Nvs,
-                id_vars=selected_columns,
+                id_vars= columnas_melt,
                 var_name="Mes Consumo",
                 value_name="Energía [kWh]",
             )
@@ -198,6 +198,7 @@ for par in pares_lista:
             """    df_FCL_E = df_FCL_E[
                 (~df_FCL_E["Observación"].isnull()) & (df_FCL_E["Observación"] != "")
             ] """
+            
             df_FCL_E = df_FCL_E.assign(Mes_Repartición=Mes_Rep)
             df_FCL_E = df_FCL_E.assign(Recaudador=nombre_empresa[0])
 

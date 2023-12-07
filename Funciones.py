@@ -34,17 +34,13 @@ class ObtencionDatos:
             # Agregar la fila a la lista
             rows_to_add.append(values)
 
-        
-
-         
-        
         # Crear un DataFrame con las filas recolectadas
         new_rows_df = pd.DataFrame(rows_to_add, columns=selected_columns)
 
         new_rows_df = new_rows_df.dropna(how="all")
 
         # Obtén la primera fila
-        first_row = new_rows_df.iloc[0]
+        first_row = new_rows_df.iloc[0].copy()
 
         # Inicializa un diccionario para realizar un seguimiento de las ocurrencias de valores
         value_counts = {}
@@ -55,7 +51,8 @@ class ObtencionDatos:
             if value in value_counts:
                 # Incrementa el contador y modifica el valor actual
                 value_counts[value] += 1
-                first_row[i] = f"{value}_{value_counts[value]}"
+                first_row.loc[i] = f"{value}_{value_counts[value]}"
+              
             else:
                 # Si es la primera aparición, registra el valor en el diccionario
                 value_counts[value] = 1

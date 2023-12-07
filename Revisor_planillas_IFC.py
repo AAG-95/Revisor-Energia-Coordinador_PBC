@@ -21,10 +21,11 @@ import funciones as func  # Se importa un módulo personalizado llamado Funcione
 # pandas version: 1.4.4
 
 # Deshabilitar temporalmente las advertencias
-warnings.filterwarnings("ignore")
+#warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore", message="Data Validation extension is not supported and will be removed")
 
 # Carpeta salida de archivos
-carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Recaudación\\BDD Octubre 2023\\"
+carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Recaudación\\Prueba\\"
 
 
 # Definición de variables de año y mes
@@ -157,19 +158,19 @@ for par in pares_lista:
                 df_Nvs[column].astype(str).str.replace(".", ",", regex=False)
             )
 
+        # Mes de Repartición
+        Mes_Rep = df_Nvs.columns[9]
         # Convertir nombres de columnas de fecha
         timestamps = df_Nvs.columns[9:]
         df_Nvs.columns.values[9:] = [
             datetime.strftime(timestamp, "%d-%m-%Y") for timestamp in timestamps
         ]
-        Mes_Rep = df_Nvs.columns[9]
-        df_Nvs = df_Nvs.assign(Mes_Repartición=Mes_Rep)
 
         # Seleccionar columnas relevantes y derretir el dataframe
-        selected_columns = df_Nvs.columns[:9].tolist() + [df_Nvs.columns[-1]]
+        columnas_melt = df_Nvs.columns[:9].tolist() + [df_Nvs.columns[-1]]
         df_Nvs = pd.melt(
             df_Nvs,
-            id_vars=selected_columns,
+            id_vars= columnas_melt,
             var_name="Mes Consumo",
             value_name="Energía [kWh]",
         )
@@ -179,14 +180,12 @@ for par in pares_lista:
             (~df_Nvs["Energía [kWh]"].isnull()) & (df_Nvs["Energía [kWh]"] != "")
         ]
 
-  
         df_Nvs["Zonal"] = df_Nvs["Zonal"].astype(str)
-    
         df_Nvs["Zonal"] = df_Nvs["Zonal"].str.replace(
             r"\bSISTEMA\b", "Sistema", regex=True
         )
-
-        # Agregar columna Empresa
+        
+        df_Nvs = df_Nvs.assign(Mes_Repartición=Mes_Rep)
         df_Nvs = df_Nvs.assign(Empresa_Planilla=nombre_empresa[0])
 
         df["Empresa_Planilla_Recauda_Cliente"] = np.where(
@@ -207,20 +206,21 @@ for par in pares_lista:
         df_FCL = func.ObtencionDatos().obtencion_Tablas(df_FCL, 19, 3)
 
         # Procesar datos de Clientes Libres
-
         df_FCL_E = df_FCL.iloc[:, :11]
         df_FCL_E = df_FCL_E[
             (~df_FCL_E["Observación"].isnull()) & (df_FCL_E["Observación"] != "")
         ]
-        
-        # Columnas a string
+
         df_FCL_E[["Cargo [$/kWh]", "Recaudación [$]", "Energía facturada [kWh]"]] = df_FCL_E[["Cargo [$/kWh]", "Recaudación [$]", "Energía facturada [kWh]"]].astype(str)
 
         df_FCL_E["Cargo [$/kWh]"]= df_FCL_E["Cargo [$/kWh]"].astype(str)
+
         df_FCL_E["Cargo [$/kWh]"] = df_FCL_E["Cargo [$/kWh]"].str.replace(".", ",")
+
         df_FCL_E["Energía facturada [kWh]"] = df_FCL_E[
             "Energía facturada [kWh]"
         ].str.replace(".", ",")
+
         df_FCL_E["Recaudación [$]"] = df_FCL_E["Recaudación [$]"].str.replace(
             ".", ","
         )
@@ -237,11 +237,12 @@ for par in pares_lista:
         df_FCL_R = df_FCL_R.assign(Recaudador=nombre_empresa[0])
         df_FCL_R["Observación"] = df_FCL_R["Observación"].str.replace(".", ",")
 
+     
+
+        # todo Intentar leer la hoja 'Formulario-Clientes R' si existe
         # Dataframe Hoja 'Formulario-Clientes R'
         df_FCR_E = None  # Inicializar a None
         df_FCR_R = None  # Inicializar a None
-
-        # todo Intentar leer la hoja 'Formulario-Clientes R' si existe
         try:
             df_FCR = pd.read_excel(
                 excel_file_path,
