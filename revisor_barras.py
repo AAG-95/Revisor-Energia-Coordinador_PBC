@@ -21,12 +21,12 @@ BDD_Zonal_Frecuente = r"C:/Registro Energia/BDD_Zonal_Frecuente_Barra.csv"
 BDD_Zonal_Base = r"C:/Registro Energia/BDD_Base.csv"
 BDD_Zonal_Repetido = r"C:/Registro Energia/BDD_Zonal_Repetido_Barra.csv"
 
-carpeta_entrada = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Revisiones\Revisión Recaudación\BDD Revisión Recaudación\\"
+carpeta = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Revisiones\Revisión Recaudación\BDD Revisión Recaudación\\"
 
 # todo Dataframe Hoja 'Detalle-Clientes L'
 
 df_clientes = pd.read_csv(
-    carpeta_entrada + "Revisor_Clientes_resultado.csv",
+    carpeta + "Revisor_Clientes_resultado.csv",
     sep=",",
     encoding="UTF-8",
     header=0,
@@ -36,27 +36,51 @@ sitemas_unicos = df_clientes["Zonal"].unique()
 nivel_tension_unicos = df_clientes["Nivel Tensión Zonal"].unique()
 
 # Replace 0, . na, . and - as Nan
-df_clientes["Zonal"] = df_clientes["Zonal"].replace(["0",".","na","NaN","-"], np.nan)
-
-
+df_clientes["Zonal"] = df_clientes["Zonal"].replace(
+    ["0", ".", "na", "NaN", "-"], np.nan
+)
 
 # make every value in the column upper case
 df_clientes["Zonal"] = df_clientes["Zonal"].str.upper()
 
 sitemas_unicos = df_clientes["Zonal"].unique()
 
-df_clientes['Zonal_Nivel'] = df_clientes['Zonal'] + "_" + df_clientes['Nivel Tensión Zonal']
+df_clientes["Zonal_Nivel"] = (
+    df_clientes["Zonal"] + "_" + df_clientes["Nivel Tensión Zonal"]
+)
 
-common_pair = df_clientes.groupby('Barra')['Zonal_Nivel'].apply(lambda x: x.value_counts().idxmax() if not x.value_counts().empty else None)
-
+""" 
 df_clientes_nvs = pd.read_csv(
-    carpeta_entrada + "Revisor Clientes Libres_resultado.csv",
+    carpeta + "Revisor Clientes Libres_resultado.csv",
     sep=",",
     encoding="latin1",
     header=None,
 )
+
+if df_clientes_nvs:
+    df_clientes_total = pd.concat([df_clientes, df_clientes_nvs])
+else:
+    df_clientes_total = df_clientes """
+
+df_clientes_total = df_clientes
+
+
+barras = df_clientes_total.groupby("Barra")["Zonal_Nivel"].apply(
+    lambda x: x.value_counts().idxmax() if not x.value_counts().empty else None
+).reset_index()
+
+# Split Zonal_Nivel column by _ in two columns
+barras[["Zonal", "Nivel Tensión Zonal"]] = barras[
+    "Zonal_Nivel"
+].str.split("_", expand=True)
+
+barras = barras.drop(columns=["Zonal_Nivel"])
+
+barras.to_csv(carpeta + "Sistema_por_Barra.csv", sep=";", encoding="latin1", index=False)
+print("A")
+
 """ 
-df_clientes_total = pd.concat([df_clientes, df_clientes_nvs])
+
 
 # Direcciones (Actualizar este bloque de codigos)
 Lista = []
