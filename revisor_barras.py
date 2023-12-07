@@ -76,7 +76,18 @@ barras[["Zonal", "Nivel Tensión Zonal"]] = barras[
 
 barras = barras.drop(columns=["Zonal_Nivel"])
 
+
+
+lista_sistema = ["SISTEMA A", "SISTEMA B", "SISTEMA C", "SISTEMA D", "SISTEMA E", "SISTEMA F", np.nan, "NaN", "nan"]
+
+lista_nivel_tension = ["220", "154", "110", "66", "33", "44", "23", "Tx < 25", np.nan, "NaN", "nan"]
+
+barras = barras[~(barras["Zonal"].isin(lista_sistema) | barras["Zonal"].isna())]
+
+barras = barras[~(barras["Nivel Tensión Zonal"].isin(lista_nivel_tension) | barras["Nivel Tensión Zonal"].isna())]
+
 barras.to_csv(carpeta + "Sistema_por_Barra.csv", sep=";", encoding="latin1", index=False)
+
 print("A")
 
 """ 
