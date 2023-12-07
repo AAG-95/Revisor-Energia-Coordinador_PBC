@@ -45,8 +45,9 @@ df_clientes["Zonal"] = df_clientes["Zonal"].str.upper()
 
 sitemas_unicos = df_clientes["Zonal"].unique()
 
-common_pair = df_clientes.groupby('Barra')[['Zonal', 'Nivel Tensión Zonal']].apply(lambda df: df.T.mode().T)
+df_clientes['Zonal_Nivel'] = df_clientes['Zonal'] + "_" + df_clientes['Nivel Tensión Zonal']
 
+common_pair = df_clientes.groupby('Barra')['Zonal_Nivel'].apply(lambda x: x.value_counts().idxmax() if not x.value_counts().empty else None)
 
 df_clientes_nvs = pd.read_csv(
     carpeta_entrada + "Revisor Clientes Libres_resultado.csv",
@@ -54,7 +55,7 @@ df_clientes_nvs = pd.read_csv(
     encoding="latin1",
     header=None,
 )
-
+""" 
 df_clientes_total = pd.concat([df_clientes, df_clientes_nvs])
 
 # Direcciones (Actualizar este bloque de codigos)
@@ -137,3 +138,4 @@ Repetidos = BDD.groupby("Barra").agg(["unique"])
 Repetidos.to_csv(
     BDD_Zonal_Repetido, encoding="latin1", index=True, sep=";"
 )  # Finalmente se guardan los datos unidos del mes actual más los anteriores en un CSV, con codificación 'latin1' y separados por ';'
+ """
