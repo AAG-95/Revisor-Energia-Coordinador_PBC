@@ -88,7 +88,7 @@ barras = barras[(barras["Nivel Tensión Zonal"].isin(lista_nivel_tension) | barr
 
 barras.to_csv(carpeta + "Sistema_por_Barra.csv", sep=";", encoding="latin1", index=False)
 
-print("A")
+
 
 """ 
 
