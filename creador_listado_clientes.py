@@ -11,6 +11,7 @@ from dateutil.relativedelta import relativedelta
 import openpyxl
 import os
 import entrada_datos_gui_clientes as gui
+import sys
 
 #! Month Selection
 ventana = gui.VentanaIngresoDatos()
@@ -56,6 +57,9 @@ lista_balance_fisico = [
     "REVISION_CENTRO_",
     "REVISION_SUR_",
     "REVISION_SUR_DX_",
+    "REVISION_RES_DX_SUR_",
+    "REVISION_RES_DX_NORTE_"
+
 ]
 
 # List of possible file paths
@@ -151,7 +155,7 @@ for mes in lista_meses:
                 if retiros_clientes["Suministrador_final"].isnull().values.any():
                     print("Columnas con NaN en Suministrador_Final al no coincidir con Propietario:")
                     print(retiros_clientes[retiros_clientes["Suministrador_final"].isnull()]["Propietario"].to_list())
-                    exit()
+                    sys.exit()
 
                 # retiros divided in R and L
                 retiros_clientes_R = retiros_clientes[retiros_clientes["Tipo"].isin(["R"])]
@@ -216,7 +220,7 @@ for mes in lista_meses:
     #? Update Registro Cambios Empresas
     # If mes is not in registro_cambios by column Mes, add Columns Mes and Suministrador_final of df_clientes into registro_cambios
     if mes_fecha not in df_registro_cambios_empresas["Mes"].to_list():
-        print("Se actualiza el archivo Registro de Cambios con registro mes " + str(mes_fecha))
+        print("Se actualiza el archivo Registro de Cambios de Empresas Existentes con registro mes: " + str(mes_fecha))
         df_registro_cambios_empresas_final = pd.concat(
             [df_registro_cambios_empresas, df_clientes_unique[["Suministrador_final", "Mes"]]]
         )
@@ -225,6 +229,11 @@ for mes in lista_meses:
         df_registro_cambios_empresas_final.to_csv(
             ruta_registro_cambios_empresas, sep=";", index=False
         )
+    else: 
+        print("Revisar Base De Datos de Registro de Cambios de Empresas, el Mes Actual ya fue actualizado anteriormente")
+        # End code
+        exit()  
+    
     
     #? Update Registros Históricos
     df_historico_clientes_L = pd.read_csv(ruta_retiros_historicos_L, sep=";", encoding='latin1')
@@ -234,7 +243,7 @@ for mes in lista_meses:
     df_historico_clientes_L["Mes"] = pd.to_datetime(df_historico_clientes_L["Mes"])
 
     if mes_fecha not in df_historico_clientes_L["Mes"].unique().tolist():
-        print("Se actualiza el archivo Registro de Cambios con registro mes " + str(mes_fecha))
+        print("Se actualiza el archivo Registro de Cambios Históricos con registro mes: " + str(mes_fecha))
        
         df_retiros_historico_L_final = pd.concat(
             [df_historico_clientes_L, df_clientes_L]
@@ -281,7 +290,11 @@ for mes in lista_meses:
         df_registro_cambios_clientes.to_csv(
             ruta_registro_cambios_clientes, sep=";", index=False,encoding='latin1'
         )
-       
+    else: 
+        print("Revisar Base De Datos de CLientes Históricos, el Mes Actual ya fue actualizado anteriormente")
+        # End code
+        sys.exit()  
+
     # Path to save output Listado de Clientes
     ruta_salida = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes"
 
@@ -295,6 +308,8 @@ for mes in lista_meses:
         df_clientes_R.to_excel(writer, sheet_name="Listado_Clientes_R", index=False)
 
         df_clientes_L.to_excel(writer, sheet_name="Listado_Clientes_L", index=False)
+        
+    print("Se actualiza el archivo de Listado de Clientes del mes: " + str(mes_fecha))
 
     del listado_clientes, listado_clientes_R, listado_clientes_L
    
