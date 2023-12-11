@@ -41,8 +41,8 @@ pares_lista = func.ConversionDatos().generar_pares(
 
 # Procesar cada par de años y meses
 for par in pares_lista:
-    print(par[1])
-    mes_rep = func.ConversionDatos().convertir_fecha_numeral(par[1])
+
+    mes_rep = func.ConversionDatos().convertir_numeral_datetime(par[1])
 
     count = 0  # Contador de archivos encontrados
 
@@ -56,7 +56,6 @@ for par in pares_lista:
     )
 
     entries = os.scandir(carpeta)
-
 
     # Lista para almacenar los nombres de los archivos encontrados
     file_list = []
@@ -75,8 +74,6 @@ for par in pares_lista:
             val.is_file()
             and ("VE" in val.name)
             and ("FIFC" in val.name)
-            and ("ENEL" in val.name)
-            or ("CGE" in val.name)
             and not val.name.startswith("~$")
         ):
             count += 1
@@ -121,14 +118,14 @@ for par in pares_lista:
 
         # Procesar columnas numéricas para reemplazar '.' con ','
     
-        
+
         # Convertir nombres de columnas de fecha
         timestamps = df.columns[9:]
         df.columns.values[9:] = [
             datetime.strftime(timestamp, "%d-%m-%Y") for timestamp in timestamps
         ]
     
-        mes_rep = 5
+      
 
         # Seleccionar columnas relevantes y derretir el dataframe
         selected_columns = df.columns[:9].tolist() + [df.columns[-1]]
@@ -178,8 +175,6 @@ for par in pares_lista:
                 df_Nvs[column].astype(str).str.replace(".", ",", regex=False)
             )
 
-        # Mes de Repartición
-        mes_rep = 5
         # Convertir nombres de columnas de fecha
         timestamps = df_Nvs.columns[9:]
         df_Nvs.columns.values[9:] = [
@@ -359,4 +354,4 @@ for par in pares_lista:
         dataframes_regulados_E,
         dataframes_regulados_R, 
     )
- """
+ """ 

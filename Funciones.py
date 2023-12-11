@@ -264,11 +264,6 @@ class ProcesamientosDeDatos:
             print(f"{Nombre} Correcto")
         else:
             print(f"Error en {Nombre}")
-    
-    
-
-
-
 
 class ConversionDatos:
     # Define a function to convert month abbreviations to date, example input: "Ene20"
@@ -311,6 +306,14 @@ class ConversionDatos:
         year = int(Mes[-2:])
         return str(year) + str(month)
     
+    def convertir_numeral_datetime(self, Mes):
+        ## Define a function to convert month abbreviations as for example "2403" converts to datetime day 01 (for all cases), month 03, and year 2024
+        Mes = str(Mes)
+        month = int(Mes[-2:])
+        year = int(Mes[:2])
+        return datetime(year, month, 1)
+             
+
 
     # Función para generar una lista de pares de años y meses
     def generar_pares(self, primer_año, último_año, primer_mes_primer_año, último_mes_último_año):
