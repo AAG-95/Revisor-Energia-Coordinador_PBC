@@ -34,12 +34,13 @@ for par in pares_lista:
     )
 
     # Nueva columna concateando columnas Barra, Clave y Suministrador_Final
-    df_energia["Barra-Clave-Suministrador"] = (
+    df_energia["Barra-Clave-Suministrador-Mes"] = (
         df_energia["Barra"].astype(str)
-        + "-"
+        + "-_-"
         + df_energia["Clave"].astype(str)
-        + "-"
+        + "-_-"
         + df_energia["Suministrador_final"].astype(str)
+        
     )
 
     df_recaudacion = pd.read_csv(
@@ -59,12 +60,23 @@ for par in pares_lista:
         df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 1
     ]
 
-    df_recaudacion["Barra-Clave-Suministrador"] = (
+
+    df_recaudacion["Barra-Clave-Suministrador-Mes"] = (
         df_recaudacion["Barra"].astype(str)
-        + "-"
+        + "-_-"
         + df_recaudacion["Clave"].astype(str)
-        + "-"
+        + "-_-"
         + df_recaudacion["Recaudador"].astype(str)
+        
     )
+    
+    # Add column Energía [kWh] from df_recaudación into 
+    # df_energía by column Barra-Clave-Suministrador-Mes. Conservar Columna Barra-Clave-Suministrador-Mes
+    df_combinado = pd.merge(df_energia, df_recaudacion[["Barra-Clave-Suministrador-Mes", "Energía [kWh]"]], on="Barra-Clave-Suministrador-Mes", how="left")
+
+    print(df_energia["Barra-Clave-Suministrador-Mes"].unique())
+    print(df_recaudacion["Barra-Clave-Suministrador-Mes"].unique())
+    print(df_combinado["Barra-Clave-Suministrador-Mes"])
+
 
     a = 5
