@@ -394,4 +394,5 @@ for mes in lista_meses:
 
     print("Se actualiza el archivo de Listado de Clientes del mes: " + str(mes_fecha))
 
-    del listado_clientes, listado_clientes_R, listado_clientes_L
+    del listado_clientes, listado_clientes_R, 
+    listado_clientes_L

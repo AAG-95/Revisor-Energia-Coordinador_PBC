@@ -61,7 +61,7 @@ for par in pares_lista:
     file_list = []
 
     # Listas para almacenar los dataframes resultantes
-    dataframes = []  # Datos Clientes Libres
+    dataframes = []  # Datos Clientes Libre s
     dataframes_Nvs = []  # Datos Clientes Libres
     dataframes_regulados_E = []
     dataframes_regulados_R = []
@@ -93,9 +93,6 @@ for par in pares_lista:
        
         # Obtener el nombre de la empresa
         nombre_empresa = re.findall(r"FIFC_(.*?)_RCUT", file_name)
-        
-        
-        
       
         # todo Dataframe Hoja 'Detalle-Clientes L'
         df = pd.read_excel(

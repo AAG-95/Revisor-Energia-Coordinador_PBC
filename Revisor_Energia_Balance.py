@@ -12,7 +12,7 @@ from datetime import datetime
 import numpy as np
 import openpyxl
 import warnings
-import Funciones as func  # Se importa un módulo personalizado llamado Funciones
+import funciones as func  # Se importa un módulo personalizado llamado Funciones
 
 # Versiones de las librerías utilizadas
 # python version: 3.9.13
@@ -27,10 +27,10 @@ carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\R
 
 # Definición de variables de año y mes
 primer_año = 2023
-último_año = 2023
 primer_mes_primer_año = 1
-último_mes_último_año = 7
 
+último_año = 2023
+último_mes_último_año = 7
 
 # Genera una lista de pares de años y meses
 pares_lista = func.generar_pares(
@@ -43,7 +43,6 @@ fechas = [i[1] for i in pares_lista]
 carpeta_entrada = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\2023\Balances\\"
 # Lista para almacenar los nombres de los archivos encontrados
 archivos = []
-
 
 # Obtener la lista de archivos en la carpeta
 entries = os.scandir(carpeta_entrada)
