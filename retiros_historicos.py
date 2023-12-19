@@ -1,40 +1,61 @@
 import pandas as pd
 import glob
+import funciones as fc
+import os
 
-ruta_balances = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes"
+ruta_balances_clientes_libres = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes"
 
-# List of years from 2021 to 2023
-years = [str(i) for i in range(20, 24)]
+ruta_balances_historicos_clientes_L = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Registro Histórico Clientes"
 
-# List of months from 01 to 12
-months = [str(i).zfill(2) for i in range(1, 13)]
+# Definición de variables de año y mes
+primer_año = 2023
+primer_mes_primer_año = 1
 
-# Combine years and months
-year_month = [y + m for y in years for m in months]
+último_año = 2023
+último_mes_último_año = 7
 
-# Filter the list to include only the months from February 2021 to September 2023
-year_month = [ym for ym in year_month if ym >= "2001" and ym <= "2309"]
+# Genera una lista de pares de años y meses
+pares_lista = fc.ConversionDatos().generar_pares(
+    primer_año, último_año, primer_mes_primer_año, último_mes_último_año
+)
 
+#! Listado meses 
 # Convert values
-
-print(year_month)
-
 dataframe = []
-
-for i in year_month:
-    df = pd.read_excel(ruta_balances + f"\Retiros_{i}.xlsx", sheet_name="Listado_Clientes_L")
+for pair in pares_lista:
+    
+    i = pair[1]
+    df_mes = pd.read_excel(ruta_balances_clientes_libres + f"\Retiros_{i}.xlsx", sheet_name="Listado_Clientes_L")
     # Get first 18 columns
-    df = df.iloc[:, :18]
+    df_mes = df_mes.iloc[:, :18]
     # Erase emprty rows
-    df = df.dropna(how="all")
-    dataframe.append(df)
-    print(df)
-dataframe = pd.concat(dataframe)
+    df_mes = df_mes.dropna(how="all")
+    dataframe.append(df_mes)
+    
+#! Dataframes históricos
+if os.path.isfile(ruta_balances_historicos_clientes_L + "\Retiros_Históricos_Clientes_L.csv"):
+
+    df_historico = pd.read_csv(ruta_balances_historicos_clientes_L + "\Retiros_Históricos_Clientes_L.csv", sep=";", encoding = "UTF-8" )
+else:
+    print(f"File does not exist: {ruta_balances_historicos_clientes_L}")
+    df_histórico = pd.DataFrame()
+
+valores_mes = df_historico["Mes"].unique()
+
+# Verificar si el mes de cada df de mes ya se encuentra en el histórico
+
+#! Unión de Dataframes
+for i in dataframe:
+    mes = i["Mes"].unique()[0]
+    if mes in valores_mes:
+        print(f"El mes {mes} ya se encuentra en el histórico")
+    else: 
+        df_historico = pd.concat([df_historico, i])
+            
 ruta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes"
 
-
-dataframe.to_excel(
-    ruta_salida + "\\" + "Retiros_histórico_Clientes_L (Actualizado a 22-11-2023)" + ".xlsx",
+df_historico.to_excel(
+    ruta_salida + "\\" + "Prueba_Históricos_Clientes_L" + ".xlsx",
     engine="openpyxl",
     index=False,
 )
