@@ -12,7 +12,7 @@ primer_año = 2023
 primer_mes_primer_año = 1
 
 último_año = 2023
-último_mes_último_año = 7
+último_mes_último_año = 10
 
 # Genera una lista de pares de años y meses
 pares_lista = fc.ConversionDatos().generar_pares(
@@ -46,16 +46,24 @@ valores_mes = df_historico["Mes"].unique()
 
 #! Unión de Dataframes
 for i in dataframe:
-    mes = i["Mes"].unique()[0]
+    mes = str(i["Mes"].unique()[0].date().strftime('%d-%m-%Y')) 
     if mes in valores_mes:
-        print(f"El mes {mes} ya se encuentra en el histórico")
+        print(f"El mes {mes} ya se encuentra en el histórico del balance de energía")
     else: 
-        df_historico = pd.concat([df_historico, i])
-            
-ruta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes"
+        # List of columns where you want to replace the character
+        columnas_numericas = ['Medida 1','(0/1)','Medida 2','(0/1).1','Medida 3','(0/1).2','Error','Cálculo']  # replace with your column names
 
-df_historico.to_excel(
-    ruta_salida + "\\" + "Prueba_Históricos_Clientes_L" + ".xlsx",
-    engine="openpyxl",
-    index=False,
-)
+        # Replace "." with "," in the selected columns
+        for column in columnas_numericas:
+            i[column] = i[column].astype(str).str.replace(".", ",")
+        i["Mes"] = i["Mes"].dt.strftime('%d-%m-%Y')   
+
+        df_historico = pd.concat([df_historico, i])
+        print(f"Se incorpora el mes {mes} en el histórico del balance de energía")
+
+#! Salida de archivo retiros históricos        
+ruta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Registro Histórico Clientes"
+
+df_historico.to_csv(
+    ruta_salida + "\\" + "Prueba_Históricos_Clientes_L" + ".csv",
+    sep=";", encoding="UTF-8", index=False)
