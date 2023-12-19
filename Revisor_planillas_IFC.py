@@ -36,6 +36,8 @@ pares_lista = func.ConversionDatos().generar_pares(
     primer_año, último_año, primer_mes_primer_año, último_mes_último_año
 )
 
+
+
 # Procesar cada par de años y meses
 for par in pares_lista:
 

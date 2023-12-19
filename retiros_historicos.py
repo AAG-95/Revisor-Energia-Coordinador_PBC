@@ -36,14 +36,15 @@ for pair in pares_lista:
 if os.path.isfile(ruta_balances_historicos_clientes_L + "\Retiros_Históricos_Clientes_L.csv"):
 
     df_historico = pd.read_csv(ruta_balances_historicos_clientes_L + "\Retiros_Históricos_Clientes_L.csv", sep=";", encoding = "UTF-8" )
+    valores_mes = df_historico["Mes"].unique()
 else:
-    print(f"File does not exist: {ruta_balances_historicos_clientes_L}")
-    df_histórico = pd.DataFrame()
+    print(f"No existe BDD de Retiros de Energía Histórica en: {ruta_balances_historicos_clientes_L}")
+    df_historico = pd.DataFrame()
+    valores_mes = []
 
 valores_mes = df_historico["Mes"].unique()
 
 # Verificar si el mes de cada df de mes ya se encuentra en el histórico
-
 #! Unión de Dataframes
 for i in dataframe:
     mes = str(i["Mes"].unique()[0].date().strftime('%d-%m-%Y')) 
