@@ -6,6 +6,7 @@ Created on Tue Jul 18 11:12:18 2023
 
 # Importación de librerías necesarias
 import os
+import sys
 import pandas as pd
 import re
 from datetime import datetime
@@ -24,14 +25,10 @@ import funciones as func  # Se importa un módulo personalizado llamado Funcione
 #warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", message="Data Validation extension is not supported and will be removed")
 
-# Carpeta salida de archivos
-carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Recaudación\\Prueba\\"
-
-
 # Definición de variables de año y mes
 primer_año = 2023
+primer_mes_primer_año = 9
 último_año = 2023
-primer_mes_primer_año = 10
 último_mes_último_año = 10
 
 # Genera una lista de pares de años y meses
@@ -114,16 +111,12 @@ for par in pares_lista:
         df[Columnas_energía] = df[Columnas_energía].replace({np.nan: ""})
 
         # Procesar columnas numéricas para reemplazar '.' con ','
-    
-
         # Convertir nombres de columnas de fecha
         timestamps = df.columns[9:]
         df.columns.values[9:] = [
             datetime.strftime(timestamp, "%d-%m-%Y") for timestamp in timestamps
         ]
     
-      
-
         # Seleccionar columnas relevantes y derretir el dataframe
         selected_columns = df.columns[:9].tolist() + [df.columns[-1]]
 
@@ -138,7 +131,7 @@ for par in pares_lista:
         df["Energía [kWh]"] = df["Energía [kWh]"].astype(str).str.replace(".", ",", regex=False)
 
         # Reemplazar valor SISTEMA por Sistema
-        df["Zonal"] = df["Zonal"].str.replace(r"\bSISTEMA\b", "Sistema", regex=True)
+        df["Zonal"] = df["Zonal"].astype(str).str.replace(r"\bSISTEMA\b", "Sistema", regex=True)
 
         # Agregar columnas
         df = df.assign(mes_repartición=mes_rep)
@@ -192,8 +185,7 @@ for par in pares_lista:
             (~df_Nvs["Energía [kWh]"].isnull()) & (df_Nvs["Energía [kWh]"] != "")
         ]
 
-        df_Nvs["Zonal"] = df_Nvs["Zonal"].astype(str)
-        df_Nvs["Zonal"] = df_Nvs["Zonal"].str.replace(
+        df_Nvs["Zonal"] = df_Nvs["Zonal"].astype(str).str.replace(
             r"\bSISTEMA\b", "Sistema", regex=True
         )
         
@@ -225,29 +217,28 @@ for par in pares_lista:
 
         df_FCL_E[["Cargo [$/kWh]", "Recaudación [$]", "Energía facturada [kWh]"]] = df_FCL_E[["Cargo [$/kWh]", "Recaudación [$]", "Energía facturada [kWh]"]].astype(str)
 
-        df_FCL_E["Cargo [$/kWh]"]= df_FCL_E["Cargo [$/kWh]"].astype(str)
-
-        df_FCL_E["Cargo [$/kWh]"] = df_FCL_E["Cargo [$/kWh]"].str.replace(".", ",")
+        df_FCL_E["Cargo [$/kWh]"] = df_FCL_E["Cargo [$/kWh]"].astype(str).str.replace(".", ",")
 
         df_FCL_E["Energía facturada [kWh]"] = df_FCL_E[
             "Energía facturada [kWh]"
-        ].str.replace(".", ",")
+        ].astype(str).str.replace(".", ",")
 
-        df_FCL_E["Recaudación [$]"] = df_FCL_E["Recaudación [$]"].str.replace(
+        df_FCL_E["Recaudación [$]"] = df_FCL_E["Recaudación [$]"].astype(str).str.replace(
             ".", ","
         )
 
         df_FCL_E = df_FCL_E.assign(mes_repartición=mes_rep)
         df_FCL_E = df_FCL_E.assign(Recaudador=nombre_empresa[0])
 
-        # Procesar datos de Clientes Regulados
-        df_FCL_R = df_FCL.iloc[:, 14:18]
+        # Revisor de Formulario Clientes Libres
+        df_FCL_R = df_FCL.iloc[:, 15:18]
         df_FCL_R = df_FCL_R[
             (~df_FCL_R["Observación"].isnull()) & (df_FCL_R["Observación"] != "")
         ]
         df_FCL_R = df_FCL_R.assign(mes_repartición=mes_rep)
         df_FCL_R = df_FCL_R.assign(Recaudador=nombre_empresa[0])
-        df_FCL_R["Observación"] = df_FCL_R["Observación"].str.replace(".", ",")
+        
+        df_FCL_R["Observación"] = df_FCL_R["Observación"].astype(str).str.replace(".", ",")
 
         # todo Intentar leer la hoja 'Formulario-Clientes R' si existe
         # Dataframe Hoja 'Formulario-Clientes R'
@@ -275,13 +266,13 @@ for par in pares_lista:
             # Columnas a string
             df_FCR_E[["Cargo [$/kWh]", "Recaudación [$]", "Energía facturada [kWh]"]] = df_FCR_E[["Cargo [$/kWh]", "Recaudación [$]", "Energía facturada [kWh]"]].astype(str)
 
-            df_FCR_E["Cargo [$/kWh]"] = df_FCR_E["Cargo [$/kWh]"].str.replace(".", ",")
+            df_FCR_E["Cargo [$/kWh]"] = df_FCR_E["Cargo [$/kWh]"].astype(str).str.replace(".", ",")
             df_FCR_E["Energía facturada [kWh]"] = df_FCR_E[
                 "Energía facturada [kWh]"
-            ].str.replace(".", ",")
+            ].astype(str).str.replace(".", ",")
             df_FCR_E["Recaudación [$]"] = df_FCR_E[
                 "Recaudación [$]"
-            ].str.replace(".", ",")
+            ].astype(str).str.replace(".", ",")
 
             df_FCR_R = df_FCR.iloc[:, 14:22]
             # si existe columns llamada Observación_2 cambiar el nombre a Observación
@@ -295,21 +286,19 @@ for par in pares_lista:
             df_FCR_R = df_FCR_R.assign(mes_repartición=mes_rep)
             df_FCR_R = df_FCR_R.assign(Recaudador=nombre_empresa[0])
 
-            df_FCR_R["Nacional"] = df_FCR_R["Nacional"].str.replace(".", ",")
+            df_FCR_R["Nacional"] = df_FCR_R["Nacional"].astype(str).str.replace(".", ",")
 
-            df_FCR_R["Exenciones Peajes de Inyección"] = df_FCR_R[
-                "Exenciones Peajes de Inyección"
-            ].str.replace(".", ",")
+            df_FCR_R["Exenciones Peajes de Inyección"] = df_FCR_R["Exenciones Peajes de Inyección"].astype(str).str.replace(".", ",")
 
             df_FCR_R["Pago Peajes de Retiros"] = df_FCR_R[
                 "Pago Peajes de Retiros"
-            ].str.replace(".", ",")
+            ].astype(str).str.replace(".", ",")
 
-            df_FCR_R["Zonal"] = df_FCR_R["Zonal"].str.replace(".", ",")
+            df_FCR_R["Zonal"] = df_FCR_R["Zonal"].astype(str).str.replace(".", ",")
 
-            df_FCR_R["SSCC"] = df_FCR_R["SSCC"].str.replace(".", ",")
+            df_FCR_R["SSCC"] = df_FCR_R["SSCC"].astype(str).str.replace(".", ",")
 
-            df_FCR_R["Dedicado"] = df_FCR_R["Dedicado"].str.replace(".", ",")
+            df_FCR_R["Dedicado"] = df_FCR_R["Dedicado"].astype(str).str.replace(".", ",")
             
             dataframes_regulados_E.append(df_FCR_E)
             dataframes_regulados_R.append(df_FCR_R)
@@ -334,11 +323,20 @@ for par in pares_lista:
         (dataframes_regulados_R, "Revisor Clientes Regulados")
     ]
 
-""" 
+
     # Process the dataframes and save the results
     for df, filename in dataframes_list:
         print(filename)
-        func.ProcesamientosDeDatos().process_data(carpeta_salida, df, filename, par)
+        # Carpeta salida de archivos
+        carpeta_salida = rf"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Recaudación\\"
+        
+        # Create Folder in carpeta_Salida with name "BDD"
+        if not os.path.exists(carpeta_salida + "BDD"):
+            os.makedirs(carpeta_salida + "BDD_" + str(par[1]), exist_ok=True)
+        else:
+            sys.exit("La carpeta BDD_" + str(par[1]) + "ya existe")
+
+        func.ProcesamientosDeDatos().process_data(carpeta_salida + "BDD_" + str(par[1]) + "\\", df, filename, par)
 
     # Eliminar los dataframes para liberar memoria
     del dataframes_list
@@ -351,4 +349,4 @@ for par in pares_lista:
         dataframes_regulados_E,
         dataframes_regulados_R, 
     )
- """ 
+ 

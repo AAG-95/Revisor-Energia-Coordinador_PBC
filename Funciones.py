@@ -187,7 +187,7 @@ class ProcesamientosDeDatos:
             )  # Agregar '.csv' al nombre del archivo
 
         # Guardar el dataframe combinado en un archivo CSV
-        combined_df.to_csv(archivo, encoding="latin1", index=False, sep=";")
+        combined_df.to_csv(archivo, encoding="UTF-8", index=False, sep=";")
 
         # Eliminar dataframes de la memoria después de guardar en CSV
         del dataframes
@@ -311,6 +311,7 @@ class ConversionDatos:
         Mes = str(Mes)
         month = int(Mes[-2:])
         year = int(Mes[:2])
+        year = year + 2000
         return datetime(year, month, 1)
              
 
