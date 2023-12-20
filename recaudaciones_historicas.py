@@ -70,7 +70,6 @@ for par in pares_lista:
 
     dataframe_revisor_clientes_R.append(df_revisor_clientes_R)
 
-    dataframe_revisor_clientes_R.append(df_revisor_clientes_R )
 
 #! Dataframes históricos
     
@@ -101,7 +100,6 @@ lista_nombre_archivos = ["BDD Clientes Históricos.csv", "BDD Observaciones Hist
 for idx, (dataframe, nombre_archivo) in enumerate(zip(lista_dataframes, lista_nombre_archivos)):
     print(f"Actualización archivo {nombre_archivo}")
     for i in dataframe:
-        print(i)
         # Verificar que el dataframe no esté vacío
         meses_unicos = i["mes_repartición"].unique()
         if len(meses_unicos) > 0:
