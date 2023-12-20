@@ -27,7 +27,7 @@ warnings.filterwarnings("ignore", message="Data Validation extension is not supp
 
 # Definición de variables de año y mes
 primer_año = 2023
-primer_mes_primer_año = 9
+primer_mes_primer_año = 2
 último_año = 2023
 último_mes_último_año = 10
 
@@ -317,12 +317,12 @@ for par in pares_lista:
 
     # Define the list of dataframes and corresponding output file names
     dataframes_list = [
-        (dataframes, "Revisor_Clientes"),
-        (dataframes_Nvs, "Revisor_Clientes_Nuevos"),
-        (dataframes_libres_E, "Observaciones Clientes Libres"),
-        (dataframes_libres_R, "Revisor Clientes Libres"),
-        (dataframes_regulados_E, "Observaciones Clientes Regulados"),
-        (dataframes_regulados_R, "Revisor Clientes Regulados")
+        (dataframes, "Clientes_"),
+        (dataframes_Nvs, "Clientes_Nuevos_"),
+        (dataframes_libres_E, "Observaciones Clientes Libres_"),
+        (dataframes_libres_R, "Revisor Clientes Libres_"),
+        (dataframes_regulados_E, "Observaciones Clientes Regulados_"),
+        (dataframes_regulados_R, "Revisor Clientes Regulados_")
     ]
 
 
@@ -330,7 +330,7 @@ for par in pares_lista:
     for df, filename in dataframes_list:
         print(filename)
         # Carpeta salida de archivos
-        carpeta_salida = rf"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Recaudación\\"
+        carpeta_salida = rf"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Recaudación\\Revisiones Mensuales\\"
         
         # Create Folder in carpeta_Salida with name "BDD"
         if not os.path.exists(carpeta_salida + "BDD"):
