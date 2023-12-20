@@ -21,7 +21,7 @@ import funciones as func  # Se importa un módulo personalizado llamado Funcione
 primer_año = 2020
 primer_mes_primer_año = 6
 último_año = 2020
-último_mes_último_año = 10
+último_mes_último_año = 8
 
 # Genera una lista de pares de años y meses
 pares_lista = func.ConversionDatos().generar_pares(
@@ -35,6 +35,7 @@ dataframe_clientes = []
 dataframe_observaciones = []
 dataframe_revisor_clientes_L = []
 dataframe_revisor_clientes_R = []
+meses_rep = []
 
 for par in pares_lista:
 
@@ -44,6 +45,7 @@ for par in pares_lista:
     df_nvs_clientes_L = pd.read_csv(carpeta_entrada + "Revisiones Mensuales\\BDD_" + str(par[1]) +"\\" + "Clientes_Nuevos_" + str(par[1]) + ".csv" , encoding="UTF-8", sep=";", header=0)
 
     df_clientes_L_total = pd.concat([df_clientes_L, df_nvs_clientes_L], ignore_index=True)
+    
 
     dataframe_clientes.append(df_clientes_L_total)
     
@@ -69,7 +71,9 @@ for par in pares_lista:
     df_revisor_clientes_R = pd.read_csv(carpeta_entrada + "Revisiones Mensuales\\BDD_" + str(par[1]) +"\\" + "Revisor Clientes Regulados_" + str(par[1]) + ".csv" , encoding="UTF-8", sep=";", header=0)
 
     dataframe_revisor_clientes_R.append(df_revisor_clientes_R)
-
+    
+    mes_rep = str(df_clientes_L["mes_repartición"].unique()[0])
+    meses_rep.append(mes_rep)
 
 #! Dataframes históricos
     
@@ -92,28 +96,29 @@ for idx, nombre_archivo in enumerate(lista_nombre_archivos):
 
 #! Unión de Dataframes
 # Verificar si el mes de cada df de mes ya se encuentra en el histórico
-lista_dataframes = [dataframe_clientes, dataframe_observaciones, dataframe_revisor_clientes_L, dataframe_revisor_clientes_R]
+lista_dataframes_mes_analizado = [dataframe_clientes, dataframe_observaciones, dataframe_revisor_clientes_L, dataframe_revisor_clientes_R]
 
 lista_nombre_archivos = ["BDD Clientes Históricos.csv", "BDD Observaciones Históricas.csv", "BDD Revisor Clientes L Históricos.csv", "BDD Revisor Clientes R Históricos.csv"]
 
 # Verificar si el mes de cada df de mes ya se encuentra en el histórico, si no, se incorpora
-for idx, (dataframe, nombre_archivo) in enumerate(zip(lista_dataframes, lista_nombre_archivos)):
+for idx, (lista_dataframe, nombre_archivo) in enumerate(zip(lista_dataframes_mes_analizado, lista_nombre_archivos)):
     print(f"Actualización archivo {nombre_archivo}")
-    for i in dataframe:
+    
+    for i, mes_rep in zip(lista_dataframe, meses_rep):
         # Verificar que el dataframe no esté vacío
         meses_unicos = i["mes_repartición"].unique()
-        if len(meses_unicos) > 0:
-            mes = str(i["mes_repartición"].unique()[0])
+        if len(meses_unicos) > 0 :
+            mes_df = str(i["mes_repartición"].unique()[0])
         else:
-            mes = []
-
+            print(len(meses_unicos))
+            df_vacio = True
+           
         # Verificar si el mes de cada df de mes ya se encuentra en el histórico            
-        if mes in valores_mes:
-            print(f"El mes {mes} ya se encuentra en el histórico de la Recaudación")
+        if mes_df in valores_mes or df_vacio:
+            print(f"El mes {mes_rep} ya se encuentra en el en el histórico de la {nombre_archivo} o es un dataframe vacío")
         else: 
             lista_df_historicos[idx] = pd.concat([lista_df_historicos[idx], i])
-            print(f"Se incorpora el mes {mes} en el histórico de la {nombre_archivo}")
-
+            print(f"Se incorpora el mes {mes_df} en el histórico de la {nombre_archivo}")
 
 #! Salida de archivo retiros históricos        
 carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Recaudación\\Revisión Histórica\\" 
