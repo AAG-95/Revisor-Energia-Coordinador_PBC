@@ -69,7 +69,7 @@ df_recaudacion["Barra-Clave-Suministrador-Mes"] = (
 )
 
 # Mantain only column Barra-Clave-Suministrador-Mes and Energía [kWh]
-df_recaudacion = df_recaudacion[["Barra-Clave-Suministrador-Mes", "Energía [kWh]"]]
+df_recaudacion = df_recaudacion[["Barra-Clave-Suministrador-Mes", "Energía [kWh]", "mes_repartición"]]
 
 # Add column Energía [kWh] from df_recaudación into
 # df_energía by column Barra-Clave-Suministrador-Mes. Conservar Columna Barra-Clave-Suministrador-Mes

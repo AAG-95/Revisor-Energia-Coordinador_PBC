@@ -20,8 +20,8 @@ import funciones as func  # Se importa un módulo personalizado llamado Funcione
 # Definición de variables de año y mes
 primer_año = 2020
 primer_mes_primer_año = 6
-último_año = 2020
-último_mes_último_año = 8
+último_año = 2023
+último_mes_último_año = 10
 
 # Genera una lista de pares de años y meses
 pares_lista = func.ConversionDatos().generar_pares(
@@ -101,6 +101,9 @@ lista_dataframes_mes_analizado = [dataframe_clientes, dataframe_observaciones, d
 lista_nombre_archivos = ["BDD Clientes Históricos.csv", "BDD Observaciones Históricas.csv", "BDD Revisor Clientes L Históricos.csv", "BDD Revisor Clientes R Históricos.csv"]
 
 # Verificar si el mes de cada df de mes ya se encuentra en el histórico, si no, se incorpora
+
+df_vacio = False
+
 for idx, (lista_dataframe, nombre_archivo) in enumerate(zip(lista_dataframes_mes_analizado, lista_nombre_archivos)):
     print(f"Actualización archivo {nombre_archivo}")
     
