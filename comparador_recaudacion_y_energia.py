@@ -22,7 +22,6 @@ pares_lista = fc.ConversionDatos().generar_pares(
     primer_año, último_año, primer_mes_primer_año, último_mes_último_año
 )
 
-
 # Archivo de recaudación
 df_energia = pd.read_csv(
     carpeta_energia + "Retiros_Históricos_Clientes_L.csv",
@@ -66,7 +65,7 @@ df_recaudacion["Barra-Clave-Suministrador-Mes"] = (
     + "-_-"
     + df_recaudacion["Recaudador"].astype(str)
     + "-_-"
-    + df_recaudacion["mes_repartición"].astype(str)
+    + df_recaudacion["Mes Consumo"].astype(str)
 )
 
 # Mantain only column Barra-Clave-Suministrador-Mes and Energía [kWh]
@@ -84,7 +83,6 @@ df_combinado = pd.merge(
 print(df_energia["Barra-Clave-Suministrador-Mes"].unique())
 print(df_recaudacion["Barra-Clave-Suministrador-Mes"].unique())
 print(df_combinado["Barra-Clave-Suministrador-Mes"])
-
 
 # change column name Energía [kWh] to Energía Recaudada [kWh] and make all values negative
 df_combinado.rename(columns={"Energía [kWh]": "Energía Declarada [kWh]"}, inplace=True)
