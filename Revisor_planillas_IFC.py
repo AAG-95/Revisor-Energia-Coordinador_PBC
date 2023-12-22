@@ -27,9 +27,9 @@ warnings.filterwarnings("ignore", message="Data Validation extension is not supp
 
 # Definición de variables de año y mes
 primer_año = 2023
-primer_mes_primer_año = 2
+primer_mes_primer_año = 6
 último_año = 2023
-último_mes_último_año = 10
+último_mes_último_año = 6
 
 # Genera una lista de pares de años y meses
 pares_lista = func.ConversionDatos().generar_pares(
@@ -73,6 +73,7 @@ for par in pares_lista:
             val.is_file()
             and ("VE" in val.name)
             and ("FIFC" in val.name)
+            and ("COLBUN" in val.name)
             and not val.name.startswith("~$")
         ):
             count += 1
@@ -142,7 +143,9 @@ for par in pares_lista:
         df["Empresa_Planilla_Recauda_Cliente"] = np.where(
             df["Recaudador"] == df["Empresa_Planilla"], 1, 0
         )
-
+        
+        # Eliminar filas con valores nulos en las columnas Barra, Clave y Suministrador
+        df.dropna(subset=["Barra", "Clave", "Suministrador"], inplace=True)
         # Agregar el dataframe a la lista
         dataframes.append(df)
 
@@ -194,9 +197,12 @@ for par in pares_lista:
         df_Nvs = df_Nvs.assign(mes_repartición=mes_rep)
         df_Nvs = df_Nvs.assign(Empresa_Planilla=nombre_empresa[0])
 
-        df["Empresa_Planilla_Recauda_Cliente"] = np.where(
-            df["Recaudador"] == df["Empresa_Planilla"], 1, 0
+        df_Nvs["Empresa_Planilla_Recauda_Cliente"] = np.where(
+            df_Nvs["Recaudador"] == df_Nvs["Empresa_Planilla"], 1, 0
         )
+        
+        # Eliminar filas con valores nulos en las columnas Barra, Clave y Suministrador
+        df_Nvs.dropna(subset=["Barra", "Clave", "Suministrador"], inplace=True)
 
         # Agregar el dataframe a la lista
         dataframes_Nvs.append(df_Nvs)

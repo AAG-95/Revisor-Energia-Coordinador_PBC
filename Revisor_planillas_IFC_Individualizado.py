@@ -86,7 +86,7 @@ for par in pares_lista:
         nombre_empresa = re.findall(r"FIFC_(.*?)_RCUT", file_name)
  
         if nombre_empresa[0] in empresas_analizadas:
-            print(file_name, "aaaa")
+           
             excel_file_path = carpeta + file_name
 
             # todo Dataframe Hoja 'Detalle-Clientes L'

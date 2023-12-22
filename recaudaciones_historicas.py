@@ -46,6 +46,8 @@ for par in pares_lista:
 
     df_clientes_L_total = pd.concat([df_clientes_L, df_nvs_clientes_L], ignore_index=True)
     
+    # Eliminar filas con valores nulos en las columnas Barra, Clave y Suministrador
+    df_clientes_L_total.dropna(subset=["Barra", "Clave", "Suministrador"], inplace=True)
 
     dataframe_clientes.append(df_clientes_L_total)
     
@@ -102,18 +104,18 @@ lista_nombre_archivos = ["BDD Clientes Históricos.csv", "BDD Observaciones Hist
 
 # Verificar si el mes de cada df de mes ya se encuentra en el histórico, si no, se incorpora
 
-df_vacio = False
+
 
 for idx, (lista_dataframe, nombre_archivo) in enumerate(zip(lista_dataframes_mes_analizado, lista_nombre_archivos)):
     print(f"Actualización archivo {nombre_archivo}")
     
     for i, mes_rep in zip(lista_dataframe, meses_rep):
         # Verificar que el dataframe no esté vacío
+        df_vacio = False
         meses_unicos = i["mes_repartición"].unique()
         if len(meses_unicos) > 0 :
             mes_df = str(i["mes_repartición"].unique()[0])
         else:
-            print(len(meses_unicos))
             df_vacio = True
            
         # Verificar si el mes de cada df de mes ya se encuentra en el histórico            
