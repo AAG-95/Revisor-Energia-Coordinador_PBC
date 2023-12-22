@@ -50,7 +50,7 @@ df_energia = df_energia[["Barra-Clave-Suministrador-Mes", "Energía Balance [kWh
 
 df_recaudacion = pd.read_csv(
     carpeta_recaudación
-    + "BDD Clientes Históricos.csv",
+    + "BDD Clientes Libres Históricos.csv",
     sep=";",
     encoding="UTF-8",
 )
@@ -94,14 +94,20 @@ df_combinado["Energía Balance [kWh]"] = (
     .astype(float)
 )
 
+
+
+
 df_combinado["Energía Declarada [kWh]"] = (
     df_combinado["Energía Declarada [kWh]"]
     .astype(str)
     .str.replace(",", ".")
+    .str.replace("-", "")
     .astype(float)
 )
 
 # New Column difference between Energía Balance [kWh] and Energía Recaudada [kWh]
+
+
 df_combinado["Diferencia Energía [kWh]"] = (
     df_combinado["Energía Balance [kWh]"] - df_combinado["Energía Declarada [kWh]"]
 )

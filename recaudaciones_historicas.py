@@ -42,7 +42,11 @@ for par in pares_lista:
     #? Histórico de Clientes
     df_clientes_L = pd.read_csv(carpeta_entrada + "Revisiones Mensuales\\BDD_" + str(par[1]) +"\\" + "Clientes_" + str(par[1]) + ".csv" , encoding="UTF-8", sep=";", header=0)
 
-    df_nvs_clientes_L = pd.read_csv(carpeta_entrada + "Revisiones Mensuales\\BDD_" + str(par[1]) +"\\" + "Clientes_Nuevos_" + str(par[1]) + ".csv" , encoding="UTF-8", sep=";", header=0)
+    df_clientes_L["Cliente Nuevo"] = 0
+
+    df_nvs_clientes_L = pd.read_csv(carpeta_entrada + "Revisiones Mensuales\\BDD_" + str(par[1]) +"\\" + "Clientes Nuevos_" + str(par[1]) + ".csv" , encoding="UTF-8", sep=";", header=0)
+
+    df_nvs_clientes_L["Cliente Nuevo"] = 1
 
     df_clientes_L_total = pd.concat([df_clientes_L, df_nvs_clientes_L], ignore_index=True)
     
@@ -100,12 +104,9 @@ for idx, nombre_archivo in enumerate(lista_nombre_archivos):
 # Verificar si el mes de cada df de mes ya se encuentra en el histórico
 lista_dataframes_mes_analizado = [dataframe_clientes, dataframe_observaciones, dataframe_revisor_clientes_L, dataframe_revisor_clientes_R]
 
-lista_nombre_archivos = ["BDD Clientes Históricos.csv", "BDD Observaciones Históricas.csv", "BDD Revisor Clientes L Históricos.csv", "BDD Revisor Clientes R Históricos.csv"]
+lista_nombre_archivos = ["BDD Clientes Libres Históricos.csv", "BDD Observaciones Históricas.csv", "BDD Revisor Clientes L Históricos.csv", "BDD Revisor Clientes R Históricos.csv"]
 
 # Verificar si el mes de cada df de mes ya se encuentra en el histórico, si no, se incorpora
-
-
-
 for idx, (lista_dataframe, nombre_archivo) in enumerate(zip(lista_dataframes_mes_analizado, lista_nombre_archivos)):
     print(f"Actualización archivo {nombre_archivo}")
     
