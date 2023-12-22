@@ -36,8 +36,6 @@ pares_lista = func.ConversionDatos().generar_pares(
     primer_año, último_año, primer_mes_primer_año, último_mes_último_año
 )
 
-
-
 # Procesar cada par de años y meses
 for par in pares_lista:
 
@@ -120,7 +118,7 @@ for par in pares_lista:
         ]
     
         # Seleccionar columnas relevantes y derretir el dataframe
-        selected_columns = df.columns[:8].tolist() + [df.columns[-1]]
+        selected_columns = df.columns[:9].tolist() 
 
         df = pd.melt(
             df,
@@ -323,7 +321,7 @@ for par in pares_lista:
     # Define the list of dataframes and corresponding output file names
     dataframes_list = [
         (dataframes, "Clientes_"),
-        (dataframes_Nvs, "Clientes_Nuevos_"),
+        (dataframes_Nvs, "Clientes Nuevos_"),
         (dataframes_libres_E, "Observaciones Clientes Libres_"),
         (dataframes_libres_R, "Revisor Clientes Libres_"),
         (dataframes_regulados_E, "Observaciones Clientes Regulados_"),
