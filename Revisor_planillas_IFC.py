@@ -26,10 +26,10 @@ import funciones as func  # Se importa un módulo personalizado llamado Funcione
 warnings.filterwarnings("ignore", message="Data Validation extension is not supported and will be removed")
 
 # Definición de variables de año y mes
-primer_año = 2023
+primer_año = 2020
 primer_mes_primer_año = 6
 último_año = 2023
-último_mes_último_año = 6
+último_mes_último_año = 10
 
 # Genera una lista de pares de años y meses
 pares_lista = func.ConversionDatos().generar_pares(
@@ -73,7 +73,6 @@ for par in pares_lista:
             val.is_file()
             and ("VE" in val.name)
             and ("FIFC" in val.name)
-            and ("COLBUN" in val.name)
             and not val.name.startswith("~$")
         ):
             count += 1
@@ -121,7 +120,7 @@ for par in pares_lista:
         ]
     
         # Seleccionar columnas relevantes y derretir el dataframe
-        selected_columns = df.columns[:9].tolist() + [df.columns[-1]]
+        selected_columns = df.columns[:8].tolist() + [df.columns[-1]]
 
         df = pd.melt(
             df,
@@ -177,7 +176,7 @@ for par in pares_lista:
         ]
 
         # Seleccionar columnas relevantes y derretir el dataframe
-        columnas_melt = df_Nvs.columns[:9].tolist() + [df_Nvs.columns[-1]]
+        columnas_melt = df_Nvs.columns[:8].tolist() + [df_Nvs.columns[-1]]
         df_Nvs = pd.melt(
             df_Nvs,
             id_vars= columnas_melt,
