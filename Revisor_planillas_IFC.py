@@ -174,7 +174,8 @@ for par in pares_lista:
         ]
 
         # Seleccionar columnas relevantes y derretir el dataframe
-        columnas_melt = df_Nvs.columns[:8].tolist() + [df_Nvs.columns[-1]]
+        columnas_melt = df_Nvs.columns[:9].tolist() 
+        
         df_Nvs = pd.melt(
             df_Nvs,
             id_vars= columnas_melt,
