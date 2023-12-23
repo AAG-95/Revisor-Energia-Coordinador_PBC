@@ -11,19 +11,26 @@ import webbrowser
 import os
 from threading import Timer
 import calendar
+from dash import dash_table
 
 
 # Clase para visualizar los datos de la base de datos
 class DashBarChart:
-    def __init__(self, df_tarjeta_credito, df_cuenta_corriente, port=8052):
+    def __init__(self, df_combinado, port=8052):
          
-
-        self.port = port    
+        self.port = port
+        self.df_combinado = df_combinado    
         self.app = dash.Dash(__name__)
+
+        table = dash_table.DataTable(
+            data=df_combinado.to_dict('records'),
+            columns=[{'name': i, 'id': i} for i in df_combinado.columns]
+        )
+        
         self.app.layout = html.Div([#print hola
             html.H1("Visualizador de Datos"),
-            ])
-
+            table            
+])
 
     def open_browser(self):
         # Abre el navegador web para visualizar la aplicación
@@ -32,7 +39,6 @@ class DashBarChart:
         ("WERKZEUG_RUN_MAIN") == "true"
         if not debug_mode or run_main:
             webbrowser.get().open_new(f"http://localhost:{self.port}")
-
 
     def run(self):
         # Inicia la aplicación Dash y abre el navegador
