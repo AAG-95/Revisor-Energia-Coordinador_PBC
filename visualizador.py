@@ -26,8 +26,15 @@ class DashBarChart:
             data=df_combinado.to_dict('records'),
             columns=[{'name': i, 'id': i} for i in df_combinado.columns]
         )
-        
+
+        blue_square = html.Div(style={
+        'background-color': 'lightblue',
+        'width': '100%',
+        'height': '50px'
+    })
+
         self.app.layout = html.Div([#print hola
+            blue_square,
             html.H1("Visualizador de Datos"),
             table            
 ])
