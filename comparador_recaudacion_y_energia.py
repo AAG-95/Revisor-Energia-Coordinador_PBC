@@ -1,6 +1,6 @@
 import pandas as pd
 import funciones as fc
-
+import numpy as np
 # Carpeta de salida
 carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Balance-Recaudación\\"
 
@@ -48,6 +48,11 @@ df_energia.rename(columns={"Medida 2": "Energía Balance [kWh]"}, inplace=True)
 # Mantain only column Barra-Clave-Suministrador-Mes and Energía Balance [kWh]
 df_energia = df_energia[["Barra-Clave-Suministrador-Mes", "Energía Balance [kWh]"]]
 
+# group by and sum Energía Balance [kWh] by Barra-Clave-Suministrador-Mes
+df_energia = df_energia.groupby(["Barra-Clave-Suministrador-Mes"]).agg(
+    {"Energía Balance [kWh]": "sum"}
+).reset_index()
+
 df_recaudacion = pd.read_csv(
     carpeta_recaudación
     + "BDD Clientes Libres Históricos.csv",
@@ -69,13 +74,22 @@ df_recaudacion["Barra-Clave-Suministrador-Mes"] = (
 )
 
 # Mantain only column Barra-Clave-Suministrador-Mes and Energía [kWh]
-df_recaudacion = df_recaudacion[["Barra-Clave-Suministrador-Mes", "Energía [kWh]", "mes_repartición"]]
+
+df_recaudacion["Energía [kWh]"] = df_recaudacion["Energía [kWh]"].str.replace(",", ".").replace("-", np.nan, regex = False).replace("[^0-9.]", np.nan, regex=True).replace("na", np.nan).astype(float)
+
+# drop values that dont contain numbers
+
+
+df_recaudacion = df_recaudacion.groupby(["Barra-Clave-Suministrador-Mes"]).agg(
+    {"Energía [kWh]": "sum", "mes_repartición": lambda x: list(x)}
+).reset_index()
+
 
 # Add column Energía [kWh] from df_recaudación into
 # df_energía by column Barra-Clave-Suministrador-Mes. Conservar Columna Barra-Clave-Suministrador-Mes
 df_combinado = pd.merge(
     df_energia,
-    df_recaudacion[["Barra-Clave-Suministrador-Mes", "Energía [kWh]"]],
+    df_recaudacion[["Barra-Clave-Suministrador-Mes", "Energía [kWh]", "mes_repartición"]],
     on="Barra-Clave-Suministrador-Mes",
     how="left",
 ).reset_index(drop=True)
@@ -95,19 +109,16 @@ df_combinado["Energía Balance [kWh]"] = (
 )
 
 
-
-
-df_combinado["Energía Declarada [kWh]"] = (
+""" df_combinado["Energía Declarada [kWh]"] = (
     df_combinado["Energía Declarada [kWh]"]
     .astype(str)
     .str.replace(",", ".")
-    .str.replace("-", "")
+    .replace("na", np.nan)
+    .replace("-", "0", regex = False)
     .astype(float)
-)
+) """
 
 # New Column difference between Energía Balance [kWh] and Energía Recaudada [kWh]
-
-
 df_combinado["Diferencia Energía [kWh]"] = (
     df_combinado["Energía Balance [kWh]"] - df_combinado["Energía Declarada [kWh]"]
 )
@@ -145,4 +156,21 @@ df_combinado["Suministrador"] = df_combinado["Barra-Clave-Suministrador-Mes"].st
     "-_-", expand=True
 )[2]
 
+df_combinado["Mes Consumo"] = df_combinado["Barra-Clave-Suministrador-Mes"].str.split(
+    "-_-", expand=True
+)[3]
+
+# Reorder columns 
+df_combinado = df_combinado[[
+    "Barra",
+    "Clave",
+    "Suministrador",
+    "Mes Consumo",
+    "mes_repartición",
+    "Energía Balance [kWh]",
+    "Energía Declarada [kWh]",
+    "Diferencia Energía [kWh]",
+    "% Diferencia Energía",
+    "Tipo",
+   ]]
 a = 5
