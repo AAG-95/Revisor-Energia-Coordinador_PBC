@@ -23,21 +23,70 @@ class DashBarChart:
         self.app = dash.Dash(__name__)
 
         table = dash_table.DataTable(
-            data=df_combinado.to_dict('records'),
+            id='table',
             columns=[{'name': i, 'id': i} for i in df_combinado.columns]
         )
-
-        blue_square = html.Div(style={
+        
+        blue_square = html.Div([
+        html.H1("Revisor de Energía", style={'text-align': 'center', 'color': 'black'}),
+        html.Img(src='assets\coordinador_logo.png', style={'height': '80px', 'margin-left': 'auto'})
+    ], style={
         'background-color': 'lightblue',
         'width': '100%',
-        'height': '50px'
+        'height': '80px',
+        'display': 'flex',
+        'align-items': 'center',
+        'justify-content': 'start',
+        'padding': '0 10px'
     })
+        
+    # Convert 'Mes Consumo' to datetime if it's not already
+        df_combinado['Mes Consumo'] = pd.to_datetime(df_combinado['Mes Consumo'])
+
+        # Sort the DataFrame by 'Mes Consumo'
+        df_combinado = df_combinado.sort_values('Mes Consumo')
+
+        # Generate the dropdown options
+        dropdown = dcc.Dropdown(
+            id='mes-consumo-dropdown',
+            options=[{'label': i.strftime('%Y-%m-%d'), 'value': i.strftime('%Y-%m-%d')} for i in df_combinado['Mes Consumo'].unique()] + [{'label': 'Select All', 'value': 'ALL'}],
+            multi=True
+)
 
         self.app.layout = html.Div([#print hola
             blue_square,
             html.H1("Visualizador de Datos"),
+            dropdown,
             table            
 ])
+        
+        @self.app.callback(
+            Output('mes-consumo-dropdown', 'value'),
+            [Input('mes-consumo-dropdown', 'value')]
+        )
+        def update_dropdown(selected_values):
+            if selected_values:
+                if 'ALL' in selected_values:
+                    print(selected_values)
+                    return df_combinado['Mes Consumo'].unique().tolist()
+                    
+                else:
+                    print(selected_values)
+                    return [value for value in selected_values if value != 'ALL']
+                    
+            else:
+                return []
+            
+        @self.app.callback(
+        Output('table', 'data'),
+        [Input('mes-consumo-dropdown', 'value')]
+    )
+        def update_table(selected_values):
+            if selected_values:
+                filtered_df = df_combinado[df_combinado['Mes Consumo'].isin(selected_values)]
+                return filtered_df.to_dict('records')
+            else:
+                return df_combinado.to_dict('records')
 
     def open_browser(self):
         # Abre el navegador web para visualizar la aplicación

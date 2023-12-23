@@ -1,6 +1,6 @@
 import visualizador as vs
 import comparador_recaudacion_y_energia as cre
-print("Hola mundo")
+
 
 # Create an instance of ComparadorRecaudacionEnergia
 comparador = cre.ComparadorRecaudacionEnergia()
