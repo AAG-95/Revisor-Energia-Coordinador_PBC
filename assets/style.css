@@ -2,13 +2,13 @@ body {
     margin: 0;
     background-color: #D9D9D9;
 }
-                        
+
 .tabla_diferencias {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     width: 50%;
-    height: 50vh;
+    height: 150vh;
     margin-right: 20px;
     overflow: auto;
 }
@@ -18,25 +18,72 @@ body {
     justify-content: space-between;
     width: 50%;
     height: 50vh;
-    margin-left: 20px; 
-    overflow: auto;
+    margin-left: 20px;
+    
 }
 
 .tabla_y_figura_1 {
     display: flex;
     justify-content: space-between;
-   
+
 }
 
-.label-and-dropdown {
+.label_mes-y-dropdown {
     display: flex;
     flex-direction: row;
+    width: 100%;
+    
 }
 
-.my-label {
-    margin-right: 10px;
+
+.label_suministrador-y-dropdown {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    
 }
 
-.my-dropdown {
-    flex-grow: 1;
+
+.label_mes_consumo {
+    margin-right: 5px;
+    border-radius: 5px;
+    background-color: rgb(131, 128, 128);
+    text-align: center;
+    /* center the text */
+    font-weight: bold;
+    /* make the text */
+}
+
+.label_suministrador {
+    margin-right: 5px;
+    border-radius: 5px;
+    background-color: rgb(131, 128, 128);
+    text-align: center;
+    /* center the text */
+    font-weight: bold;
+    /* make the text */
+}
+
+.dropdown_mes_consumo {
+    display: flex;  
+}
+
+.dropdown_suministrador {
+    display: flex;  
+}
+
+.tabla1 {
+    overflow: auto;
+    border-radius: 15px;
+    border: 1px solid black
+}
+
+.tabla2 {
+    justify-content: center;
+    width: 50%;
+    margin: 0 auto;
+    border-radius: 15px;
+    overflow: hidden;
+    border: 1px solid black
+    
 }

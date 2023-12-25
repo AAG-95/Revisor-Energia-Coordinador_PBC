@@ -13,6 +13,7 @@ from threading import Timer
 import calendar
 from dash import dash_table
 import time
+import plotly.express as px
 
 
 # Clase para visualizar los datos de la base de datos
@@ -23,21 +24,6 @@ class DashBarChart:
         self.app = dash.Dash(__name__)
         # Preprocess the data
         self.df_dict = {}
-
-        table = dash_table.DataTable(
-            id="table",
-            columns=[{"name": i, "id": i} for i in df_combinado.columns],
-            data=df_combinado.to_dict("records"),
-        )
-
-        table2 = dash_table.DataTable(
-            id="table2",
-            columns=[{"name": i, "id": i} for i in df_combinado.columns],
-            data=df_combinado.to_dict("records"),
-        )
-
-        for value in df_combinado["Mes Consumo"].unique():
-            self.df_dict[value] = df_combinado[df_combinado["Mes Consumo"] == value]
 
         blue_square = html.Div(
             [
@@ -61,14 +47,63 @@ class DashBarChart:
             },
         )
 
+        table = dash_table.DataTable(
+            id="table",
+            columns=[{"name": i, "id": i} for i in df_combinado.columns],
+            data=df_combinado.to_dict("records"),
+        )
+
+        df_combinado_por_tipo = (
+            df_combinado.groupby(["Tipo"])
+            .agg({"Diferencia Energía [kWh]": "sum"})
+            .reset_index()
+        )
+        #  thousands as dots
+        df_combinado_por_tipo["Diferencia Energía [kWh]"] = df_combinado_por_tipo[
+            "Diferencia Energía [kWh]"
+        ].apply(
+            lambda x: "{:,}".format(x)
+            .replace(",", " ")
+            .replace(".", ",")
+            .replace(" ", ".")
+        )
+
+        table2 = dash_table.DataTable(
+            id="table2",
+            columns=[{"name": i, "id": i} for i in df_combinado_por_tipo.columns],
+            data=df_combinado_por_tipo.to_dict("records"),
+        )
+
+        for value in df_combinado["Mes Consumo"].unique():
+            self.df_dict[value] = df_combinado[df_combinado["Mes Consumo"] == value]
+
         # Convert 'Mes Consumo' to datetime if it's not already
         df_combinado["Mes Consumo"] = pd.to_datetime(df_combinado["Mes Consumo"])
 
         # Sort the DataFrame by 'Mes Consumo'
         df_combinado = df_combinado.sort_values("Mes Consumo")
 
+        df_combinado_por_suministrador = (
+            df_combinado.groupby(["Suministrador"])
+            .agg({"Diferencia Energía [kWh]": "sum"})
+            .reset_index()
+        )
+
+        df_combinado_por_suministrador = df_combinado_por_suministrador.sort_values(
+            "Diferencia Energía [kWh]", ascending=False
+        )
+
+        # Assuming df_combinado_por_tipo is your DataFrame and 'Tipo' and 'Diferencia Energía [kWh]' are your columns
+        fig = px.bar(
+            df_combinado_por_suministrador,
+            y="Suministrador",
+            x="Diferencia Energía [kWh]",
+            orientation="h",
+        )
+        grafico = dcc.Graph(id="grafico_diferencias_suministradores", figure=fig)
+
         # Generate the dropdown options
-        dropdown = dcc.Dropdown(
+        dropdown_mes_consumo = dcc.Dropdown(
             id="mes-consumo-dropdown",
             options=[
                 {"label": i.strftime("%Y-%m-%d"), "value": i.strftime("%Y-%m-%d")}
@@ -77,9 +112,22 @@ class DashBarChart:
             + [{"label": "Select All", "value": "ALL"}],
             value=df_combinado["Mes Consumo"].unique().tolist(),
             multi=True,
-            className='my-dropdown'
+            className="dropdown_mes_consumo",
+            style={"width": "100%"},
         )
 
+        # Generate the dropdown options
+        dropdown_suministrador = dcc.Dropdown(
+            id="suministrador-dropdown",
+            options=[
+                {"label": i, "value": i} for i in df_combinado["Suministrador"].unique()
+            ]
+            + [{"label": "Select All", "value": "ALL"}],
+            value="ALL",
+            multi=True,
+            className="dropdown_suministrador",
+            style={"width": "100%"},
+        )
         # Wait for a few seconds
 
         self.app.layout = html.Div(
@@ -88,39 +136,53 @@ class DashBarChart:
                 html.H1("Visualizador de Datos"),
                 html.Div(
                     [
+                        html.Label("Mes Consumo", className="label_mes_consumo"),
+                        dropdown_mes_consumo,
+                    ],
+                    className="label_mes-y-dropdown",
+                ),
+                html.Div(
+                    [
+                        html.Label("Suministrador", className="label_suministrador"),
+                        dropdown_suministrador,
+                    ],
+                    className="label_suministrador-y-dropdown",
+                ),
+                html.Div(
+                    [
+                        dcc.Loading(
+                            id="loading2",
+                            type="circle",
+                            children=[table2],
+                        )
+                    ],
+                    className="tabla2",
+                ),
+                html.Div(
+                    [
                         html.Div(
                             [
-                               
                                 html.Div(
                                     [
-                                        html.Label("My Label", className="my-label"),
-                                        dropdown,
+                                        dcc.Loading(
+                                            id="loading",
+                                            type="circle",
+                                            children=[table],
+                                        )
                                     ],
-                                    className="label-and-dropdown",
-                                ),
-                                dcc.Loading(
-                                    id="loading",
-                                    type="circle",
-                                    children=[table],
+                                    className="tabla1",
                                 ),
                             ],
                             className="tabla_diferencias",
                         ),
-                        html.Div(
-                            [
-                                dcc.Loading(
-                                    id="loading2",
-                                    type="circle",
-                                    children=[table2],
-                                )
-                            ],
-                            className="tabla_diferencias2",
-                        ),
+                        grafico,
                     ],
                     className="tabla_y_figura_1",
                 ),
             ]
         )
+
+        # Mes consumo dropdown
 
         @self.app.callback(
             Output("mes-consumo-dropdown", "value"),
@@ -138,16 +200,110 @@ class DashBarChart:
                 return df_combinado.to_dict("records")
 
         @self.app.callback(
-            Output("table", "data"), [Input("mes-consumo-dropdown", "value")]
+            Output("suministrador-dropdown", "value"),
+            [Input("suministrador-dropdown", "value")],
         )
-        def update_table(selected_values):
+        def update_dropdown(selected_values):
             if selected_values:
-                filtered_df = df_combinado[
-                    df_combinado["Mes Consumo"].isin(selected_values)
-                ]
-                return filtered_df.to_dict("records")
+                if "ALL" in selected_values:
+                    return "ALL"
+                else:
+                    print(selected_values)
+                    return [value for value in selected_values if value != "ALL"]
             else:
                 return df_combinado.to_dict("records")
+
+        @self.app.callback(
+            Output("table", "data"),
+            [
+                Input("mes-consumo-dropdown", "value"),
+                Input("suministrador-dropdown", "value"),
+            ],
+        )
+        def update_table(selected_mes_consumo, selected_suministrador):
+            if selected_mes_consumo and selected_suministrador:
+                df_combinado_filtrado = df_combinado[
+                    df_combinado["Mes Consumo"].isin(selected_mes_consumo)
+                    & df_combinado["Suministrador"].isin(selected_suministrador)
+                ]
+                return df_combinado_filtrado.to_dict("records")
+            else:
+                return df_combinado.to_dict("records")
+
+        @self.app.callback(
+            Output("table2", "data"),
+            [
+                Input("mes-consumo-dropdown", "value"),
+                Input("suministrador-dropdown", "value"),
+            ],
+        )
+        def update_table(selected_mes_consumo, selected_suministrador):
+            if selected_mes_consumo and selected_suministrador:
+                df_combinado_filtrado = df_combinado[
+                    df_combinado["Mes Consumo"].isin(selected_mes_consumo)
+                    & df_combinado["Suministrador"].isin(selected_suministrador)
+                ]
+
+                df_combinado_por_tipo_filtrado = (
+                    df_combinado_filtrado.groupby(["Tipo"])
+                    .agg({"Diferencia Energía [kWh]": "sum"})
+                    .reset_index()
+                )
+
+                df_combinado_por_tipo_filtrado[
+                    "Diferencia Energía [kWh]"
+                ] = df_combinado_por_tipo_filtrado["Diferencia Energía [kWh]"].apply(
+                    lambda x: "{:,}".format(x)
+                    .replace(",", " ")
+                    .replace(".", ",")
+                    .replace(" ", ".")
+                )
+
+                return df_combinado_por_tipo_filtrado.to_dict("records")
+            else:
+                return df_combinado_por_tipo.to_dict("records")
+
+        @self.app.callback(
+            Output("grafico_diferencias_suministradores", "figure"),
+            [
+                Input("mes-consumo-dropdown", "value"),
+                Input("suministrador-dropdown", "value"),
+            ],
+        )
+        def update_table(selected_mes_consumo, selected_suministrador):
+            if selected_mes_consumo and selected_suministrador:
+                df_combinado_filtrado = df_combinado[
+                    df_combinado["Mes Consumo"].isin(selected_mes_consumo)
+                    & df_combinado["Suministrador"].isin(selected_suministrador)
+                ]
+
+                df_combinado_por_suministrador_filtrado = (
+                    df_combinado_filtrado.groupby(["Suministrador"])
+                    .agg({"Diferencia Energía [kWh]": "sum"})
+                    .reset_index()
+                )
+
+                df_combinado_por_suministrador_filtrado = (
+                    df_combinado_por_suministrador_filtrado.sort_values(
+                        "Diferencia Energía [kWh]", ascending=False
+                    )
+                )
+
+                fig_filtrada = px.bar(
+                    df_combinado_por_suministrador_filtrado,
+                    y="Suministrador",
+                    x="Diferencia Energía [kWh]",
+                    orientation="h",
+                )
+                return fig_filtrada
+            else:
+                fig = px.bar(
+                    df_combinado_por_suministrador,
+                    y="Suministrador",
+                    x="Diferencia Energía [kWh]",
+                    orientation="h",
+                )
+                return fig
 
     def open_browser(self):
         # Abre el navegador web para visualizar la aplicación
