@@ -5,20 +5,38 @@ body {
                         
 .tabla_diferencias {
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    
+    width: 50%;
+    height: 50vh;
+    margin-right: 20px;
+    overflow: auto;
 }
 
 .tabla_diferencias2 {
     display: flex;
     justify-content: space-between;
-   
-    
+    width: 50%;
+    height: 50vh;
+    margin-left: 20px; 
+    overflow: auto;
 }
 
 .tabla_y_figura_1 {
     display: flex;
     justify-content: space-between;
-    width: 100%;
-    height: 100vh;
+   
+}
+
+.label-and-dropdown {
+    display: flex;
+    flex-direction: row;
+}
+
+.my-label {
+    margin-right: 10px;
+}
+
+.my-dropdown {
+    flex-grow: 1;
 }

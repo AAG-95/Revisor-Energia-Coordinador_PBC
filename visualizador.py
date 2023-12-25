@@ -14,6 +14,7 @@ import calendar
 from dash import dash_table
 import time
 
+
 # Clase para visualizar los datos de la base de datos
 class DashBarChart:
     def __init__(self, df_combinado, port=8052):
@@ -22,15 +23,17 @@ class DashBarChart:
         self.app = dash.Dash(__name__)
         # Preprocess the data
         self.df_dict = {}
-        
+
         table = dash_table.DataTable(
-            id="table", columns=[{"name": i, "id": i} for i in df_combinado.columns],
-            data=df_combinado.to_dict('records')
+            id="table",
+            columns=[{"name": i, "id": i} for i in df_combinado.columns],
+            data=df_combinado.to_dict("records"),
         )
 
         table2 = dash_table.DataTable(
-            id="table2", columns=[{"name": i, "id": i} for i in df_combinado.columns],
-            data=df_combinado.to_dict('records')
+            id="table2",
+            columns=[{"name": i, "id": i} for i in df_combinado.columns],
+            data=df_combinado.to_dict("records"),
         )
 
         for value in df_combinado["Mes Consumo"].unique():
@@ -74,34 +77,49 @@ class DashBarChart:
             + [{"label": "Select All", "value": "ALL"}],
             value=df_combinado["Mes Consumo"].unique().tolist(),
             multi=True,
+            className='my-dropdown'
         )
-        
-      
+
         # Wait for a few seconds
-       
 
         self.app.layout = html.Div(
             [  # print hola
                 blue_square,
                 html.H1("Visualizador de Datos"),
-                html.Div([html.Div([
-                dropdown,
-                dcc.Loading(
-                    id="loading",
-                    type="circle",
-                    children=[table],
-                )],
-              className="tabla_diferencias"),
-               
-                html.Div([
-                
-                dcc.Loading(
-                    id="loading2",
-                    type="circle",
-                    children=[table2],
-                )],
-              className="tabla_diferencias2"),
-                ], className="tabla_y_figura_1")]
+                html.Div(
+                    [
+                        html.Div(
+                            [
+                               
+                                html.Div(
+                                    [
+                                        html.Label("My Label", className="my-label"),
+                                        dropdown,
+                                    ],
+                                    className="label-and-dropdown",
+                                ),
+                                dcc.Loading(
+                                    id="loading",
+                                    type="circle",
+                                    children=[table],
+                                ),
+                            ],
+                            className="tabla_diferencias",
+                        ),
+                        html.Div(
+                            [
+                                dcc.Loading(
+                                    id="loading2",
+                                    type="circle",
+                                    children=[table2],
+                                )
+                            ],
+                            className="tabla_diferencias2",
+                        ),
+                    ],
+                    className="tabla_y_figura_1",
+                ),
+            ]
         )
 
         @self.app.callback(
