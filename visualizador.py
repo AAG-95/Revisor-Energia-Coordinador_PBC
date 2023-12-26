@@ -116,18 +116,16 @@ class DashBarChart:
             style={"width": "100%"},
         )
 
-        # Generate the dropdown options
+                # Generate the dropdown options
         dropdown_suministrador = dcc.Dropdown(
             id="suministrador-dropdown",
-            options=[
-                {"label": i, "value": i} for i in df_combinado["Suministrador"].unique()
-            ]
-            + [{"label": "Select All", "value": "ALL"}],
-            value="ALL",
+            options=[{"label": "ALL", "value": "ALL"}],
+            value=["ALL"],
             multi=True,
             className="dropdown_suministrador",
             style={"width": "100%"},
         )
+
         # Wait for a few seconds
 
         self.app.layout = html.Div(
@@ -200,19 +198,20 @@ class DashBarChart:
                 return df_combinado.to_dict("records")
 
         @self.app.callback(
-            Output("suministrador-dropdown", "value"),
-            [Input("suministrador-dropdown", "value")],
-        )
+    Output("suministrador-dropdown", "options"),
+    Output("suministrador-dropdown", "value"),
+    [Input("suministrador-dropdown", "value")],
+)
         def update_dropdown(selected_values):
+            all_options = [{"label": i, "value": i} for i in df_combinado["Suministrador"].unique()]
             if selected_values:
                 if "ALL" in selected_values:
-                    return "ALL"
+                    return all_options, ["ALL"]  # All options are displayed and all unique values are selected
                 else:
-                    print(selected_values)
-                    return [value for value in selected_values if value != "ALL"]
+                    return all_options, [value for value in selected_values if value != "ALL"]  # All options are displayed, selected values are selected
             else:
-                return df_combinado.to_dict("records")
-
+                return [{"label": "ALL", "value": "ALL"}], ["ALL"]  # Only "ALL" is displayed and selected
+        
         @self.app.callback(
             Output("table", "data"),
             [
@@ -222,13 +221,33 @@ class DashBarChart:
         )
         def update_table(selected_mes_consumo, selected_suministrador):
             if selected_mes_consumo and selected_suministrador:
+                if selected_suministrador == ["ALL"]:
+                    selected_suministrador = df_combinado["Suministrador"].unique().tolist()
                 df_combinado_filtrado = df_combinado[
                     df_combinado["Mes Consumo"].isin(selected_mes_consumo)
                     & df_combinado["Suministrador"].isin(selected_suministrador)
                 ]
+                print(df_combinado_filtrado.dtypes)
+                columnas_a_modificar = ["Energía Balance [kWh]", "Energía Declarada [kWh]", "Diferencia Energía [kWh]"]  # replace with your column names
+                
+                for column in columnas_a_modificar:
+                    df_combinado_filtrado[column] = df_combinado_filtrado[column].apply(
+                    lambda x: "{:,.2f}".format(x)
+                    .replace(",", " ")
+                    .replace(".", ",")
+                    .replace(" ", ".")
+                )
+                    
+                df_combinado_filtrado['% Diferencia Energía'] = df_combinado_filtrado['% Diferencia Energía'].apply(
+    lambda x: "{:.2%}".format(x / 100)
+)
+                    
                 return df_combinado_filtrado.to_dict("records")
             else:
                 return df_combinado.to_dict("records")
+            
+
+
 
         @self.app.callback(
             Output("table2", "data"),
@@ -239,6 +258,8 @@ class DashBarChart:
         )
         def update_table(selected_mes_consumo, selected_suministrador):
             if selected_mes_consumo and selected_suministrador:
+                if selected_suministrador == ["ALL"]:
+                    selected_suministrador = df_combinado["Suministrador"].unique().tolist()
                 df_combinado_filtrado = df_combinado[
                     df_combinado["Mes Consumo"].isin(selected_mes_consumo)
                     & df_combinado["Suministrador"].isin(selected_suministrador)
@@ -272,6 +293,8 @@ class DashBarChart:
         )
         def update_table(selected_mes_consumo, selected_suministrador):
             if selected_mes_consumo and selected_suministrador:
+                if selected_suministrador == ["ALL"]:
+                    selected_suministrador = df_combinado["Suministrador"].unique().tolist()
                 df_combinado_filtrado = df_combinado[
                     df_combinado["Mes Consumo"].isin(selected_mes_consumo)
                     & df_combinado["Suministrador"].isin(selected_suministrador)

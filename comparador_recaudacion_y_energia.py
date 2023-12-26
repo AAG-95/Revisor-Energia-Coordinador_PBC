@@ -81,11 +81,13 @@ class ComparadorRecaudacionEnergia:
         ).reset_index(drop=True)
         df_combinado.rename(columns={"Energía [kWh]": "Energía Declarada [kWh]"}, inplace=True)
         df_combinado["Energía Balance [kWh]"] = df_combinado["Energía Balance [kWh]"].astype(str).str.replace(",", ".").astype(float)
+        df_combinado["Energía Balance [kWh]"] = df_combinado["Energía Balance [kWh]"].fillna(0)
+        df_combinado["Energía Declarada [kWh]"] = df_combinado["Energía Declarada [kWh]"].fillna(0)
         df_combinado["Diferencia Energía [kWh]"] = df_combinado["Energía Balance [kWh]"] - df_combinado["Energía Declarada [kWh]"]
         df_combinado["% Diferencia Energía"] = df_combinado["Diferencia Energía [kWh]"] / df_combinado["Energía Balance [kWh]"]
         df_combinado["Tipo"] = df_combinado.apply(
             lambda x: "Clave Obsoleta" if pd.isna(x["Energía Balance [kWh]"]) or x["Energía Balance [kWh]"] == 0 else (
-                "Clave no informada en RCUT" if pd.isna(x["Diferencia Energía [kWh]"]) else (
+                "Clave no informada en RCUT" if (pd.isna(x["Energía Declarada [kWh]"]) or x["Energía Declarada [kWh]"] == 0) and x["Energía Balance [kWh]"] > 0 else (
                     "Diferencia Energía con Diferencias" if x["% Diferencia Energía"] > 0.05 else "Diferencia Energía sin Diferencias"
                 )
             ),
