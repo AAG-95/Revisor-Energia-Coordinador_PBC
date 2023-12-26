@@ -100,7 +100,8 @@ class DashBarChart:
             x="Diferencia Energía [kWh]",
             orientation="h",
         )
-        grafico = dcc.Graph(id="grafico_diferencias_suministradores", figure=fig)
+        grafico = dcc.Graph(id="grafico_diferencias_suministradores", figure=fig,
+         className="grafico_suministradores")
 
         # Generate the dropdown options
         dropdown_mes_consumo = dcc.Dropdown(
