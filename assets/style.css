@@ -43,6 +43,22 @@ body {
 
 }
 
+.label_clave-y-dropdown {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+
+}
+
+
+.label_tipo-y-dropdown {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+
+}
+
+
 
 .label_mes_consumo {
     margin-right: 5px;
@@ -55,6 +71,7 @@ body {
     align-items: center;
     justify-content: center;
     height: 35px; /* adjust as needed */
+    width: 80px;
 }
 
 .label_suministrador {
@@ -68,7 +85,38 @@ body {
     align-items: center;
     justify-content: center;
     height: 35px; /* adjust as needed */
+    width: 80px;
 }
+
+.label_clave {
+    margin-right: 5px;
+    border-radius: 5px;
+    background-color: rgb(131, 128, 128);
+    text-align: center;
+    font-weight: bold;
+    font-size: 0.75em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 35px; /* adjust as needed */
+    width: 80px;
+}
+
+.label_tipo {
+    margin-right: 5px;
+    border-radius: 5px;
+    background-color: rgb(131, 128, 128);
+    text-align: center;
+    font-weight: bold;
+    font-size: 0.75em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 35px; /* adjust as needed */
+    width: 80px;
+}
+
+
 
 .dropdown_mes_consumo {
     display: flex;
@@ -80,12 +128,12 @@ body {
     margin-bottom: 10px;
 }
 
-.dropdown_mes_consumo {
+.dropdown_clave {
     display: flex;
     margin-bottom: 10px;
 }
 
-.dropdown_suministrador {
+.dropdown_tipo {
     display: flex;
     margin-bottom: 10px;
 }
@@ -117,7 +165,7 @@ body {
 
 .tabla1 .loading-container .dash-spinner{
     position: absolute;
-    top: 10%;  /* Adjust this value to position the spinner */
+    top: 2.5%;  /* Adjust this value to position the spinner */
     left: 50%;
-    transform: translate(-50%, -50%);
+   
 }
