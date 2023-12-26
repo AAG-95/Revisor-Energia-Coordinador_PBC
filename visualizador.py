@@ -120,12 +120,42 @@ class DashBarChart:
                 # Generate the dropdown options
         dropdown_suministrador = dcc.Dropdown(
             id="suministrador-dropdown",
-            options=[{"label": "ALL", "value": "ALL"}],
+            options=[
+                {"label": i, "value": i}
+                for i in df_combinado["Suministrador"].unique()
+            ] + [{"label": "Select All", "value": "ALL"}],
             value=["ALL"],
             multi=True,
             className="dropdown_suministrador",
             style={"width": "100%"},
         )
+
+                   # Generate the dropdown options
+        dropdown_clave = dcc.Dropdown(
+            id="clave-dropdown",
+            options=[
+                {"label": i, "value": i}
+                for i in df_combinado["Clave"].unique()
+            ] + [{"label": "Select All", "value": "ALL"}],
+            value=["ALL"],
+            multi=True,
+            className="dropdown_clave",
+            style={"width": "100%"},
+        )
+        
+                   # Generate the dropdown options
+        dropdown_tipo = dcc.Dropdown(
+            id="tipo-dropdown",
+            options=[
+                {"label": i, "value": i}
+                for i in df_combinado["Tipo"].unique()
+            ] + [{"label": "Select All", "value": "ALL"}],
+            value=["ALL"],
+            multi=True,
+            className="dropdown_tipo",
+            style={"width": "100%"},
+        )
+
 
         # Wait for a few seconds
 
@@ -167,6 +197,7 @@ class DashBarChart:
                                             id="loading",
                                             type="circle",
                                             children=[table],
+                                            className="loading-container"
                                         )
                                     ],
                                     className="tabla1",
@@ -204,14 +235,14 @@ class DashBarChart:
     [Input("suministrador-dropdown", "value")],
 )
         def update_dropdown(selected_values):
-            all_options = [{"label": i, "value": i} for i in df_combinado["Suministrador"].unique()]
+            
             if selected_values:
                 if "ALL" in selected_values:
-                    return all_options, ["ALL"]  # All options are displayed and all unique values are selected
+                    return ["ALL"]  # All options are displayed and all unique values are selected
                 else:
-                    return all_options, [value for value in selected_values if value != "ALL"]  # All options are displayed, selected values are selected
+                    return [value for value in selected_values if value != "ALL"]  # All options are displayed, selected values are selected
             else:
-                return [{"label": "ALL", "value": "ALL"}], ["ALL"]  # Only "ALL" is displayed and selected
+                return  ["ALL"]  # Only "ALL" is displayed and selected
         
         @self.app.callback(
             Output("table", "data"),

@@ -49,9 +49,12 @@ body {
     border-radius: 5px;
     background-color: rgb(131, 128, 128);
     text-align: center;
-    /* center the text */
     font-weight: bold;
-    /* make the text */
+    font-size: 0.75em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 35px; /* adjust as needed */
 }
 
 .label_suministrador {
@@ -59,23 +62,39 @@ body {
     border-radius: 5px;
     background-color: rgb(131, 128, 128);
     text-align: center;
-    /* center the text */
     font-weight: bold;
-    /* make the text */
+    font-size: 0.75em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 35px; /* adjust as needed */
 }
 
 .dropdown_mes_consumo {
     display: flex;
+    margin-bottom: 10px;
 }
 
 .dropdown_suministrador {
     display: flex;
+    margin-bottom: 10px;
+}
+
+.dropdown_mes_consumo {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.dropdown_suministrador {
+    display: flex;
+    margin-bottom: 10px;
 }
 
 .tabla1 {
     overflow: auto;
     border-radius: 15px;
-    border: 1px solid black
+    border: 1px solid black;
+    position: relative;
 }
 
 .tabla2 {
@@ -84,12 +103,21 @@ body {
     margin: 0 auto;
     border-radius: 15px;
     overflow: hidden;
-    border: 1px solid black
+    border: 1px solid black;
+    margin-bottom: 10px
 }
 
 .grafico_suministradores {
     overflow-y: auto;
     width: 50%;
+    height: 52vh;
     border: 1px solid black;
 
+}
+
+.tabla1 .loading-container .dash-spinner{
+    position: absolute;
+    top: 10%;  /* Adjust this value to position the spinner */
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
