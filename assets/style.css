@@ -8,7 +8,7 @@ body {
     flex-direction: column;
     justify-content: space-between;
     width: 50%;
-    height: 70vh;
+    height: 52vh;
     margin-right: 20px;
     overflow: auto;
 }
@@ -24,7 +24,7 @@ body {
 
 .tabla_y_figura_1 {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
 
 }
 
@@ -89,6 +89,7 @@ body {
 
 .grafico_suministradores {
     overflow-y: auto;
+    width: 50%;
     border: 1px solid black;
 
 }

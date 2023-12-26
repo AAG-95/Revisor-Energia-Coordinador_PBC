@@ -288,17 +288,16 @@ class DashBarChart:
         @self.app.callback(
             Output("grafico_diferencias_suministradores", "figure"),
             [
-                Input("mes-consumo-dropdown", "value"),
-                Input("suministrador-dropdown", "value"),
+                Input("mes-consumo-dropdown", "value")
+               
             ],
         )
         def update_table(selected_mes_consumo, selected_suministrador):
             if selected_mes_consumo and selected_suministrador:
-                if selected_suministrador == ["ALL"]:
-                    selected_suministrador = df_combinado["Suministrador"].unique().tolist()
+                
                 df_combinado_filtrado = df_combinado[
                     df_combinado["Mes Consumo"].isin(selected_mes_consumo)
-                    & df_combinado["Suministrador"].isin(selected_suministrador)
+                   
                 ]
 
                 df_combinado_por_suministrador_filtrado = (
