@@ -169,3 +169,11 @@ body {
     left: 50%;
    
 }
+
+.export_button {
+    width: 100% 
+}
+
+#table button:first-child {
+    width: 100%;
+}
