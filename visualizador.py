@@ -136,8 +136,9 @@ class DashBarChart:
         # Generate the dropdown options
         dropdown_clave = dcc.Dropdown(
             id="clave-dropdown",
-            options=[{"label": "Select All", "value": "ALL"}],
-            value=df_combinado["Clave"].unique().tolist(),
+            options=[{"label": i, "value": i} for i in df_combinado["Clave"].unique()]
+            + [{"label": "Select All", "value": "ALL"}],
+            value=["ALL"],
             multi=True,
             className="dropdown_clave",
             style={"width": "100%"},
@@ -160,6 +161,7 @@ class DashBarChart:
             [  # print hola
                 blue_square,
                 html.H1("Visualizador de Datos"),
+
                 html.Div(
                     [
                         html.Label("Mes Consumo", className="label_mes_consumo"),
@@ -167,6 +169,7 @@ class DashBarChart:
                     ],
                     className="label_mes-y-dropdown",
                 ),
+
                 html.Div(
                     [
                         html.Label("Suministrador", className="label_suministrador"),
@@ -174,6 +177,23 @@ class DashBarChart:
                     ],
                     className="label_suministrador-y-dropdown",
                 ),
+
+                html.Div(
+                    [
+                        html.Label("Clave", className="label_clave"),
+                        dropdown_clave,
+                    ],
+                    className="label_clave-y-dropdown",
+                ),
+
+                html.Div(
+                    [
+                        html.Label("Tipo", className="label_tipo"),
+                        dropdown_tipo,
+                    ],
+                    className="label_tipo-y-dropdown",
+                ),
+
                 html.Div(
                     [
                         dcc.Loading(
@@ -184,6 +204,7 @@ class DashBarChart:
                     ],
                     className="tabla2",
                 ),
+
                 html.Div(
                     [
                         html.Div(
@@ -253,29 +274,98 @@ class DashBarChart:
                         for i in df_combinado["Suministrador"].unique()
                     ]+ [{"label": "Select All", "value": "ALL"}]  , selected_values  # Only "ALL" is displayed and selected
 
+
+        @self.app.callback(
+            [
+                Output("clave-dropdown", "options"),
+                Output("clave-dropdown", "value"),
+            ],
+            [Input("clave-dropdown", "value")],
+        )
+        def update_dropdown(selected_values):
+            if selected_values:
+                if "ALL" in selected_values:
+                    return [
+                        {"label": i, "value": i}
+                        for i in df_combinado["Clave"].unique()
+                    ] + [{"label": "Select All", "value": "ALL"}], ["ALL"]
+                else:
+                    return [
+                        {"label": i, "value": i}
+                        for i in df_combinado["Clave"].unique()
+                    ]+ [{"label": "Select All", "value": "ALL"}] , [
+                        value for value in selected_values if value != "ALL"
+                    ]  # All options are displayed, selected values are selected
+            else:
+                return [
+                        {"label": i, "value": i}
+                        for i in df_combinado["Clave"].unique()
+                    ]+ [{"label": "Select All", "value": "ALL"}]  , selected_values  # Only "ALL" is displayed and selected
+
+        @self.app.callback(
+            [
+                Output("tipo-dropdown", "options"),
+                Output("tipo-dropdown", "value"),
+            ],
+            [Input("tipo-dropdown", "value")],
+        )
+        def update_dropdown(selected_values):
+            if selected_values:
+                if "ALL" in selected_values:
+                    return [
+                        {"label": i, "value": i}
+                        for i in df_combinado["Tipo"].unique()
+                    ] + [{"label": "Select All", "value": "ALL"}], ["ALL"]
+                else:
+                    return [
+                        {"label": i, "value": i}
+                        for i in df_combinado["Tipo"].unique()
+                    ]+ [{"label": "Select All", "value": "ALL"}] , [
+                        value for value in selected_values if value != "ALL"
+                    ]  # All options are displayed, selected values are selected
+            else:
+                return [
+                        {"label": i, "value": i}
+                        for i in df_combinado["Tipo"].unique()
+                    ]+ [{"label": "Select All", "value": "ALL"}]  , selected_values  # Only "ALL" is displayed and selected
+
+
+
+
         @self.app.callback(
             Output("table", "data"),
             [
                 Input("mes-consumo-dropdown", "value"),
-                Input("suministrador-dropdown", "value")
+                Input("suministrador-dropdown", "value"),
+                Input("clave-dropdown", "value"),
+                Input("tipo-dropdown", "value")
             ],
         )
-        def update_table(selected_mes_consumo, selected_suministrador):
 
-            if selected_mes_consumo or selected_suministrador:
+        def update_table(selected_mes_consumo, selected_suministrador, selected_clave , selected_tipo ):
 
-                print("Sssssssssssssssssssss",selected_suministrador)
+            if selected_mes_consumo or selected_suministrador or selected_clave or selected_tipo:
+                
                 if selected_suministrador == ["ALL"]:
                     selected_suministrador = (
                         df_combinado["Suministrador"].unique().tolist()
                     )
+                    
+                if selected_clave == ["ALL"]:
+                    selected_clave = (
+                        df_combinado["Clave"].unique().tolist()
+                    )
 
-              
-                print("sssssssssssssssssssss",selected_mes_consumo)
-                df_combinado_filtrado = df_combinado[
-                
+                if selected_tipo == ["ALL"]:
+                    selected_tipo = (
+                        df_combinado["Tipo"].unique().tolist()
+                    )     
+
+                df_combinado_filtrado = df_combinado[                
                     df_combinado["Mes Consumo"].isin(selected_mes_consumo)
                     & df_combinado["Suministrador"].isin(selected_suministrador)
+                    & df_combinado["Clave"].isin(selected_clave)
+                    & df_combinado["Tipo"].isin(selected_tipo) 
                 ]
 
                 columnas_a_modificar = [
