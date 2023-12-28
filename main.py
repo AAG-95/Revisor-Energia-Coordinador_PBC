@@ -9,3 +9,5 @@ comparador = cre.ComparadorRecaudacionEnergia()
 df_combinado = comparador.combinar_datos(comparador.cargar_datos_energia(), comparador.cargar_datos_recaudacion())
 # Run app
 vs.DashBarChart(df_combinado).run()
+
+
