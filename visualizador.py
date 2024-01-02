@@ -88,15 +88,31 @@ class DashBarChart:
         df_combinado = df_combinado.sort_values("Mes Consumo")
 
         # Spanish month abbreviations
-        meses_esp = ["", "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
-       
+        meses_esp = [
+            "",
+            "Ene",
+            "Feb",
+            "Mar",
+            "Abr",
+            "May",
+            "Jun",
+            "Jul",
+            "Ago",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dic",
+        ]
+
         # Ensure "Mes Consumo" is of datetime type
-        df_combinado["Mes Consumo"] = pd.to_datetime(df_combinado["Mes Consumo"],   format="%d-%m-%Y")
+        df_combinado["Mes Consumo"] = pd.to_datetime(
+            df_combinado["Mes Consumo"], format="%d-%m-%Y"
+        )
 
         # Change column format to Ene-2023
         df_combinado["Mes Consumo"] = df_combinado["Mes Consumo"].apply(
-            lambda x: meses_esp[x.day ] + "-" + str(x.year))
-
+            lambda x: meses_esp[x.day] + "-" + str(x.year)
+        )
 
         df_combinado_por_suministrador = (
             df_combinado.groupby(["Suministrador"])
@@ -125,8 +141,7 @@ class DashBarChart:
         dropdown_mes_consumo = dcc.Dropdown(
             id="mes-consumo-dropdown",
             options=[
-                {"label": i, "value": i}
-                for i in df_combinado["Mes Consumo"].unique()
+                {"label": i, "value": i} for i in df_combinado["Mes Consumo"].unique()
             ]
             + [{"label": "Select All", "value": "ALL"}],
             value=["ALL"],
@@ -172,7 +187,31 @@ class DashBarChart:
 
         # Wait for a few seconds
         self.app.layout = html.Div(
-            [  # print hola
+            [
+                dcc.Location(id="url", refresh=False, pathname="/page-1"),
+                html.Div(
+                    [
+                        dcc.Link(
+                            "Revisor de Energía",
+                            href="/page-1",
+                            id="page-1-link",
+                            className="button-link",
+                        ),
+                        dcc.Link(
+                            "Revisor de Sistemas Zonales",
+                            href="/page-2",
+                            id="page-2-link",
+                            className="button-link",
+                        ),
+                    ],
+                    id="nav-links",
+                ),
+                html.Div(id="page-content"),
+            ]
+        )
+
+        page_1_layout = html.Div(
+            [
                 blue_square,
                 html.H1(
                     "Visualizador de Diferencias de Energía",
@@ -241,10 +280,29 @@ class DashBarChart:
             ]
         )
 
+        page_2_layout = html.Div(
+            [
+                html.H1("Page 2"),
+            ]
+        )
+
+        # Pagina de la app
+        @self.app.callback(Output("page-content", "children"), Input("url", "pathname"))
+        def display_page(pathname):
+            if pathname == "/page-1":
+                return page_1_layout
+            elif pathname == "/page-2":
+                return page_2_layout
+            else:
+                return html.Div([])  # Empty Div for no match
+
         # Mes consumo dropdown
 
         @self.app.callback(
-            [Output("mes-consumo-dropdown", "options"),Output("mes-consumo-dropdown", "value")],
+            [
+                Output("mes-consumo-dropdown", "options"),
+                Output("mes-consumo-dropdown", "value"),
+            ],
             [Input("mes-consumo-dropdown", "value")],
         )
         def update_dropdown(selected_values):
@@ -368,11 +426,8 @@ class DashBarChart:
                 or selected_clave
                 or selected_tipo
             ):
-                
                 if selected_mes_consumo == ["ALL"]:
-                   selected_mes_consumo = (
-                        df_combinado["Mes Consumo"].unique().tolist()
-                    )
+                    selected_mes_consumo = df_combinado["Mes Consumo"].unique().tolist()
 
                 if selected_suministrador == ["ALL"]:
                     selected_suministrador = (
@@ -384,7 +439,6 @@ class DashBarChart:
 
                 if selected_tipo == ["ALL"]:
                     selected_tipo = df_combinado["Tipo"].unique().tolist()
-                
 
                 print(selected_mes_consumo)
                 print(df_combinado["Mes Consumo"].unique().tolist())
@@ -410,10 +464,7 @@ class DashBarChart:
                         .replace(".", ",")
                         .replace(" ", ".")
                     )
-                
-               
 
-                
                 df_combinado_filtrado.loc[
                     :, "% Diferencia Energía"
                 ] = df_combinado_filtrado["% Diferencia Energía"].apply(
@@ -433,15 +484,11 @@ class DashBarChart:
         )
         def update_table(selected_mes_consumo, selected_suministrador):
             if selected_mes_consumo and selected_suministrador:
-
-
                 if selected_mes_consumo == ["ALL"]:
-                   print(df_combinado["Mes Consumo"])
+                    print(df_combinado["Mes Consumo"])
 
-                   selected_mes_consumo = (
-                        df_combinado["Mes Consumo"].unique().tolist()
-                    )
-                   
+                    selected_mes_consumo = df_combinado["Mes Consumo"].unique().tolist()
+
                 if selected_suministrador == ["ALL"]:
                     selected_suministrador = (
                         df_combinado["Suministrador"].unique().tolist()
@@ -477,16 +524,11 @@ class DashBarChart:
         )
         def update_table(selected_mes_consumo, selected_tipo):
             if selected_mes_consumo:
-
                 if selected_mes_consumo == ["ALL"]:
-                   selected_mes_consumo = (
-                        df_combinado["Mes Consumo"].unique().tolist()
-                    )
+                    selected_mes_consumo = df_combinado["Mes Consumo"].unique().tolist()
 
                 if selected_tipo == ["ALL"]:
-                    selected_tipo = (
-                        df_combinado["Tipo"].unique().tolist()
-                    )
+                    selected_tipo = df_combinado["Tipo"].unique().tolist()
 
                 df_combinado_filtrado = df_combinado[
                     df_combinado["Mes Consumo"].isin(selected_mes_consumo)
@@ -520,6 +562,18 @@ class DashBarChart:
                     orientation="h",
                 )
                 return fig
+
+    page_1_layout = html.Div(
+        [
+            html.H1("Page 1"),
+        ]
+    )
+
+    page_2_layout = html.Div(
+        [
+            html.H1("Page 2"),
+        ]
+    )
 
     def open_browser(self):
         # Abre el navegador web para visualizar la aplicación

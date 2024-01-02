@@ -27,10 +27,10 @@ carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\R
 
 # Definición de variables de año y mes
 primer_año = 2023
-primer_mes_primer_año = 1
+primer_mes_primer_año = 11
 
 último_año = 2023
-último_mes_último_año = 7
+último_mes_último_año = 11
 
 # Genera una lista de pares de años y meses
 pares_lista = func.generar_pares(
