@@ -11,3 +11,4 @@ df_combinado = comparador.combinar_datos(comparador.cargar_datos_energia(), comp
 vs.DashBarChart(df_combinado).run()
 
 
+ 

@@ -210,13 +210,14 @@ class DashBarChart:
             ]
         )
 
-        page_1_layout = html.Div(
+        page_1_layout = html.Div([ dcc.Loading(
+    id="dropdown-loading_inicio",
+    type="circle",
+    className="your-class-name",  # replace with your actual class name
+    children=[
+        html.Div(
             [
                 blue_square,
-                html.H1(
-                    "Visualizador de Diferencias de Energía",
-                    style={"textAlign": "center"},
-                ),
                 html.Div(
                     [
                         html.Label("Mes Consumo", className="label_mes_consumo"),
@@ -245,40 +246,42 @@ class DashBarChart:
                     ],
                     className="label_tipo-y-dropdown",
                 ),
-                html.Div(
-                    [
-                        dcc.Loading(
-                            id="loading2",
-                            type="circle",
-                            children=[table2],
-                        )
-                    ],
-                    className="tabla2",
-                ),
+            ]
+        ),
+    ]
+),
+        html.Div(
+            [
+                dcc.Loading(
+                    id="loading2",
+                    type="circle",
+                    children=[table2],
+                )
+            ],
+            className="tabla2",
+        ),
+        html.Div(
+            [
                 html.Div(
                     [
                         html.Div(
                             [
-                                html.Div(
-                                    [
-                                        dcc.Loading(
-                                            id="loading",
-                                            type="circle",
-                                            children=[table],
-                                            className="loading-container",
-                                        )
-                                    ],
-                                    className="tabla1",
-                                ),
+                                dcc.Loading(
+                                    id="loading",
+                                    type="circle",
+                                    children=[table],
+                                    className="loading-container",
+                                )
                             ],
-                            className="tabla_diferencias",
+                            className="tabla1",
                         ),
-                        grafico,
                     ],
-                    className="tabla_y_figura_1",
+                    className="tabla_diferencias",
                 ),
-            ]
-        )
+                grafico,
+            ],
+            className="tabla_y_figura_1",
+        ),])
 
         page_2_layout = html.Div(
             [
