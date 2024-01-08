@@ -3,12 +3,12 @@ import glob
 import funciones as fc
 import os
 
-ruta_balances_clientes_libres = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes"
+ruta_balances_clientes_libres = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Retiros Mensuales"
 
-ruta_balances_historicos_clientes_L = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Registro Histórico Clientes"
+ruta_balances_historicos_clientes_L = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Retiros Históricos Clientes"
 
 # Definición de variables de año y mes
-primer_año = 2023
+primer_año = 2020
 primer_mes_primer_año = 1
 
 último_año = 2023
@@ -19,19 +19,7 @@ pares_lista = fc.ConversionDatos().generar_pares(
     primer_año, último_año, primer_mes_primer_año, último_mes_último_año
 )
 
-#! Listado meses 
-# Convert values
-dataframe = []
-for pair in pares_lista:
-    
-    i = pair[1]
-    df_mes = pd.read_excel(ruta_balances_clientes_libres + f"\Retiros_{i}.xlsx", sheet_name="Listado_Clientes_L")
-    # Get first 18 columns
-    df_mes = df_mes.iloc[:, :18]
-    # Erase emprty rows
-    df_mes = df_mes.dropna(how="all")
-    dataframe.append(df_mes)
-    
+
 #! Dataframes históricos
 if os.path.isfile(ruta_balances_historicos_clientes_L + "\Retiros_Históricos_Clientes_L.csv"):
 
@@ -42,12 +30,27 @@ else:
     df_historico = pd.DataFrame()
     valores_mes = []
 
-valores_mes = df_historico["Mes"].unique()
+
+
+#! Listado meses 
+# Convert values
+dataframe = []
+for pair in pares_lista:
+    print(pair)
+    i = pair[1]
+    df_mes = pd.read_excel(ruta_balances_clientes_libres + f"\Retiros_{i}.xlsx", sheet_name="Listado_Clientes_L")
+    # Get first 18 columns
+    df_mes = df_mes.iloc[:, :18]
+    # Erase emprty rows
+    df_mes = df_mes.dropna(how="all")
+    dataframe.append(df_mes)
+    
+
 
 # Verificar si el mes de cada df de mes ya se encuentra en el histórico
 #! Unión de Dataframes
 for i in dataframe:
-    mes = str(i["Mes"].unique()[0].date().strftime('%d-%m-%Y')) 
+    mes = str(i["Mes"].unique()[0]) 
     if mes in valores_mes:
         print(f"El mes {mes} ya se encuentra en el histórico del balance de energía")
     else: 
@@ -57,7 +60,7 @@ for i in dataframe:
         # Replace "." with "," in the selected columns
         for column in columnas_numericas:
             i[column] = i[column].astype(str).str.replace(".", ",")
-        i["Mes"] = i["Mes"].dt.strftime('%d-%m-%Y')   
+         
 
         df_historico = pd.concat([df_historico, i])
         print(f"Se incorpora el mes {mes} en el histórico del balance de energía")
