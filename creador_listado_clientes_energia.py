@@ -302,7 +302,7 @@ for mes in lista_meses:
 
         # If value in first row is
         # Convert column Mes to datetime with format datetime.datetime(2023, 9, 1, 0, 0)
-        df_historico_clientes_L["Mes"] = pd.to_datetime(df_historico_clientes_L["Mes"]).dt.strftime('%d-%m-%Y')
+        df_historico_clientes_L["Mes"] = pd.to_datetime(df_historico_clientes_L["Mes"]).dt.strftime('%m-%d-%Y')
         df_clientes_L["Mes"] = pd.to_datetime(df_clientes_L["Mes"]).dt.strftime('%m-%d-%Y')    
 
         if mes_fecha not in df_historico_clientes_L["Mes"].unique().tolist():
@@ -314,6 +314,14 @@ for mes in lista_meses:
             df_retiros_historico_L_final = pd.concat(
                 [df_historico_clientes_L, df_clientes_L]
             )
+
+
+            columnas_numericas = ['Medida 1','(0/1)','Medida 2','(0/1).1','Medida 3','(0/1).2','Error','Cálculo']  # replace with your column names
+
+            # Replace "." with "," in the selected columns
+            for column in columnas_numericas:
+                df_retiros_historico_L_final[column] = df_retiros_historico_L_final[column].astype(str).str.replace(".", ",")   
+
 
             # Rewrite df_registro_cambios_empresas_final into ruta_registro_cambios_Empresas
             df_retiros_historico_L_final.to_csv(
@@ -376,6 +384,8 @@ for mes in lista_meses:
                 df_registro_cambios_clientes[col] = df_registro_cambios_clientes[
                     col
                 ].str.replace("##_#", " ")
+
+            
 
             df_registro_cambios_clientes.rename(columns={"Nombre": "Cliente"}, inplace=True)
 

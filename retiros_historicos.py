@@ -67,5 +67,5 @@ for i in dataframe:
 ruta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Retiros Históricos Clientes"
 
 df_historico.to_csv(
-    ruta_salida + "\\" + "Prueba_Históricos_Clientes_L" + ".csv",
+    ruta_salida + "\\" + "Retiros_Históricos_Clientes_L" + ".csv",
     sep=";", encoding="UTF-8", index=False)
