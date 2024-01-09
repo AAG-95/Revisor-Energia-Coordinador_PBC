@@ -31,7 +31,6 @@ else:
     valores_mes = []
 
 
-
 #! Listado meses 
 # Convert values
 dataframe = []
@@ -44,7 +43,6 @@ for pair in pares_lista:
     # Erase emprty rows
     df_mes = df_mes.dropna(how="all")
     dataframe.append(df_mes)
-    
 
 
 # Verificar si el mes de cada df de mes ya se encuentra en el histórico

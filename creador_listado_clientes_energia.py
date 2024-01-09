@@ -19,7 +19,7 @@ ventana.iniciar()
 mes = ventana.visualizador()
 lista_meses = [x.strip() for x in mes.split(", ")]
 
-lista_meses = ["Sep2023", "Oct2023"]
+
 
 
 #! Main Program
@@ -297,13 +297,13 @@ for mes in lista_meses:
     # ? Update Registros Históricos--------------------------------------------------------------
     if os.path.isfile(ruta_retiros_historicos_L):
         df_historico_clientes_L = pd.read_csv(
-            ruta_retiros_historicos_L, sep=";", encoding="latin1"
+            ruta_retiros_historicos_L, sep=";", encoding="UTF-8"
         )
 
         # If value in first row is
         # Convert column Mes to datetime with format datetime.datetime(2023, 9, 1, 0, 0)
         df_historico_clientes_L["Mes"] = pd.to_datetime(df_historico_clientes_L["Mes"]).dt.strftime('%d-%m-%Y')
-        df_clientes_L["Mes"] = pd.to_datetime(df_clientes_L["Mes"]).dt.strftime('%d-%m-%Y')    
+        df_clientes_L["Mes"] = pd.to_datetime(df_clientes_L["Mes"]).dt.strftime('%m-%d-%Y')    
 
         if mes_fecha not in df_historico_clientes_L["Mes"].unique().tolist():
             print(
@@ -380,7 +380,7 @@ for mes in lista_meses:
             df_registro_cambios_clientes.rename(columns={"Nombre": "Cliente"}, inplace=True)
 
             df_registro_cambios_clientes.to_csv(
-                ruta_registro_cambios_clientes, sep=";", index=False, encoding="latin1"
+                ruta_registro_cambios_clientes, sep=";", index=False, encoding="UTF-8"
             )
         else:
             print(
