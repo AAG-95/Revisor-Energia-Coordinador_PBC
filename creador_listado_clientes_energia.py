@@ -19,8 +19,7 @@ ventana.iniciar()
 mes = ventana.visualizador()
 lista_meses = [x.strip() for x in mes.split(", ")]
 
-
-
+lista_meses = ["Nov2023"]
 
 #! Main Program
 # ? Paths inputs
@@ -82,10 +81,11 @@ for mes in lista_meses:
 
     # Get previous month from mes_fecha
     mes_anterior = pd.to_datetime(mes_fecha - relativedelta(months=1)).strftime('%d-%m-%Y')
+    mes_fecha = mes_fecha.strftime('%d-%m-%Y')
 
     # Get Value from column Versiones when mes fecha match value in column Mes
     version = df_control_versiones.loc[
-        df_control_versiones["Mes"] == mes_fecha, "Versión"
+       pd.to_datetime(df_control_versiones["Mes"]).dt.strftime('%d-%m-%Y') == mes_fecha, "Versión"
     ].iloc[0]
 
     # Path to ZIP file, Balance Físico
@@ -148,7 +148,7 @@ for mes in lista_meses:
                 df_clientes["Barra"] = df_clientes["Barra"].ffill()
 
                 # Add month column
-                df_clientes["Mes"] = mes_fecha.strftime('%m-%d-%Y')
+                df_clientes["Mes"] = mes_fecha
 
                 # Drop Rows from column df_clientes['Nombre'] that contains 'TOTAL' or NaN
                 df_clientes = df_clientes[df_clientes["Nombre"] != "TOTAL"]
@@ -179,7 +179,7 @@ for mes in lista_meses:
                     )
                     sys.exit()
 
-                retiros_clientes["Mes"] = pd.to_datetime(retiros_clientes["Mes"]).dt.strftime('%d-%m-%Y')    
+                
 
                 # retiros divided in R and L
                 retiros_clientes_R = retiros_clientes[
@@ -208,15 +208,12 @@ for mes in lista_meses:
     indice_propietario = cols.index("Propietario")
     indice_suministrador = cols.index("Suministrador_final")
 
-    # Use a temporary variable to help with the swap
-    temp = cols[indice_propietario]
+    
+    # Swap the positions of the two columns in the list
+    cols[indice_propietario], cols[indice_suministrador] = cols[indice_suministrador], cols[indice_propietario]
 
-    cols[indice_propietario] = cols[indice_suministrador]
-    
-    cols[indice_suministrador] = temp
-    
     # Reassign the columns of the DataFrame in the new order
-    df_clientes_L.columns = cols
+    df_clientes_L = df_clientes_L[cols]
 
     #! Output of program-----------------------------------------------------------------
 
@@ -265,9 +262,9 @@ for mes in lista_meses:
         "Empresas eliminadas respecto a Mes Anterior:",
         df_empresas_eliminadas["Suministrador_final"].to_list(),
     )
-
+ 
     # If mes is not in registro_cambios by column Mes, add Columns Mes and Suministrador_final of df_clientes into registro_cambios
-    if mes_fecha.strftime('%d-%m-%Y') not in list(df_registro_cambios_empresas["Mes"].unique()):
+    if mes_fecha not in list(df_registro_cambios_empresas["Mes"].unique()):
        
         print(
             "Se actualiza el archivo Registro de Cambios de Empresas Existentes con registro mes: "
@@ -293,8 +290,7 @@ for mes in lista_meses:
         )
         #sys.exit() 
          
-
-    # ? Update Registros Históricos--------------------------------------------------------------
+    # ? Update Registros Históricos Clientes--------------------------------------------------------------
     if os.path.isfile(ruta_retiros_historicos_L):
         df_historico_clientes_L = pd.read_csv(
             ruta_retiros_historicos_L, sep=";", encoding="UTF-8"
@@ -302,9 +298,9 @@ for mes in lista_meses:
 
         # If value in first row is
         # Convert column Mes to datetime with format datetime.datetime(2023, 9, 1, 0, 0)
-        df_historico_clientes_L["Mes"] = pd.to_datetime(df_historico_clientes_L["Mes"]).dt.strftime('%m-%d-%Y')
-        df_clientes_L["Mes"] = pd.to_datetime(df_clientes_L["Mes"]).dt.strftime('%m-%d-%Y')    
-
+        df_historico_clientes_L["Mes"] = pd.to_datetime(df_historico_clientes_L["Mes"]).dt.strftime('%d-%m-%Y')
+        df_clientes_L["Mes"] = pd.to_datetime(df_clientes_L["Mes"]).dt.strftime('%d-%m-%Y')    
+        
         if mes_fecha not in df_historico_clientes_L["Mes"].unique().tolist():
             print(
                 "Se actualiza el archivo Registro de Cambios Históricos con registro mes: "
@@ -394,10 +390,10 @@ for mes in lista_meses:
             )
         else:
             print(
-                "Revisar Base De Datos de CLientes Históricos, el Mes Actual ya fue actualizado anteriormente"
+                "Revisar Base De Datos de Clientes Históricos, el Mes Actual ya fue actualizado anteriormente"
             )
             # End code
-            sys.exit()
+            #sys.exit()
 
     # Path to save output Listado de Clientes
     ruta_salida = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Retiros Mensuales"
