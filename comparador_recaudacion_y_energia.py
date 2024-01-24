@@ -163,3 +163,5 @@ class ComparadorRecaudacionEnergia:
             ]
         ]
         return df_combinado
+
+

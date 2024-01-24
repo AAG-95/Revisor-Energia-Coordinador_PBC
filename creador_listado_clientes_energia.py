@@ -299,7 +299,7 @@ for mes in lista_meses:
         # If value in first row is
         # Convert column Mes to datetime with format datetime.datetime(2023, 9, 1, 0, 0)
         df_historico_clientes_L["Mes"] = pd.to_datetime(df_historico_clientes_L["Mes"]).dt.strftime('%d-%m-%Y')
-        df_clientes_L["Mes"] = pd.to_datetime(df_clientes_L["Mes"]).dt.strftime('%d-%m-%Y')    
+        df_clientes_L["Mes"] = pd.to_datetime(df_clientes_L["Mes"]) 
         
         if mes_fecha not in df_historico_clientes_L["Mes"].unique().tolist():
             print(
