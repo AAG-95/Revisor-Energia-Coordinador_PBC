@@ -65,9 +65,11 @@ class ComparadorRecaudacionEnergia:
             sep=";",
             encoding="UTF-8",
         )
+
+        # Filtrar dataframe para obtener empresas informantes que sean recaduador y revissar caso que no hay recaduador pero sí energía 
         df_recaudacion = df_recaudacion[
-            df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 1
-        ]
+    ~((df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 0) & (df_recaudacion["Recaudador No Informado"] == 0))
+]
         df_recaudacion["Barra-Clave-Suministrador-Mes"] = (
             df_recaudacion["Barra"].astype(str)
             + "-_-"
@@ -129,8 +131,8 @@ class ComparadorRecaudacionEnergia:
             df_combinado["Diferencia Energía [kWh]"]
             / df_combinado["Energía Balance [kWh]"]
         )
-        df_combinado["Tipo"] = df_combinado.apply(lambda x:"Recaudador No Informado" if df_combinado["Recaudador No Informado"].apply(lambda x: 1 in x) else
-            lambda x: "Cliente Informado con Diferente Clave"
+        df_combinado["Tipo"] = df_combinado.apply(lambda x:"Recaudador No Informado"    if   (np.array(x["Recaudador No Informado"]) == 1).any() or x["Recaudador No Informado"] == 1 else (
+           "Cliente Informado con Diferente Clave"
             if pd.isna(x["Energía Balance [kWh]"]) or x["Energía Balance [kWh]"] == 0 and x["Energía Declarada [kWh]"] > 0
             else ("Clave Obsoleta" if pd.isna(x["Energía Balance [kWh]"]) or x["Energía Balance [kWh]"] == 0
             else (
@@ -145,7 +147,7 @@ class ComparadorRecaudacionEnergia:
                     if x["% Diferencia Energía"] > 0.05
                     else "Diferencia Energía sin Diferencias"
                 ) )
-            ),
+        )),
             axis=1,
         )
 
