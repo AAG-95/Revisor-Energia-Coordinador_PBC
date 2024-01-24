@@ -87,17 +87,21 @@ class ComparadorRecaudacionEnergia:
             .astype(float)
         )
         df_recaudacion = (
-            df_recaudacion.groupby(["Barra-Clave-Suministrador-Mes"])
-            .agg({"Energía [kWh]": "sum", "mes_repartición": lambda x: list(x)})
-            .reset_index()
-        )
+    df_recaudacion.groupby(["Barra-Clave-Suministrador-Mes"])
+    .agg({
+        "Energía [kWh]": "sum", 
+        "mes_repartición": lambda x: list(x),
+        "Recaudador No Informado": lambda x: list(x)
+    })
+    .reset_index()
+)
         return df_recaudacion
 
     def combinar_datos(self, df_energia, df_recaudacion):
         df_combinado = pd.merge(
             df_energia,
             df_recaudacion[
-                ["Barra-Clave-Suministrador-Mes", "Energía [kWh]", "mes_repartición"]
+                ["Barra-Clave-Suministrador-Mes", "Energía [kWh]", "mes_repartición", "Recaudador No Informado"]
             ],
             on="Barra-Clave-Suministrador-Mes",
             how="left",
@@ -125,7 +129,7 @@ class ComparadorRecaudacionEnergia:
             df_combinado["Diferencia Energía [kWh]"]
             / df_combinado["Energía Balance [kWh]"]
         )
-        df_combinado["Tipo"] = df_combinado.apply(
+        df_combinado["Tipo"] = df_combinado.apply(lambda x:"Recaudador No Informado" if df_combinado["Recaudador No Informado"].apply(lambda x: 1 in x) else
             lambda x: "Cliente Informado con Diferente Clave"
             if pd.isna(x["Energía Balance [kWh]"]) or x["Energía Balance [kWh]"] == 0 and x["Energía Declarada [kWh]"] > 0
             else ("Clave Obsoleta" if pd.isna(x["Energía Balance [kWh]"]) or x["Energía Balance [kWh]"] == 0

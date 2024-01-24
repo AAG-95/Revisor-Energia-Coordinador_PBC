@@ -146,6 +146,10 @@ for par in pares_lista:
             df["Recaudador"] == df["Empresa_Planilla"], 1, 0
         )
 
+        # Revisor para ver que el suministrador informa al recaudador
+        df["Recaudador No Informado"] = np.where((df["Energía [kWh]"] > 0) & (df["Energía [kWh]"].isin(["", "-"])), 1, 0)
+        
+
         # Eliminar filas con valores nulos en las columnas Barra, Clave y Suministrador
         df.dropna(subset=["Barra", "Clave", "Suministrador"], inplace=True)
         # Agregar el dataframe a la lista
@@ -205,6 +209,14 @@ for par in pares_lista:
         df_Nvs["Empresa_Planilla_Recauda_Cliente"] = np.where(
             df_Nvs["Recaudador"] == df_Nvs["Empresa_Planilla"], 1, 0
         )
+        df_Nvs["Empresa_Planilla_Recauda_Cliente"] = np.where(
+            df_Nvs["Recaudador"] == df_Nvs["Empresa_Planilla"], 1, 0
+        )
+        
+        # Revisor para ver que el suministrador informa al recaudador
+        df_Nvs["Recaudador No Informado"] = np.where((df_Nvs["Energía [kWh]"] > 0) & (df_Nvs["Energía [kWh]"].isin(["", "-"])), 1, 0)
+        
+
 
         # Eliminar filas con valores nulos en las columnas Barra, Clave y Suministrador
         df_Nvs.dropna(subset=["Barra", "Clave", "Suministrador"], inplace=True)

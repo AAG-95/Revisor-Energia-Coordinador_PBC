@@ -298,7 +298,7 @@ for mes in lista_meses:
 
         # If value in first row is
         # Convert column Mes to datetime with format datetime.datetime(2023, 9, 1, 0, 0)
-        df_historico_clientes_L["Mes"] = pd.to_datetime(df_historico_clientes_L["Mes"]).dt.strftime('%d-%m-%Y')
+        df_historico_clientes_L["Mes"] = pd.to_datetime(df_historico_clientes_L["Mes"])
         df_clientes_L["Mes"] = pd.to_datetime(df_clientes_L["Mes"]) 
         
         if mes_fecha not in df_historico_clientes_L["Mes"].unique().tolist():
@@ -318,7 +318,8 @@ for mes in lista_meses:
             for column in columnas_numericas:
                 df_retiros_historico_L_final[column] = df_retiros_historico_L_final[column].astype(str).str.replace(".", ",")   
 
-
+            
+            df_retiros_historico_L_final["Mes"] = df_retiros_historico_L_final["Mes"].dt.strftime("%m-%d-%Y")
             # Rewrite df_registro_cambios_empresas_final into ruta_registro_cambios_Empresas
             df_retiros_historico_L_final.to_csv(
                 ruta_retiros_historicos_L, sep=";", index=False
