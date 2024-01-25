@@ -206,4 +206,7 @@ class ComparadorRecaudacionEnergia:
                 "Tipo",
             ]
         ]
+
+        df_combinado["Recaudador"] = np.where(df_combinado["Recaudador"].isna() | (df_combinado["Recaudador"] == ""), df_combinado["Suministrador"], df_combinado["Recaudador"])
+
         return df_combinado

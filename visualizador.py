@@ -238,13 +238,16 @@ class DashBarChart:
                     ],
                     className="label_mes-y-dropdown",
                 ),
-                 html.Div(
-                    [
-                        html.Label("Barra", className="label_barra"),
+
+
+               html.Div(
+                 [
+                       html.Label("Barra", className="label_barra"),
                         dropdown_barra,
                     ],
-                    className="label_recaudador-y-dropdown",
-                ),
+                   className="label_barra-y-dropdown",
+                ), 
+
                 html.Div(
                     [
                         html.Label("Recaudador", className="label_recaudador"),
@@ -349,7 +352,41 @@ class DashBarChart:
                 ] + [
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  # Only "ALL" is displayed and selected
+            
 
+
+
+        @self.app.callback(
+            [
+                Output("barra-dropdown", "options"),
+                Output("barra-dropdown", "value"),
+            ],
+            [Input("barra-dropdown", "value")],
+        )
+        def update_dropdown(selected_values):
+            if selected_values:
+                if "ALL" in selected_values:
+                    return [
+                        {"label": i, "value": i}
+                        for i in df_combinado["Barra"].unique()
+                    ] + [{"label": "Select All", "value": "ALL"}], ["ALL"]
+                else:
+                    return [
+                        {"label": i, "value": i}
+                        for i in df_combinado["Barra"].unique()
+                    ] + [{"label": "Select All", "value": "ALL"}], [
+                        value for value in selected_values if value != "ALL"
+                    ]  # All options are displayed, selected values are selected
+            else:
+                return [
+                    {"label": i, "value": i}
+                    for i in df_combinado["Barra"].unique()
+                ] + [
+                    {"label": "Select All", "value": "ALL"}
+                ], selected_values  # Only "ALL" is displayed and selected"""
+        #
+
+        
         @self.app.callback(
             [
                 Output("recaudador-dropdown", "options"),
@@ -431,6 +468,10 @@ class DashBarChart:
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  # Only "ALL" is displayed and selected
 
+
+
+
+
         @self.app.callback(
             Output("table", "data"),
             [
@@ -455,12 +496,11 @@ class DashBarChart:
                     selected_mes_consumo = df_combinado["Mes Consumo"].unique().tolist()
 
                 if selected_barra == ["ALL"]:
-                    selected_barra = selected_barra["Barra"].unique().tolist()
-
+                      selected_barra = df_combinado["Barra"].unique().tolist()
+                
                 if selected_recaudador == ["ALL"]:
-                    selected_recaudador = (
-                        df_combinado["Recaudador"].unique().tolist()
-                    )
+                    selected_recaudador =  df_combinado["Recaudador"].unique().tolist()
+                    
 
                 if selected_clave == ["ALL"]:
                     selected_clave = df_combinado["Clave"].unique().tolist()
@@ -468,8 +508,6 @@ class DashBarChart:
                 if selected_tipo == ["ALL"]:
                     selected_tipo = df_combinado["Tipo"].unique().tolist()
 
-                print(selected_mes_consumo)
-                print(df_combinado["Mes Consumo"].unique().tolist())
                 df_combinado_filtrado = df_combinado[
                     df_combinado["Mes Consumo"].isin(selected_mes_consumo)
                     & df_combinado["Barra"].isin(selected_barra)
@@ -514,8 +552,6 @@ class DashBarChart:
         def update_table(selected_mes_consumo, selected_recaudador):
             if selected_mes_consumo and selected_recaudador:
                 if selected_mes_consumo == ["ALL"]:
-                    print(df_combinado["Mes Consumo"])
-
                     selected_mes_consumo = df_combinado["Mes Consumo"].unique().tolist()
 
                 if selected_recaudador == ["ALL"]:
