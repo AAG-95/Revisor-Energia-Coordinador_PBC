@@ -40,8 +40,7 @@ class ComparadorRecaudacionEnergia:
             + "-_-"
             + df_energia["Clave"].astype(str)
             + "-_-"
-            + df_energia["Suministrador_final"].astype(str)
-            + "-_-"
+           
             + df_energia["Mes"].astype(str)
         )
         df_energia["Medida 2"] = (
@@ -50,11 +49,12 @@ class ComparadorRecaudacionEnergia:
         df_energia["Medida 2"] = df_energia["Medida 2"] * -1
         df_energia.rename(columns={"Medida 2": "Energía Balance [kWh]"}, inplace=True)
         df_energia = df_energia[
-            ["Barra-Clave-Suministrador-Mes", "Energía Balance [kWh]"]
+            ["Barra-Clave-Suministrador-Mes", "Energía Balance [kWh]","Suministrador_final" ]
         ]
         df_energia = (
             df_energia.groupby(["Barra-Clave-Suministrador-Mes"])
-            .agg({"Energía Balance [kWh]": "sum"})
+            .agg({"Energía Balance [kWh]": "sum",
+                    "Suministrador_final": lambda x: (x),})
             .reset_index()
         )
         return df_energia
@@ -66,16 +66,22 @@ class ComparadorRecaudacionEnergia:
             encoding="UTF-8",
         )
 
-        # Filtrar dataframe para obtener empresas informantes que sean recaduador y revissar caso que no hay recaduador pero sí energía 
+        # Filtrar dataframe para obtener empresas informantes que sean recaduador y revissar caso que no hay recaduador pero sí energía
         df_recaudacion = df_recaudacion[
-    ~((df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 0) & (df_recaudacion["Recaudador No Informado"] == 0))
-]
+            ~(
+                (df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 0)
+                & (df_recaudacion["Recaudador No Informado"] == 0)
+            )
+        ]
+        
+        df_recaudacion =  df_recaudacion[
+            
+                (df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 1)]
+
         df_recaudacion["Barra-Clave-Suministrador-Mes"] = (
             df_recaudacion["Barra"].astype(str)
             + "-_-"
             + df_recaudacion["Clave"].astype(str)
-            + "-_-"
-            + df_recaudacion["Suministrador"].astype(str)
             + "-_-"
             + df_recaudacion["Mes Consumo"].astype(str)
         )
@@ -88,22 +94,37 @@ class ComparadorRecaudacionEnergia:
             .replace("na", np.nan)
             .astype(float)
         )
+
+
         df_recaudacion = (
-    df_recaudacion.groupby(["Barra-Clave-Suministrador-Mes"])
-    .agg({
-        "Energía [kWh]": "sum", 
-        "mes_repartición": lambda x: list(x),
-        "Recaudador No Informado": lambda x: list(x)
-    })
-    .reset_index()
-)
+            df_recaudacion.groupby(["Barra-Clave-Suministrador-Mes"])
+            .agg(
+                {
+                    "Energía [kWh]": "sum",
+                   
+                    "Recaudador": lambda x: list(x),
+                    "mes_repartición": lambda x: list(x),
+                    "Recaudador No Informado": lambda x: list(x),
+                }
+            )
+            .reset_index()
+        )
+
+        df_recaudacion["Recaudador"] = df_recaudacion["Recaudador"].apply(lambda x: pd.Series(x).mode()[0] if pd.Series(x).mode().size else None)
+
         return df_recaudacion
 
     def combinar_datos(self, df_energia, df_recaudacion):
         df_combinado = pd.merge(
             df_energia,
             df_recaudacion[
-                ["Barra-Clave-Suministrador-Mes", "Energía [kWh]", "mes_repartición", "Recaudador No Informado"]
+                [
+                    "Barra-Clave-Suministrador-Mes",
+                    "Recaudador",
+                    "Energía [kWh]",
+                    "mes_repartición",
+                    "Recaudador No Informado",
+                ]
             ],
             on="Barra-Clave-Suministrador-Mes",
             how="left",
@@ -131,36 +152,53 @@ class ComparadorRecaudacionEnergia:
             df_combinado["Diferencia Energía [kWh]"]
             / df_combinado["Energía Balance [kWh]"]
         )
-        df_combinado["Tipo"] = df_combinado.apply(lambda x:"Recaudador No Informado"    if   (np.array(x["Recaudador No Informado"]) == 1).any() or x["Recaudador No Informado"] == 1 else (
-           "Cliente Informado con Diferente Clave"
-            if pd.isna(x["Energía Balance [kWh]"]) or x["Energía Balance [kWh]"] == 0 and x["Energía Declarada [kWh]"] > 0
-            else ("Clave Obsoleta" if pd.isna(x["Energía Balance [kWh]"]) or x["Energía Balance [kWh]"] == 0
+        df_combinado["Tipo"] = df_combinado.apply(
+            lambda x: "Recaudador No Informado"
+            if (np.array(x["Recaudador No Informado"]) == 1).any()
+            or x["Recaudador No Informado"] == 1
             else (
-                "Clave no informada en RCUT"
-                if (
-                    pd.isna(x["Energía Declarada [kWh]"])
-                    or x["Energía Declarada [kWh]"] == 0
-                )
-                and x["Energía Balance [kWh]"] > 0
+                "Cliente Informado con Diferente Clave"
+                if pd.isna(x["Energía Balance [kWh]"])
+                or x["Energía Balance [kWh]"] == 0
+                and x["Energía Declarada [kWh]"] > 0
                 else (
-                    "Diferencia Energía con Diferencias"
-                    if x["% Diferencia Energía"] > 0.05
-                    else "Diferencia Energía sin Diferencias"
-                ) )
-        )),
+                    "Clave Obsoleta"
+                    if pd.isna(x["Energía Balance [kWh]"])
+                    or x["Energía Balance [kWh]"] == 0
+                    else (
+                        "Clave no informada en RCUT"
+                        if (
+                            pd.isna(x["Energía Declarada [kWh]"])
+                            or x["Energía Declarada [kWh]"] == 0
+                        )
+                        and x["Energía Balance [kWh]"] > 0
+                        else (
+                            "Diferencia Energía con Diferencias"
+                            if abs(x["% Diferencia Energía"]) > 0.05
+                            else "Diferencia Energía sin Diferencias"
+                        )
+                    )
+                )
+            ),
             axis=1,
         )
 
-        df_combinado[["Barra", "Clave", "Suministrador", "Mes Consumo"]] = df_combinado[
+        df_combinado[["Barra", "Clave", "Mes Consumo"]] = df_combinado[
             "Barra-Clave-Suministrador-Mes"
         ].str.split("-_-", expand=True)
+
+        # rename Suministrador_final to Suministrador
+        df_combinado = df_combinado.rename(columns={"Suministrador_final": "Suministrador"})
+        
         df_combinado = df_combinado[
             [
                 "Barra",
                 "Clave",
                 "Suministrador",
+                "Recaudador",
                 "Mes Consumo",
                 "mes_repartición",
+                "Recaudador No Informado",
                 "Energía Balance [kWh]",
                 "Energía Declarada [kWh]",
                 "Diferencia Energía [kWh]",
@@ -169,5 +207,3 @@ class ComparadorRecaudacionEnergia:
             ]
         ]
         return df_combinado
-
-
