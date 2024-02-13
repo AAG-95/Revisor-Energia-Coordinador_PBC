@@ -35,12 +35,11 @@ class ComparadorRecaudacionEnergia:
             sep=";",
             encoding="UTF-8",
         )
-        df_energia["Barra-Clave-Suministrador-Mes"] = (
+        df_energia["Barra-Clave-Mes"] = (
             df_energia["Barra"].astype(str)
             + "-_-"
             + df_energia["Clave"].astype(str)
-            + "-_-"
-           
+            + "-_-" 
             + df_energia["Mes"].astype(str)
         )
         df_energia["Medida 2"] = (
@@ -49,12 +48,12 @@ class ComparadorRecaudacionEnergia:
         df_energia["Medida 2"] = df_energia["Medida 2"] * -1
         df_energia.rename(columns={"Medida 2": "Energía Balance [kWh]"}, inplace=True)
         df_energia = df_energia[
-            ["Barra-Clave-Suministrador-Mes", "Energía Balance [kWh]","Suministrador_final" ]
+            ["Barra-Clave-Mes", "Energía Balance [kWh]","Suministrador_final" ]
         ]
         df_energia = (
-            df_energia.groupby(["Barra-Clave-Suministrador-Mes"])
+            df_energia.groupby(["Barra-Clave-Mes"])
             .agg({"Energía Balance [kWh]": "sum",
-                    "Suministrador_final": lambda x: (x),})
+                    "Suministrador_final": lambda x: list(x)[0],})
             .reset_index()
         )
         return df_energia
@@ -78,7 +77,7 @@ class ComparadorRecaudacionEnergia:
             
                 (df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 1)]
 
-        df_recaudacion["Barra-Clave-Suministrador-Mes"] = (
+        df_recaudacion["Barra-Clave-Mes"] = (
             df_recaudacion["Barra"].astype(str)
             + "-_-"
             + df_recaudacion["Clave"].astype(str)
@@ -97,11 +96,11 @@ class ComparadorRecaudacionEnergia:
 
 
         df_recaudacion = (
-            df_recaudacion.groupby(["Barra-Clave-Suministrador-Mes"])
+            df_recaudacion.groupby(["Barra-Clave-Mes"])
             .agg(
                 {
                     "Energía [kWh]": "sum",
-                   
+                    "Suministrador": lambda x: list(x)[0],
                     "Recaudador": lambda x: list(x),
                     "mes_repartición": lambda x: list(x),
                     "Recaudador No Informado": lambda x: list(x),
@@ -119,14 +118,14 @@ class ComparadorRecaudacionEnergia:
             df_energia,
             df_recaudacion[
                 [
-                    "Barra-Clave-Suministrador-Mes",
+                    "Barra-Clave-Mes",
                     "Recaudador",
                     "Energía [kWh]",
                     "mes_repartición",
                     "Recaudador No Informado",
                 ]
             ],
-            on="Barra-Clave-Suministrador-Mes",
+            on="Barra-Clave-Mes",
             how="left",
         ).reset_index(drop=True)
         df_combinado.rename(
@@ -184,7 +183,7 @@ class ComparadorRecaudacionEnergia:
         )
 
         df_combinado[["Barra", "Clave", "Mes Consumo"]] = df_combinado[
-            "Barra-Clave-Suministrador-Mes"
+            "Barra-Clave-Mes"
         ].str.split("-_-", expand=True)
 
         # rename Suministrador_final to Suministrador
