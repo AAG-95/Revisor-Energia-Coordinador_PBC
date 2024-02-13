@@ -21,6 +21,10 @@ import funciones as func  # Se importa un módulo personalizado llamado Funcione
 # openpyxl version: 3.0.10
 # pandas version: 1.4.4
 
+print("Python version:", sys.version)
+print("openpyxl version:", openpyxl.__version__)
+print("pandas version:", pd.__version__)
+
 # Deshabilitar temporalmente las advertencias
 # warnings.filterwarnings("ignore")
 warnings.filterwarnings(
@@ -29,9 +33,9 @@ warnings.filterwarnings(
 
 # Definición de variables de año y mes
 primer_año = 2023
-primer_mes_primer_año = 11
+primer_mes_primer_año = 12
 último_año = 2023
-último_mes_último_año = 11
+último_mes_último_año = 12
 
 # Genera una lista de pares de años y meses
 pares_lista = func.ConversionDatos().generar_pares(
@@ -146,8 +150,10 @@ for par in pares_lista:
             df["Recaudador"] == df["Empresa_Planilla"], 1, 0
         )
 
-        # Revisor para ver que el suministrador informa al recaudador
+        # Revisor para ver que el suministrador informa al recaudador 
+        df["Energía [kWh]"] = df["Energía [kWh]"].str.replace(",", ".").astype(float)
         df["Recaudador No Informado"] = np.where((df["Energía [kWh]"] > 0) & (df["Energía [kWh]"].isin(["", "-"])), 1, 0)
+        df["Energía [kWh]"] = df["Energía [kWh]"].astype(str).replace('.', ',')
         
 
         # Eliminar filas con valores nulos en las columnas Barra, Clave y Suministrador
@@ -214,9 +220,11 @@ for par in pares_lista:
         )
         
         # Revisor para ver que el suministrador informa al recaudador
-        df_Nvs["Recaudador No Informado"] = np.where((df_Nvs["Energía [kWh]"] > 0) & (df_Nvs["Energía [kWh]"].isin(["", "-"])), 1, 0)
-        
 
+        df_Nvs["Energía [kWh]"] = df_Nvs["Energía [kWh]"].str.replace(",", ".").astype(float)
+        df_Nvs["Recaudador No Informado"] = np.where((df_Nvs["Energía [kWh]"] > 0) & (df_Nvs["Energía [kWh]"].isin(["", "-"])), 1, 0)
+        df_Nvs["Energía [kWh]"] = df_Nvs["Energía [kWh]"].astype(str).replace('.', ',')   
+     
 
         # Eliminar filas con valores nulos en las columnas Barra, Clave y Suministrador
         df_Nvs.dropna(subset=["Barra", "Clave", "Suministrador"], inplace=True)

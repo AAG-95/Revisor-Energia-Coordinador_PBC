@@ -19,7 +19,7 @@ ventana.iniciar()
 mes = ventana.visualizador()
 lista_meses = [x.strip() for x in mes.split(", ")]
 
-lista_meses = ["Nov2023"]
+lista_meses = ["Dic2023"]
 
 #! Main Program
 # ? Paths inputs
