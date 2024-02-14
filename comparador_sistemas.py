@@ -2,13 +2,6 @@ import pandas as pd
 import funciones as fc
 import numpy as np
 
-
-#! comentario Rojo
-
-#? comentario azul
-
-#todo comentario naranjo 
-
 class ComparadorSistemas:
     def __init__(self):
         # Carpeta de salida
@@ -164,7 +157,10 @@ class ComparadorSistemas:
             axis=1,
         )
 
+        # Drop Nan row when Clave column is nan
+        df_combinado_sistemas = df_combinado_sistemas.dropna(subset=["Clave"])
+
         """# Drop "Correcto" en columna Tipo
         df_combinado_sistemas = df_combinado_sistemas[df_combinado_sistemas["Tipo"] != "Correcto"]"""        
-    
+        df_combinado_sistemas.to_csv(self.carpeta_salida + "df_revision_sistemas.csv", sep=";", encoding="UTF-8")
         return df_combinado_sistemas

@@ -23,10 +23,29 @@ class DashBarChart:
         self.df_combinado_energia = df_combinado_energia
         self.df_combinado_sistemas = df_combinado_sistemas
         self.app = dash.Dash(__name__)
-        # Preprocess the data
-        self.df_dict = {}
+        self.df_dict = {} # Lista de Fechas
+        for value in df_combinado_energia["Mes Consumo"].unique():
+            self.df_dict[value] = df_combinado_energia[df_combinado_energia["Mes Consumo"] == value]
+        # Spanish month abbreviations
+        self.meses_esp = [
+            "",
+            "Ene",
+            "Feb",
+            "Mar",
+            "Abr",
+            "May",
+            "Jun",
+            "Jul",
+            "Ago",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dic",
+        ]
 
-        blue_square = html.Div(
+        # Preprocess the data
+            
+        inicio_energia = html.Div(
             [
                 html.H1(
                     "Revisor de Energía",
@@ -48,17 +67,57 @@ class DashBarChart:
             },
         )
 
-        #? Diseño de Página Revisor de Energía
+        inicio_sistemas= html.Div(
+            [
+                html.H1(
+                    "Revisor de Sistemas Zonales",
+                    style={"text-align": "center", "color": "black"},
+                ),
+                html.Img(
+                    src="assets\coordinador_logo.png",
+                    style={"height": "80px", "margin-left": "auto"},
+                ),
+            ],
+            style={
+                "background-color": "lightblue",
+                "width": "100%",
+                "height": "80px",
+                "display": "flex",
+                "align-items": "center",
+                "justify-content": "start",
+                "padding": "0 10px",
+            },
+        )
 
+        #? Diseño de Página Revisor de Energía
+        
+        #Preprocesamiento del dataframe 
+        # Convert 'Mes Consumo' to datetime if it's not already
+        df_combinado_energia["Mes Consumo"] = pd.to_datetime(df_combinado_energia["Mes Consumo"])
+
+        # Sort the DataFrame by 'Mes Consumo'
+        df_combinado_energia = df_combinado_energia.sort_values("Mes Consumo")
+
+
+        # Ensure "Mes Consumo" is of datetime type
+        df_combinado_energia["Mes Consumo"] = pd.to_datetime(
+            df_combinado_energia["Mes Consumo"], format="%d-%m-%Y"
+        )
+          #df_combinado_sistemas["Mes Consumo"] type 
+       
+        # Change column format to Ene-2023
+        df_combinado_energia["Mes Consumo"] = df_combinado_energia["Mes Consumo"].apply(
+            lambda x: self.meses_esp[x.day] + "-" + str(x.year)
+        )
         # Revision por Tipo 
-        df_combinado_por_tipo = (
+        df_combinado_por_tipo_energia = (
             df_combinado_energia.groupby(["Tipo"])
             .agg({"Diferencia Energía [kWh]": "sum"})
             .reset_index()
         )
 
         #  thousands as dots
-        df_combinado_por_tipo["Diferencia Energía [kWh]"] = df_combinado_por_tipo[
+        df_combinado_por_tipo_energia["Diferencia Energía [kWh]"] = df_combinado_por_tipo_energia[
             "Diferencia Energía [kWh]"
         ].apply(
             lambda x: "{:,}".format(x)
@@ -66,13 +125,13 @@ class DashBarChart:
             .replace(".", ",")
             .replace(" ", ".")
         )
-        
+
+        # Tablas Revisor de Energía
         tabla_revision_tipo_energia = dash_table.DataTable(
             id="tabla_revision_tipo_energia",
-            columns=[{"name": i, "id": i} for i in df_combinado_por_tipo.columns],
-            data=df_combinado_por_tipo.to_dict("records"),
+            columns=[{"name": i, "id": i} for i in df_combinado_por_tipo_energia.columns],
+            data=df_combinado_por_tipo_energia.to_dict("records"),
         )
-
 
         # Revision general
         tabla_revision_energia = dash_table.DataTable(
@@ -84,57 +143,20 @@ class DashBarChart:
             css=[{"selector": ".export_button", "rule": "width: 100%;"}],
         )
 
-        for value in df_combinado_energia["Mes Consumo"].unique():
-            self.df_dict[value] = df_combinado_energia[df_combinado_energia["Mes Consumo"] == value]
-
-        # Convert 'Mes Consumo' to datetime if it's not already
-        df_combinado_energia["Mes Consumo"] = pd.to_datetime(df_combinado_energia["Mes Consumo"])
-
-        # Sort the DataFrame by 'Mes Consumo'
-        df_combinado_energia = df_combinado_energia.sort_values("Mes Consumo")
-
-        # Spanish month abbreviations
-        meses_esp = [
-            "",
-            "Ene",
-            "Feb",
-            "Mar",
-            "Abr",
-            "May",
-            "Jun",
-            "Jul",
-            "Ago",
-            "Sep",
-            "Oct",
-            "Nov",
-            "Dic",
-        ]
-
-        # Ensure "Mes Consumo" is of datetime type
-        df_combinado_energia["Mes Consumo"] = pd.to_datetime(
-            df_combinado_energia["Mes Consumo"], format="%d-%m-%Y"
-        )
-
-        # Change column format to Ene-2023
-        df_combinado_energia["Mes Consumo"] = df_combinado_energia["Mes Consumo"].apply(
-            lambda x: meses_esp[x.day] + "-" + str(x.year)
-        )
-        
-
         # Gráfico diferencias por Recaudador
-        df_combinado_por_recaudador = (
+        df_combinado_por_recaudador_energia = (
             df_combinado_energia.groupby(["Recaudador"])
             .agg({"Diferencia Energía [kWh]": "sum"})
             .reset_index()
         )
 
-        df_combinado_por_recaudador = df_combinado_por_recaudador.sort_values(
+        df_combinado_por_recaudador_energia = df_combinado_por_recaudador_energia.sort_values(
             "Diferencia Energía [kWh]", ascending=False
         )
 
         # Assuming df_combinado_por_tipo is your DataFrame and 'Tipo' and 'Diferencia Energía [kWh]' are your columns
         fig = px.bar(
-            df_combinado_por_recaudador,
+            df_combinado_por_recaudador_energia,
             y="Recaudador",
             x="Diferencia Energía [kWh]",
             orientation="h",
@@ -208,7 +230,129 @@ class DashBarChart:
 
         #? Diseño de Página Revisor de Sistemas
 
+        
+        #Preprocesamiento del dataframe 
+        # Convert 'Mes Consumo' to datetime if it's not already
+        df_combinado_sistemas["Mes Consumo"] = pd.to_datetime(df_combinado_sistemas["Mes Consumo"])
 
+        # Sort the DataFrame by 'Mes Consumo'
+        df_combinado_sistemas = df_combinado_sistemas.sort_values("Mes Consumo")
+
+
+        # Ensure "Mes Consumo" is of datetime type
+        df_combinado_sistemas["Mes Consumo"] = pd.to_datetime(
+            df_combinado_sistemas["Mes Consumo"], format="%d-%m-%Y"
+        )
+        
+        #df_combinado_sistemas["Mes Consumo"] type 
+     
+        # Change column format to Ene-2023
+        df_combinado_sistemas["Mes Consumo"] = df_combinado_sistemas["Mes Consumo"].apply(
+            lambda x: self.meses_esp[x.day] + "-" + str(x.year))
+        
+        # Agrupar por tipo y obtener cantidad de errores 
+        df_combinado_por_tipo_sistemas = df_combinado_sistemas.groupby("Tipo").size().reset_index(name='Count')
+        
+        # Tablas Revisor de Energía
+        tabla_revision_tipo_sistemas = dash_table.DataTable(
+            id="tabla_revision_tipo_energia",
+            columns=[{"name": i, "id": i} for i in df_combinado_por_tipo_sistemas.columns],
+            data=df_combinado_por_tipo_sistemas.to_dict("records"),
+        )
+
+        # Revision general
+        tabla_revision_sistemas = dash_table.DataTable(
+            id="tabla_revision_energia",
+            columns=[{"name": i, "id": i} for i in df_combinado_sistemas.columns],
+            data=df_combinado_sistemas.to_dict("records"),
+            export_format="csv",
+            export_headers="display",
+            css=[{"selector": ".export_button", "rule": "width: 100%;"}],
+        )
+        
+         # Gráfico diferencias por Recaudador
+        df_combinado_por_recaudador_sistemas = (
+            df_combinado_sistemas.groupby(["Recaudador"]).size().reset_index(name='Count')
+            
+        )
+
+        df_combinado_por_recaudador_sistemas = df_combinado_por_recaudador_sistemas.sort_values(
+            "Count", ascending=False
+        )
+
+        # Assuming df_combinado_por_tipo is your DataFrame and 'Tipo' and 'Diferencia Energía [kWh]' are your columns
+        fig = px.bar(
+            df_combinado_por_recaudador_sistemas,
+            y="Recaudador",
+            x="Count",
+            orientation="h",
+        )
+        grafico = dcc.Graph(
+            id="grafico_diferencias_recaudadores",
+            figure=fig,
+            className="grafico_recaudadores",
+        )
+
+         # Generate the dropdown options
+        dropdown_mes_consumo = dcc.Dropdown(
+            id="mes-consumo-dropdown",
+            options=[
+                {"label": i, "value": i} for i in df_combinado_energia["Mes Consumo"].unique()
+            ]
+            + [{"label": "Select All", "value": "ALL"}],
+            value=["ALL"],
+            multi=True,
+            className="dropdown_mes_consumo",
+            style={"width": "100%"},
+        )
+
+        # Generate the dropdown_sistemas options
+        dropdown_barra = dcc.Dropdown(
+            id="barra-dropdown_sistemas",
+            options=[
+                {"label": i, "value": i} for i in df_combinado_energia["Barra"].unique()
+            ]
+            + [{"label": "Select All", "value": "ALL"}],
+            value=["ALL"],
+            multi=True,
+            className="dropdown_barra",
+            style={"width": "100%"},
+        )        
+
+        # Generate the dropdown_sistemas options
+        dropdown_recaudador = dcc.Dropdown(
+            id="recaudador-dropdown_sistemas",
+            options=[
+                {"label": i, "value": i} for i in df_combinado_energia["Recaudador"].unique()
+            ]
+            + [{"label": "Select All", "value": "ALL"}],
+            value=["ALL"],
+            multi=True,
+            className="dropdown_recaudador",
+            style={"width": "100%"},
+        )
+
+        # Generate the dropdown_sistemas options
+        dropdown_clave = dcc.Dropdown(
+            id="clave-dropdown_sistemas",
+            options=[{"label": i, "value": i} for i in df_combinado_energia["Clave"].unique()]
+            + [{"label": "Select All", "value": "ALL"}],
+            value=["ALL"],
+            multi=True,
+            className="dropdown_clave",
+            style={"width": "100%"},
+        )
+
+        # Generate the dropdown_sistemas options
+        dropdown_tipo = dcc.Dropdown(
+            id="tipo-dropdown_sistemas",
+            options=[{"label": i, "value": i} for i in df_combinado_energia["Tipo"].unique()]
+            + [{"label": "Select All", "value": "ALL"}],
+            value=["ALL"],
+            multi=True,
+            className="dropdown_tipo",
+            style={"width": "100%"},
+        )
 
         # Wait for a few seconds
         self.app.layout = html.Div(
@@ -235,14 +379,15 @@ class DashBarChart:
             ]
         )
 
-        page_1_layout = html.Div([ dcc.Loading(
-    id="dropdown-loading_inicio",
-    type="circle",
-    className="your-class-name",  # replace with your actual class name
-    children=[
-        html.Div(
+
+        energia_layout = html.Div([ dcc.Loading(
+            id="dropdown-loading_inicio",
+            type="circle",
+            className="your-class-name",  # replace with your actual class name
+            children=[
+                html.Div(
             [
-                blue_square,
+                inicio_energia,
                 html.Div(
                     [
                         html.Label("Mes Consumo", className="label_mes_consumo"),
@@ -318,24 +463,77 @@ class DashBarChart:
             className="tabla_y_figura_1",
         ),])
 
-        page_2_layout = html.Div(
+
+
+        #? Sistemas 
+
+        sistemas_layout = html.Div(
             [
-                html.H1("Page 2"),
+                dcc.Loading(
+            id="dropdown_sistemas-loading_inicio",
+            type="circle",
+            className="your-class-name",  # replace with your actual class name
+            children=[
+                html.Div(
+            [
+                inicio_sistemas,
+                html.Div(
+                    [
+                        html.Label("Mes Consumo", className="label_mes_consumo"),
+                        dropdown_mes_consumo,
+                    ],
+                    className="label_mes-y-dropdown_sistemas",
+                ),
+
+
+               html.Div(
+                 [
+                       html.Label("Barra", className="label_barra"),
+                        dropdown_barra,
+                    ],
+                   className="label_barra-y-dropdown_sistemas",
+                ), 
+
+                html.Div(
+                    [
+                        html.Label("Recaudador", className="label_recaudador"),
+                        dropdown_recaudador,
+                    ],
+                    className="label_recaudador-y-dropdown_sistemas",
+                ),
+                html.Div(
+                    [
+                        html.Label("Clave", className="label_clave"),
+                        dropdown_clave,
+                    ],
+                    className="label_clave-y-dropdown_sistemas",
+                ),
+                html.Div(
+                    [
+                        html.Label("Tipo", className="label_tipo"),
+                        dropdown_tipo,
+                    ],
+                    className="label_tipo-y-dropdown_sistemas",
+                ),
+            ]
+        ),
+    ]
+),
             ]
         )
 
+#? Callbaks Revisor Enegía
         # Pagina de la app
         @self.app.callback(Output("page-content", "children"), Input("url", "pathname"))
         def display_page(pathname):
             if pathname == "/page-1":
-                return page_1_layout
+                return energia_layout
             elif pathname == "/page-2":
-                return page_2_layout
+                return sistemas_layout
             else:
                 return html.Div([])  # Empty Div for no match
 
         # Mes consumo dropdown
-
         @self.app.callback(
             [
                 Output("mes-consumo-dropdown", "options"),
@@ -633,24 +831,23 @@ class DashBarChart:
                 return fig_filtrada
             else:
                 fig = px.bar(
-                    df_combinado_por_recaudador,
+                    df_combinado_por_recaudador_energia,
                     y="Recaudador",
                     x="Diferencia Energía [kWh]",
                     orientation="h",
                 )
                 return fig
 
-    page_1_layout = html.Div(
-        [
-            html.H1("Page 1"),
-        ]
-    )
+    
 
-    page_2_layout = html.Div(
-        [
-            html.H1("Page 2"),
-        ]
-    )
+
+
+
+
+
+
+
+
 
     def open_browser(self):
         # Abre el navegador web para visualizar la aplicación
