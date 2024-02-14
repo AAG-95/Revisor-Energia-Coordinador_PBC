@@ -137,16 +137,14 @@ class ComparadorSistemas:
         return df_recaudacion
 
     def combinar_datos(self, df_sistemas, df_recaudacion):
-        df_combinado = pd.merge(
+        df_combinado_sistemas = pd.merge(
             df_sistemas,
             df_recaudacion,
             on="Barra",
             how="left",
         ).reset_index(drop=True)
 
-
-
-        df_combinado["Tipo"] = df_combinado.apply(
+        df_combinado_sistemas["Tipo"] = df_combinado_sistemas.apply(
             lambda x: (
                 "Sistema y Nivel de Tensión Incorrecto"
                 if x["Zonal (RE244 2019)"] != x["Zonal"] and x["Nivel Tensión Zonal (según Barra)"] != x["Nivel Tensión Zonal"] 
@@ -159,57 +157,14 @@ class ComparadorSistemas:
                     else (
                         "Nivel de Tensión Incorrecto"
                         if x["Nivel Tensión Zonal (según Barra)"] != x["Nivel Tensión Zonal"]
-                        else "Correcto"
+                        else " Sistema y Nivel de Tensión Correcto"
                     )
                 ) )
             ),
             axis=1,
         )
-        
-         # get unique values from column "Clave" list unique
-        df_combinado_clave_unicos = df_combinado["Clave"].unique()
-        df_combinado_clave_unicos_cuenta= len(df_combinado_clave_unicos)
 
-
-        # Drop "Correcto" en columna Tipo
-        df_combinado = df_combinado[df_combinado["Tipo"] != "Correcto"]
-
-        # get unique values from column "Clave" list unique
-        df_combinado_clave_unicos = df_combinado["Clave"].unique()
-        df_combinado_clave_unicos_cuenta= len(df_combinado_clave_unicos)
-
-
-
-        df_combinado[["Barra", "Clave", "Mes Consumo"]] = df_combinado[
-            "Barra-Clave-Mes"
-        ].str.split("-_-", expand=True)
-
-        # rename Suministrador_final to Suministrador
-        df_combinado = df_combinado.rename(
-            columns={"Suministrador_final": "Suministrador"}
-        )
-
-        df_combinado = df_combinado[
-            [
-                "Barra",
-                "Clave",
-                "Suministrador",
-                "Recaudador",
-                "Mes Consumo",
-                "mes_repartición",
-                "Recaudador No Informado",
-                "Energía Balance [kWh]",
-                "Energía Declarada [kWh]",
-                "Diferencia Energía [kWh]",
-                "% Diferencia Energía",
-                "Tipo",
-            ]
-        ]
-
-        df_combinado["Recaudador"] = np.where(
-            df_combinado["Recaudador"].isna() | (df_combinado["Recaudador"] == ""),
-            df_combinado["Suministrador"],
-            df_combinado["Recaudador"],
-        )
-
-        return df_combinado
+        """# Drop "Correcto" en columna Tipo
+        df_combinado_sistemas = df_combinado_sistemas[df_combinado_sistemas["Tipo"] != "Correcto"]"""        
+    
+        return df_combinado_sistemas

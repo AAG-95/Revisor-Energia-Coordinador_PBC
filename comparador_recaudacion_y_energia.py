@@ -97,7 +97,7 @@ class ComparadorRecaudacionEnergia:
                 {
                     "Energía [kWh]": "sum",
                     "Suministrador": lambda x: list(x)[0],
-                    "Recaudador": lambda x: list(x),
+                    "Recaudador": lambda x: list(x)[-1],
                     "mes_repartición": lambda x: list(x),
                     "Recaudador No Informado": lambda x: list(x),
                 }
@@ -105,12 +105,12 @@ class ComparadorRecaudacionEnergia:
             .reset_index()
         )
 
-        df_recaudacion["Recaudador"] = df_recaudacion["Recaudador"].apply(lambda x: pd.Series(x).mode()[0] if pd.Series(x).mode().size else None)
+        """ df_recaudacion["Recaudador"] = df_recaudacion["Recaudador"].apply(lambda x: pd.Series(x).mode()[0] if pd.Series(x).mode().size else None) """
 
         return df_recaudacion
 
     def combinar_datos(self, df_energia, df_recaudacion):
-        df_combinado = pd.merge(
+        df_combinado_energia = pd.merge(
             df_energia,
             df_recaudacion[
                 [
@@ -124,30 +124,30 @@ class ComparadorRecaudacionEnergia:
             on="Barra-Clave-Mes",
             how="left",
         ).reset_index(drop=True)
-        df_combinado.rename(
+        df_combinado_energia.rename(
             columns={"Energía [kWh]": "Energía Declarada [kWh]"}, inplace=True
         )
-        df_combinado["Energía Balance [kWh]"] = (
-            df_combinado["Energía Balance [kWh]"]
+        df_combinado_energia["Energía Balance [kWh]"] = (
+            df_combinado_energia["Energía Balance [kWh]"]
             .astype(str)
             .str.replace(",", ".")
             .astype(float)
         )
-        df_combinado["Energía Balance [kWh]"] = df_combinado[
+        df_combinado_energia["Energía Balance [kWh]"] = df_combinado_energia[
             "Energía Balance [kWh]"
         ].fillna(0)
-        df_combinado["Energía Declarada [kWh]"] = df_combinado[
+        df_combinado_energia["Energía Declarada [kWh]"] = df_combinado_energia[
             "Energía Declarada [kWh]"
         ].fillna(0)
-        df_combinado["Diferencia Energía [kWh]"] = (
-            df_combinado["Energía Balance [kWh]"]
-            - df_combinado["Energía Declarada [kWh]"]
+        df_combinado_energia["Diferencia Energía [kWh]"] = (
+            df_combinado_energia["Energía Balance [kWh]"]
+            - df_combinado_energia["Energía Declarada [kWh]"]
         )
-        df_combinado["% Diferencia Energía"] = (
-            df_combinado["Diferencia Energía [kWh]"]
-            / df_combinado["Energía Balance [kWh]"]
+        df_combinado_energia["% Diferencia Energía"] = (
+            df_combinado_energia["Diferencia Energía [kWh]"]
+            / df_combinado_energia["Energía Balance [kWh]"]
         )
-        df_combinado["Tipo"] = df_combinado.apply(
+        df_combinado_energia["Tipo"] = df_combinado_energia.apply(
             lambda x: "Recaudador No Informado"
             if (np.array(x["Recaudador No Informado"]) == 1).any()
             or x["Recaudador No Informado"] == 1
@@ -178,14 +178,14 @@ class ComparadorRecaudacionEnergia:
             axis=1,
         )
 
-        df_combinado[["Barra", "Clave", "Mes Consumo"]] = df_combinado[
+        df_combinado_energia[["Barra", "Clave", "Mes Consumo"]] = df_combinado_energia[
             "Barra-Clave-Mes"
         ].str.split("-_-", expand=True)
 
         # rename Suministrador_final to Suministrador
-        df_combinado = df_combinado.rename(columns={"Suministrador_final": "Suministrador"})
+        df_combinado_energia = df_combinado_energia.rename(columns={"Suministrador_final": "Suministrador"})
         
-        df_combinado = df_combinado[
+        df_combinado_energia = df_combinado_energia[
             [
                 "Barra",
                 "Clave",
@@ -202,6 +202,8 @@ class ComparadorRecaudacionEnergia:
             ]
         ]
 
-        df_combinado["Recaudador"] = np.where(df_combinado["Recaudador"].isna() | (df_combinado["Recaudador"] == ""), df_combinado["Suministrador"], df_combinado["Recaudador"])
+        df_combinado_energia["Recaudador"] = np.where(df_combinado_energia["Recaudador"].isna() | (df_combinado_energia["Recaudador"] == ""), df_combinado_energia["Suministrador"], df_combinado_energia["Recaudador"])
 
-        return df_combinado
+        df_combinado_energia.to_csv(self.carpeta_salida + "df_revision_energia.csv", sep=";", encoding="UTF-8")
+
+        return df_combinado_energia
