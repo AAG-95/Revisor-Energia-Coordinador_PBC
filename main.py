@@ -3,10 +3,14 @@ import comparador_recaudacion_y_energia as cre
 import comparador_sistemas as csi
 
 
-
 # Create an instance of ComparadorSistemas
 
-comparador_sistemas = csi.ComparadorSistemas().cargar_datos_sistemas()
+comparador_sistemas = csi.ComparadorSistemas()
+
+df_combinado_sistemas = comparador_sistemas.combinar_datos(
+    comparador_sistemas.cargar_datos_sistemas(),
+    comparador_sistemas.cargar_datos_recaudacion(),
+)
 
 
 """ 
@@ -19,5 +23,3 @@ df_combinado = comparador.combinar_datos(comparador.cargar_datos_energia(), comp
 
 vs.DashBarChart(df_combinado).run()
  """
-
-    
