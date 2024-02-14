@@ -47,6 +47,9 @@ class ObtencionDatos:
 
         # Recorre cada elemento de la primera fila
         for i, value in enumerate(first_row):
+
+            if pd.isna(value):
+                continue
             # Verifica si el valor ya ha aparecido antes
             if value in value_counts:
                 # Incrementa el contador y modifica el valor actual

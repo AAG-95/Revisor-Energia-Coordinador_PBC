@@ -1,10 +1,6 @@
 import pandas as pd
 import funciones as fc
 import numpy as np
-import pandas as pd
-import funciones as fc
-import numpy as np
-
 
 class ComparadorRecaudacionEnergia:
     def __init__(self):
