@@ -162,14 +162,14 @@ class DashBarChart:
             orientation="h",
         )
         grafico_energia = dcc.Graph(
-            id="grafico_diferencias_recaudadores",
+            id="grafico_diferencias_recaudadores_energia",
             figure=fig_energia,
             className="grafico_recaudadores",
         )
 
         # Generate the dropdown options
         dropdown_mes_consumo = dcc.Dropdown(
-            id="mes-consumo-dropdown",
+            id="mes-consumo-dropdown_energia",
             options=[
                 {"label": i, "value": i} for i in df_combinado_energia["Mes Consumo"].unique()
             ]
@@ -182,7 +182,7 @@ class DashBarChart:
 
         # Generate the dropdown options
         dropdown_barra = dcc.Dropdown(
-            id="barra-dropdown",
+            id="barra-dropdown_energia",
             options=[
                 {"label": i, "value": i} for i in df_combinado_energia["Barra"].unique()
             ]
@@ -195,7 +195,7 @@ class DashBarChart:
 
         # Generate the dropdown options
         dropdown_recaudador = dcc.Dropdown(
-            id="recaudador-dropdown",
+            id="recaudador-dropdown_energia",
             options=[
                 {"label": i, "value": i} for i in df_combinado_energia["Recaudador"].unique()
             ]
@@ -208,7 +208,7 @@ class DashBarChart:
 
         # Generate the dropdown options
         dropdown_clave = dcc.Dropdown(
-            id="clave-dropdown",
+            id="clave-dropdown_energia",
             options=[{"label": i, "value": i} for i in df_combinado_energia["Clave"].unique()]
             + [{"label": "Select All", "value": "ALL"}],
             value=["ALL"],
@@ -219,7 +219,7 @@ class DashBarChart:
 
         # Generate the dropdown options
         dropdown_tipo = dcc.Dropdown(
-            id="tipo-dropdown",
+            id="tipo-dropdown_energia",
             options=[{"label": i, "value": i} for i in df_combinado_energia["Tipo"].unique()]
             + [{"label": "Select All", "value": "ALL"}],
             value=["ALL"],
@@ -253,14 +253,14 @@ class DashBarChart:
         
         # Tablas Revisor de Energía
         tabla_revision_tipo_sistemas = dash_table.DataTable(
-            id="tabla_revision_tipo_energia",
+            id="tabla_revision_tipo_sistemas",
             columns=[{"name": i, "id": i} for i in df_combinado_por_tipo_sistemas.columns],
             data=df_combinado_por_tipo_sistemas.to_dict("records"),
         )
 
         # Revision general
         tabla_revision_sistemas = dash_table.DataTable(
-            id="tabla_revision_energia",
+            id="tabla_revision_sistemas",
             columns=[{"name": i, "id": i} for i in df_combinado_sistemas.columns],
             data=df_combinado_sistemas.to_dict("records"),
             export_format="csv",
@@ -293,9 +293,9 @@ class DashBarChart:
 
          # Generate the dropdown options
         dropdown_mes_consumo_sistemas = dcc.Dropdown(
-            id="mes-consumo-dropdown",
+            id="mes-consumo-dropdown_sistemas",
             options=[
-                {"label": i, "value": i} for i in df_combinado_energia["Mes Consumo"].unique()
+                {"label": i, "value": i} for i in df_combinado_sistemas["Mes Consumo"].unique()
             ]
             + [{"label": "Select All", "value": "ALL"}],
             value=["ALL"],
@@ -547,7 +547,9 @@ class DashBarChart:
             className="tabla_y_figura_1",
                ),])
         
-#? Callbaks Revisor Enegía
+
+        
+#? Callbacks páginas
         # Pagina de la app
         @self.app.callback(Output("page-content", "children"), Input("url", "pathname"))
         def display_page(pathname):
@@ -557,14 +559,15 @@ class DashBarChart:
                 return sistemas_layout
             else:
                 return html.Div([])  # Empty Div for no match
-
+            
+#? Callbacks Revisor Energía
         # Mes consumo dropdown
         @self.app.callback(
             [
-                Output("mes-consumo-dropdown", "options"),
-                Output("mes-consumo-dropdown", "value"),
+                Output("mes-consumo-dropdown_energia", "options"),
+                Output("mes-consumo-dropdown_energia", "value"),
             ],
-            [Input("mes-consumo-dropdown", "value")],
+            [Input("mes-consumo-dropdown_energia", "value")],
         )
         def update_dropdown(selected_values):
             if selected_values:
@@ -590,10 +593,10 @@ class DashBarChart:
 
         @self.app.callback(
             [
-                Output("barra-dropdown", "options"),
-                Output("barra-dropdown", "value"),
+                Output("barra-dropdown_energia", "options"),
+                Output("barra-dropdown_energia", "value"),
             ],
-            [Input("barra-dropdown", "value")],
+            [Input("barra-dropdown_energia", "value")],
         )
         def update_dropdown(selected_values):
             if selected_values:
@@ -621,10 +624,10 @@ class DashBarChart:
         
         @self.app.callback(
             [
-                Output("recaudador-dropdown", "options"),
-                Output("recaudador-dropdown", "value"),
+                Output("recaudador-dropdown_energia", "options"),
+                Output("recaudador-dropdown_energia", "value"),
             ],
-            [Input("recaudador-dropdown", "value")],
+            [Input("recaudador-dropdown_energia", "value")],
         )
         def update_dropdown(selected_values):
             if selected_values:
@@ -650,10 +653,10 @@ class DashBarChart:
 
         @self.app.callback(
             [
-                Output("clave-dropdown", "options"),
-                Output("clave-dropdown", "value"),
+                Output("clave-dropdown_energia", "options"),
+                Output("clave-dropdown_energia", "value"),
             ],
-            [Input("clave-dropdown", "value")],
+            [Input("clave-dropdown_energia", "value")],
         )
         def update_dropdown(selected_values):
             if selected_values:
@@ -676,10 +679,10 @@ class DashBarChart:
 
         @self.app.callback(
             [
-                Output("tipo-dropdown", "options"),
-                Output("tipo-dropdown", "value"),
+                Output("tipo-dropdown_energia", "options"),
+                Output("tipo-dropdown_energia", "value"),
             ],
-            [Input("tipo-dropdown", "value")],
+            [Input("tipo-dropdown_energia", "value")],
         )
         def update_dropdown(selected_values):
             if selected_values:
@@ -704,11 +707,11 @@ class DashBarChart:
         @self.app.callback(
             Output("tabla_revision_energia", "data"),
             [
-                Input("mes-consumo-dropdown", "value"),
-                Input("barra-dropdown", "value"),
-                Input("recaudador-dropdown", "value"),
-                Input("clave-dropdown", "value"),
-                Input("tipo-dropdown", "value"),
+                Input("mes-consumo-dropdown_energia", "value"),
+                Input("barra-dropdown_energia", "value"),
+                Input("recaudador-dropdown_energia", "value"),
+                Input("clave-dropdown_energia", "value"),
+                Input("tipo-dropdown_energia", "value"),
             ],
         )
         def update_table(
@@ -774,8 +777,8 @@ class DashBarChart:
         @self.app.callback(
             Output("tabla_revision_tipo_energia", "data"),
             [
-                Input("mes-consumo-dropdown", "value"),
-                Input("recaudador-dropdown", "value"),
+                Input("mes-consumo-dropdown_energia", "value"),
+                Input("recaudador-dropdown_energia", "value"),
             ],
         )
         def update_table(selected_mes_consumo, selected_recaudador):
@@ -813,8 +816,8 @@ class DashBarChart:
                 return df_combinado_por_tipo_energia.to_dict("records")
 
         @self.app.callback(
-            Output("grafico_diferencias_recaudadores", "figure"),
-            [Input("mes-consumo-dropdown", "value"), Input("tipo-dropdown", "value")],
+            Output("grafico_diferencias_recaudadores_energia", "figure"),
+            [Input("mes-consumo-dropdown_energia", "value"), Input("tipo-dropdown_energia", "value")],
         )
         def update_table(selected_mes_consumo, selected_tipo):
             if selected_mes_consumo:
@@ -856,6 +859,306 @@ class DashBarChart:
                     orientation="h",
                 )
                 return fig
+
+    #? Callbacks Revisor Sistema 
+
+            # Mes consumo dropdown
+        @self.app.callback(
+            [
+                Output("mes-consumo-dropdown_sistemas", "options"),
+                Output("mes-consumo-dropdown_sistemas", "value"),
+            ],
+            [Input("mes-consumo-dropdown_sistemas", "value")],
+        )
+        def update_dropdown(selected_values):
+            if selected_values:
+                if "ALL" in selected_values:
+                    return [
+                        {"label": i, "value": i}
+                        for i in df_combinado_sistemas["Mes Consumo"].unique()
+                    ] + [{"label": "Select All", "value": "ALL"}], ["ALL"]
+                else:
+                    return [
+                        {"label": i, "value": i}
+                        for i in df_combinado_sistemas["Mes Consumo"].unique()
+                    ] + [{"label": "Select All", "value": "ALL"}], [
+                        value for value in selected_values if value != "ALL"
+                    ]  # All options are displayed, selected values are selected
+            else:
+                return [
+                    {"label": i, "value": i}
+                    for i in df_combinado_sistemas["Mes Consumo"].unique()
+                ] + [
+                    {"label": "Select All", "value": "ALL"}
+                ], selected_values  # Only "ALL" is displayed and selected
+
+
+        @self.app.callback(
+            [
+                Output("barra-dropdown_sistemas", "options"),
+                Output("barra-dropdown_sistemas", "value"),
+            ],
+            [Input("barra-dropdown_sistemas", "value")],
+        )
+        def update_dropdown(selected_values):
+            if selected_values:
+                if "ALL" in selected_values:
+                    return [
+                        {"label": i, "value": i}
+                        for i in df_combinado_sistemas["Barra"].unique()
+                    ] + [{"label": "Select All", "value": "ALL"}], ["ALL"]
+                else:
+                    return [
+                        {"label": i, "value": i}
+                        for i in df_combinado_sistemas["Barra"].unique()
+                    ] + [{"label": "Select All", "value": "ALL"}], [
+                        value for value in selected_values if value != "ALL"
+                    ]  # All options are displayed, selected values are selected
+            else:
+                return [
+                    {"label": i, "value": i}
+                    for i in df_combinado_sistemas["Barra"].unique()
+                ] + [
+                    {"label": "Select All", "value": "ALL"}
+                ], selected_values  # Only "ALL" is displayed and selected"""
+        #
+
+        
+        @self.app.callback(
+            [
+                Output("recaudador-dropdown_sistemas", "options"),
+                Output("recaudador-dropdown_sistemas", "value"),
+            ],
+            [Input("recaudador-dropdown_sistemas", "value")],
+        )
+        def update_dropdown(selected_values):
+            if selected_values:
+                if "ALL" in selected_values:
+                    return [
+                        {"label": i, "value": i}
+                        for i in df_combinado_sistemas["Recaudador"].unique()
+                    ] + [{"label": "Select All", "value": "ALL"}], ["ALL"]
+                else:
+                    return [
+                        {"label": i, "value": i}
+                        for i in df_combinado_sistemas["Recaudador"].unique()
+                    ] + [{"label": "Select All", "value": "ALL"}], [
+                        value for value in selected_values if value != "ALL"
+                    ]  # All options are displayed, selected values are selected
+            else:
+                return [
+                    {"label": i, "value": i}
+                    for i in df_combinado_sistemas["Recaudador"].unique()
+                ] + [
+                    {"label": "Select All", "value": "ALL"}
+                ], selected_values  # Only "ALL" is displayed and selected
+
+        @self.app.callback(
+            [
+                Output("clave-dropdown_sistemas", "options"),
+                Output("clave-dropdown_sistemas", "value"),
+            ],
+            [Input("clave-dropdown_sistemas", "value")],
+        )
+        def update_dropdown(selected_values):
+            if selected_values:
+                if "ALL" in selected_values:
+                    return [
+                        {"label": i, "value": i} for i in df_combinado_sistemas["Clave"].unique()
+                    ] + [{"label": "Select All", "value": "ALL"}], ["ALL"]
+                else:
+                    return [
+                        {"label": i, "value": i} for i in df_combinado_sistemas["Clave"].unique()
+                    ] + [{"label": "Select All", "value": "ALL"}], [
+                        value for value in selected_values if value != "ALL"
+                    ]  # All options are displayed, selected values are selected
+            else:
+                return [
+                    {"label": i, "value": i} for i in df_combinado_sistemas["Clave"].unique()
+                ] + [
+                    {"label": "Select All", "value": "ALL"}
+                ], selected_values  # Only "ALL" is displayed and selected
+
+        @self.app.callback(
+            [
+                Output("tipo-dropdown_sistemas", "options"),
+                Output("tipo-dropdown_sistemas", "value"),
+            ],
+            [Input("tipo-dropdown_sistemas", "value")],
+        )
+        def update_dropdown(selected_values):
+            if selected_values:
+                if "ALL" in selected_values:
+                    return [
+                        {"label": i, "value": i} for i in df_combinado_sistemas["Tipo"].unique()
+                    ] + [{"label": "Select All", "value": "ALL"}], ["ALL"]
+                else:
+                    return [
+                        {"label": i, "value": i} for i in df_combinado_sistemas["Tipo"].unique()
+                    ] + [{"label": "Select All", "value": "ALL"}], [
+                        value for value in selected_values if value != "ALL"
+                    ]  # All options are displayed, selected values are selected
+            else:
+                return [
+                    {"label": i, "value": i} for i in df_combinado_sistemas["Tipo"].unique()
+                ] + [
+                    {"label": "Select All", "value": "ALL"}
+                ], selected_values  # Only "ALL" is displayed and selected
+            
+        @self.app.callback(
+            Output("tabla_revision_sistemas", "data"),
+            [
+                Input("mes-consumo-dropdown_sistemas", "value"),
+                Input("barra-dropdown_sistemas", "value"),
+                Input("recaudador-dropdown_sistemas", "value"),
+                Input("clave-dropdown_sistemas", "value"),
+                Input("tipo-dropdown_sistemas", "value"),
+            ],
+        )
+        def update_table(
+            selected_mes_consumo, selected_barra, selected_recaudador, selected_clave, selected_tipo
+        ):
+            if (
+                selected_mes_consumo
+                or selected_barra
+                or selected_recaudador
+                or selected_clave
+                or selected_tipo
+            ):
+                if selected_mes_consumo == ["ALL"]:
+                    selected_mes_consumo = df_combinado_sistemas["Mes Consumo"].unique().tolist()
+
+                if selected_barra == ["ALL"]:
+                      selected_barra = df_combinado_sistemas["Barra"].unique().tolist()
+                
+                if selected_recaudador == ["ALL"]:
+                    selected_recaudador =  df_combinado_sistemas["Recaudador"].unique().tolist()
+                    
+
+                if selected_clave == ["ALL"]:
+                    selected_clave = df_combinado_sistemas["Clave"].unique().tolist()
+
+                if selected_tipo == ["ALL"]:
+                    selected_tipo = df_combinado_sistemas["Tipo"].unique().tolist()
+
+                df_combinado_filtrado = df_combinado_sistemas[
+                    df_combinado_sistemas["Mes Consumo"].isin(selected_mes_consumo)
+                    & df_combinado_sistemas["Barra"].isin(selected_barra)
+                    & df_combinado_sistemas["Recaudador"].isin(selected_recaudador)
+                    & df_combinado_sistemas["Clave"].isin(selected_clave)
+                    & df_combinado_sistemas["Tipo"].isin(selected_tipo)
+                ]
+
+                """ columnas_a_modificar = [
+                    "Energía Balance [kWh]",
+                    "Energía Declarada [kWh]",
+                    "Diferencia Energía [kWh]",
+                ]  # replace with your column names
+
+                for column in columnas_a_modificar:
+                    df_combinado_filtrado.loc[:, column] = df_combinado_filtrado[
+                        column
+                    ].apply(
+                        lambda x: "{:,.2f}".format(x)
+                        .replace(",", " ")
+                        .replace(".", ",")
+                        .replace(" ", ".")
+                    )
+
+                df_combinado_filtrado.loc[
+                    :, "% Diferencia Energía"
+                ] = df_combinado_filtrado["% Diferencia Energía"].apply(
+                    lambda x: "{:.2%}".format(x)
+                ) """
+
+                return df_combinado_filtrado.to_dict("records")
+            else:
+                return df_combinado_sistemas.to_dict("records")
+            
+        @self.app.callback(
+                Output("tabla_revision_tipo_sistemas", "data"),
+                [
+                    Input("mes-consumo-dropdown_sistemas", "value"),
+                    Input("recaudador-dropdown_sistemas", "value"),
+                ],
+            )
+        def update_table(selected_mes_consumo, selected_recaudador):
+                if selected_mes_consumo and selected_recaudador:
+                    if selected_mes_consumo == ["ALL"]:
+                        selected_mes_consumo = df_combinado_sistemas["Mes Consumo"].unique().tolist()
+
+                    if selected_recaudador == ["ALL"]:
+                        selected_recaudador = (
+                            df_combinado_sistemas["Recaudador"].unique().tolist()
+                        )
+
+                    df_combinado_filtrado = df_combinado_sistemas[
+                        df_combinado_sistemas["Mes Consumo"].isin(selected_mes_consumo)
+                        & df_combinado_sistemas["Recaudador"].isin(selected_recaudador)
+                    ]
+ 
+                    df_combinado_por_tipo_filtrado = (
+                        df_combinado_filtrado.groupby("Tipo").size().reset_index(name='Count')
+                    )
+
+                    """ df_combinado_por_tipo_filtrado[
+                        "Diferencia Energía [kWh]"
+                    ] = df_combinado_por_tipo_filtrado["Diferencia Energía [kWh]"].apply(
+                        lambda x: "{:,.0f}".format(x)
+                        .replace(",", " ")
+                        .replace(".", ",")
+                        .replace(" ", ".")
+                    ) """ 
+
+                    return df_combinado_por_tipo_filtrado.to_dict("records")
+                else:
+                    return df_combinado_por_tipo_sistemas.to_dict("records")
+                
+        @self.app.callback(
+            Output("grafico_diferencias_recaudadores_sistemas", "figure"),
+            [Input("mes-consumo-dropdown_sistemas", "value"), Input("tipo-dropdown_sistemas", "value")],
+        )
+        def update_table(selected_mes_consumo, selected_tipo):
+            if selected_mes_consumo:
+                if selected_mes_consumo == ["ALL"]:
+                    selected_mes_consumo = df_combinado_sistemas["Mes Consumo"].unique().tolist()
+
+                if selected_tipo == ["ALL"]:
+                    selected_tipo = df_combinado_sistemas["Tipo"].unique().tolist()
+
+                df_combinado_filtrado = df_combinado_sistemas[
+                    df_combinado_sistemas["Mes Consumo"].isin(selected_mes_consumo)
+                    & df_combinado_sistemas["Tipo"].isin(selected_tipo)
+                ]
+
+                df_combinado_por_recaudador_filtrado = (
+                    df_combinado_filtrado.groupby("Recaudador").size().reset_index(name='Count')
+                )
+
+                df_combinado_por_recaudador_filtrado = (
+                    df_combinado_por_recaudador_filtrado.sort_values(
+                        "Count", ascending=False
+                    )
+                )
+
+                fig_filtrada = px.bar(
+                    df_combinado_por_recaudador_filtrado,
+                    y="Recaudador",
+                    x="Count",
+                    orientation="h",
+                )
+                return fig_filtrada
+            else:
+                fig = px.bar(
+                    df_combinado_por_recaudador_sistemas,
+                    y="Recaudador",
+                    x="Count",
+                    orientation="h",
+                )
+                return fig 
+
+
+
 
     def open_browser(self):
         # Abre el navegador web para visualizar la aplicación
