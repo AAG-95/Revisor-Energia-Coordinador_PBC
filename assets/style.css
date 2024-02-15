@@ -159,7 +159,7 @@ body {
 }
 
 
-
+/* Dropdown*/
 .dropdown_mes_consumo {
     display: flex;
     margin-bottom: 10px;
@@ -185,6 +185,7 @@ body {
     display: flex;
     margin-bottom: 10px;
 }
+
 
 .tabla1 {
     overflow: auto;
@@ -238,3 +239,32 @@ body {
 #app-layout {
     position: relative;
 }
+
+
+/*! Estilo Revisor de Sistemas */
+.dropdown_mes_consumo_sistemas {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+
+.dropdown_barra_sistemas {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.dropdown_recaudador_sistemas {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.dropdown_clave_sistemas {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.dropdown_tipo_sistemas {
+    display: flex;
+    margin-bottom: 10px;
+}
+
