@@ -204,6 +204,8 @@ class ComparadorRecaudacionEnergia:
 
         df_combinado_energia["Recaudador"] = np.where(df_combinado_energia["Recaudador"].isna() | (df_combinado_energia["Recaudador"] == ""), df_combinado_energia["Suministrador"], df_combinado_energia["Recaudador"])
 
-        df_combinado_energia.to_csv(self.carpeta_salida + "df_revision_energia.csv", sep=";", encoding="UTF-8")
+        df_combinado_energia = df_combinado_energia.reset_index(drop=True)
+
+        df_combinado_energia.to_csv(self.carpeta_salida + "df_revision_energia.csv", sep=";", encoding="UTF-8", index=False)
 
         return df_combinado_energia

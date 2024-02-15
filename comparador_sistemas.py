@@ -158,9 +158,10 @@ class ComparadorSistemas:
         )
 
         # Drop Nan row when Clave column is nan
-        df_combinado_sistemas = df_combinado_sistemas.dropna(subset=["Clave"])
+        df_combinado_sistemas = df_combinado_sistemas.dropna(subset=["Clave"]).reset_index(drop=True)
+
 
         """# Drop "Correcto" en columna Tipo
         df_combinado_sistemas = df_combinado_sistemas[df_combinado_sistemas["Tipo"] != "Correcto"]"""        
-        df_combinado_sistemas.to_csv(self.carpeta_salida + "df_revision_sistemas.csv", sep=";", encoding="UTF-8")
+        df_combinado_sistemas.to_csv(self.carpeta_salida + "df_revision_sistemas.csv", sep=";", encoding="UTF-8", index=False)
         return df_combinado_sistemas
