@@ -20,10 +20,10 @@ import plotly.express as px
 class DashBarChart:
     def __init__(self, df_combinado_energia, df_combinado_sistemas, df_clientes_ind, port=8052):
         self.port = port
+        self.app = dash.Dash(__name__)
         self.df_combinado_energia = df_combinado_energia
         self.df_combinado_sistemas = df_combinado_sistemas
         self.df_clientes_ind = df_clientes_ind
-        self.app = dash.Dash(__name__)
         self.df_dict = {} # Lista de Fechas
         for value in df_combinado_energia["Mes Consumo"].unique():
             self.df_dict[value] = df_combinado_energia[df_combinado_energia["Mes Consumo"] == value]
@@ -384,7 +384,13 @@ class DashBarChart:
             data=self.df_clientes_ind.to_dict("records"),
             export_format="csv",
             export_headers="display",
-            style_table={'overflowX': 'auto', 'overflowY': 'auto'}
+            style_table={'overflowX': 'auto', 'overflowY': 'auto'},
+            style_data_conditional=[
+             {
+            'if': {'column_id': 'Días para termino de contrato', 'filter_query': '{Días para termino de contrato} lt 100'},
+            'backgroundColor': 'white',
+            'color': 'red'
+              }]
             
         )        
 
@@ -436,7 +442,6 @@ class DashBarChart:
                     ],
                     className="label_mes-y-dropdown",
                 ),
-
 
                html.Div(
                  [

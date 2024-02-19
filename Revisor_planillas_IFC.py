@@ -65,6 +65,7 @@ for par in pares_lista:
     # Listas para almacenar los dataframes resultantes
     dataframes = []  # Datos Clientes Libre s
     dataframes_Nvs = []  # Datos Clientes Libres
+    dataframes_regulados = []  # Datos Clientes Regulados
     dataframes_regulados_E = []
     dataframes_regulados_R = []
     dataframes_libres_E = []
@@ -285,6 +286,7 @@ for par in pares_lista:
 
         # todo Intentar leer la hoja 'Formulario-Clientes R' si existe
         # Dataframe Hoja 'Formulario-Clientes R'
+        df_FCR = None  # Inicializar a None
         df_FCR_E = None  # Inicializar a None
         df_FCR_R = None  # Inicializar a None
 
@@ -299,9 +301,7 @@ for par in pares_lista:
 
             # Procesar datos de Clientes Regulados
             df_FCR_E = df_FCR.iloc[:, :11]
-            df_FCR_E = df_FCR_E[
-                (~df_FCL_E["Observación"].isnull()) & (df_FCR_E["Observación"] != "")
-            ]
+           
             df_FCR_E = df_FCR_E.assign(mes_repartición=mes_rep)
             df_FCR_E = df_FCR_E.assign(Recaudador=nombre_empresa[0])
 
@@ -323,6 +323,12 @@ for par in pares_lista:
             df_FCR_E["Recaudación [$]"] = (
                 df_FCR_E["Recaudación [$]"].astype(str).str.replace(".", ",")
             )
+
+            dataframes_regulados.append(df_FCR_E)
+
+            df_FCR_E = df_FCR_E[
+                (~df_FCL_E["Observación"].isnull()) & (df_FCR_E["Observación"] != "")
+            ]
 
             df_FCR_R = df_FCR.iloc[:, 14:22]
             # si existe columns llamada Observación_2 cambiar el nombre a Observación
@@ -376,6 +382,7 @@ for par in pares_lista:
         (dataframes_Nvs, "Clientes Nuevos_"),
         (dataframes_libres_E, "Observaciones Clientes Libres_"),
         (dataframes_libres_R, "Revisor Clientes Libres_"),
+        (dataframes_regulados, "Formularios Clientes Regulados_"), 
         (dataframes_regulados_E, "Observaciones Clientes Regulados_"),
         (dataframes_regulados_R, "Revisor Clientes Regulados_"),
     ]
@@ -404,6 +411,7 @@ for par in pares_lista:
         dataframes_Nvs,
         dataframes_libres_E,
         dataframes_libres_R,
+        dataframes_regulados, 
         dataframes_regulados_E,
         dataframes_regulados_R,
     )

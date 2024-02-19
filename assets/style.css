@@ -77,15 +77,12 @@ body {
 
 }
 
-
 .label_tipo-y-dropdown {
     display: flex;
     flex-direction: row;
     width: 100%;
 
 }
-
-
 
 .label_mes_consumo {
     margin-right: 5px;
@@ -158,7 +155,6 @@ body {
     width: 80px;
 }
 
-
 /* Dropdown*/
 .dropdown_mes_consumo {
     display: flex;
@@ -207,7 +203,7 @@ body {
 
 .tabla_clientes_ind {
     justify-content: center;
-    width: 80%;
+    width: 90%;
     margin: 0 auto;
     border-radius: 15px;
     overflow: hidden;
