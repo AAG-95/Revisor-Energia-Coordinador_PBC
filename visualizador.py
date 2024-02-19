@@ -18,10 +18,11 @@ import plotly.express as px
 
 # Clase para visualizar los datos de la base de datos
 class DashBarChart:
-    def __init__(self, df_combinado_energia, df_combinado_sistemas, port=8052):
+    def __init__(self, df_combinado_energia, df_combinado_sistemas, df_clientes_ind, port=8052):
         self.port = port
         self.df_combinado_energia = df_combinado_energia
         self.df_combinado_sistemas = df_combinado_sistemas
+        self.df_clientes_ind = df_clientes_ind
         self.app = dash.Dash(__name__)
         self.df_dict = {} # Lista de Fechas
         for value in df_combinado_energia["Mes Consumo"].unique():
@@ -89,8 +90,29 @@ class DashBarChart:
             },
         )
 
+        inicio_cliente_individualizados= html.Div(
+            [
+                html.H1(
+                    "Revisor de Clientes Individualizados",
+                    style={"text-align": "center", "color": "black"},
+                ),
+                html.Img(
+                    src="assets\coordinador_logo.png",
+                    style={"height": "80px", "margin-left": "auto"},
+                ),
+            ],
+            style={
+                "background-color": "lightblue",
+                "width": "100%",
+                "height": "80px",
+                "display": "flex",
+                "align-items": "center",
+                "justify-content": "start",
+                "padding": "0 10px",
+            },
+        )
+
         #? Diseño de Página Revisor de Energía
-        
         #Preprocesamiento del dataframe 
         # Convert 'Mes Consumo' to datetime if it's not already
         df_combinado_energia["Mes Consumo"] = pd.to_datetime(df_combinado_energia["Mes Consumo"])
@@ -352,6 +374,22 @@ class DashBarChart:
             style={"width": "100%"},
         )
 
+        #? Diseño de Página Revisor de Clientes Individualizados
+
+        #Preprocesamiento del dataframe
+        # Tablas Revisor de Energía
+        tabla_revision_clientes_ind = dash_table.DataTable(
+            id="tabla_revision_clientes_ind",
+            columns=[{"name": i, "id": i} for i in self.df_clientes_ind.columns],
+            data=self.df_clientes_ind.to_dict("records"),
+            export_format="csv",
+            export_headers="display",
+            style_table={'overflowX': 'auto', 'overflowY': 'auto'}
+            
+        )        
+
+#! Layout--------------------------------------------------------------------------------------
+        
         # Wait for a few seconds
         self.app.layout = html.Div(
             [
@@ -368,6 +406,12 @@ class DashBarChart:
                             "Revisor de Sistemas Zonales",
                             href="/page-2",
                             id="page-2-link",
+                            className="button-link",
+                        ),
+                        dcc.Link(
+                            "Revisor de Clientes Individualizados",
+                            href="/page-3",
+                            id="page-3-link",
                             className="button-link",
                         ),
                     ],
@@ -427,6 +471,7 @@ class DashBarChart:
         ),
     ]
 ),
+
         html.Div(
             [
                 dcc.Loading(
@@ -547,8 +592,34 @@ class DashBarChart:
             className="tabla_y_figura_1",
                ),])
         
-
+        #? Clientes Individualizados
+        clientes_ind_layout = html.Div(
+            [
+                dcc.Loading(
+            id="dropdown_sistemas-loading_inicio",
+            type="circle",
+            className="your-class-name",  # replace with your actual class name
+            children=[
+                html.Div(
+            [
+                inicio_cliente_individualizados
+            ]
+        ),
+    ]
+),
+        html.Div(
+            [
+                dcc.Loading(
+                    id="loading_tipo_sistemas",
+                    type="circle",
+                    children=[tabla_revision_clientes_ind],
+                      
+                )
+            ],
+          className="tabla_clientes_ind",
         
+               ),])        
+                
 #? Callbacks páginas
         # Pagina de la app
         @self.app.callback(Output("page-content", "children"), Input("url", "pathname"))
@@ -557,6 +628,8 @@ class DashBarChart:
                 return energia_layout
             elif pathname == "/page-2":
                 return sistemas_layout
+            elif pathname == "/page-3":
+                return clientes_ind_layout
             else:
                 return html.Div([])  # Empty Div for no match
             
@@ -619,8 +692,6 @@ class DashBarChart:
                 ] + [
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  # Only "ALL" is displayed and selected"""
-        #
-
         
         @self.app.callback(
             [
@@ -702,7 +773,6 @@ class DashBarChart:
                 ] + [
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  # Only "ALL" is displayed and selected
-
 
         @self.app.callback(
             Output("tabla_revision_energia", "data"),

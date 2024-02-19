@@ -204,6 +204,17 @@ body {
     margin-bottom: 10px
 }
 
+
+.tabla_clientes_ind {
+    justify-content: center;
+    width: 80%;
+    margin: 0 auto;
+    border-radius: 15px;
+    overflow: hidden;
+    border: 1px solid black;
+    margin-bottom: 10px
+}
+
 .grafico_recaudadores {
     overflow-y: auto;
     width: 50%;
