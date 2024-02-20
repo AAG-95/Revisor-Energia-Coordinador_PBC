@@ -428,11 +428,6 @@ class DashBarChart:
             export_format="csv",
             export_headers="display",
             style_table={'overflowX': 'auto', 'overflowY': 'auto'},
-            style_data_conditional=[
-             {
-            'backgroundColor': 'white',
-            'color': 'red'
-              }]
         )        
 
 #! Layout--------------------------------------------------------------------------------------

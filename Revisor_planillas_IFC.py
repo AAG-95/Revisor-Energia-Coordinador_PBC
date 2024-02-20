@@ -31,9 +31,11 @@ warnings.filterwarnings(
     "ignore", message="Data Validation extension is not supported and will be removed"
 )
 
+warnings.filterwarnings('ignore', 'The default value of regex will change from True to False in a future version.')
+
 # Definición de variables de año y mes
-primer_año = 2023
-primer_mes_primer_año = 12
+primer_año = 2020
+primer_mes_primer_año = 6
 último_año = 2023
 último_mes_último_año = 12
 
@@ -152,6 +154,7 @@ for par in pares_lista:
         )
 
         # Revisor para ver que el suministrador informa al recaudador 
+        df["Energía [kWh]"] = df["Energía [kWh]"].replace('-', np.nan)
         df["Energía [kWh]"] = df["Energía [kWh]"].str.replace(",", ".").astype(float)
         df["Recaudador No Informado"] = np.where((df["Energía [kWh]"] > 0) & (df["Energía [kWh]"].isin(["", "-"])), 1, 0)
         df["Energía [kWh]"] = df["Energía [kWh]"].astype(str).replace('.', ',')
