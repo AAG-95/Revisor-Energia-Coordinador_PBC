@@ -324,7 +324,7 @@ for par in pares_lista:
                 df_FCR_E["Recaudación [$]"].astype(str).str.replace(".", ",")
             )
 
-            dataframes_regulados.append(df_FCR_E)
+            dataframes_regulados.append(df_FCR_E[(df_FCR_E["Segmento"] == "Nacional") & (df_FCR_E["Energía facturada [kWh]"].isnull() | df_FCR_E["Energía facturada [kWh]"] == 0)])
 
             df_FCR_E = df_FCR_E[
                 (~df_FCL_E["Observación"].isnull()) & (df_FCR_E["Observación"] != "")

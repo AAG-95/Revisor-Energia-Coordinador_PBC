@@ -10,21 +10,7 @@ class ComparadorRecaudacionEnergia:
         self.carpeta_recaudacion = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Recaudación\\Revisión Histórica\\"
         # Carpeta de energía
         self.carpeta_energia = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\\02 Repartición\Balances\\Listados de Clientes\\Retiros Históricos Clientes\\"
-        # Fecha inicio y fin de la revisión
-        self.primer_año = 2023
-        self.primer_mes_primer_año = 10
-        self.último_año = 2023
-        self.último_mes_último_año = 10
-
-    def generar_pares(self):
-        pares_lista = fc.ConversionDatos().generar_pares(
-            self.primer_año,
-            self.último_año,
-            self.primer_mes_primer_año,
-            self.último_mes_último_año,
-        )
-        return pares_lista
-
+     
     def cargar_datos_energia(self):
         df_energia = pd.read_csv(
             self.carpeta_energia + "Retiros_Históricos_Clientes_L.csv",
@@ -124,6 +110,7 @@ class ComparadorRecaudacionEnergia:
             on="Barra-Clave-Mes",
             how="left",
         ).reset_index(drop=True)
+        
         df_combinado_energia.rename(
             columns={"Energía [kWh]": "Energía Declarada [kWh]"}, inplace=True
         )
