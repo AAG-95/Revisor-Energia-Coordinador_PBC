@@ -46,8 +46,6 @@ class ComparadorRecaudacionEnergia:
             encoding="UTF-8",
         )
 
-        
-
         # Mantener Columnas Recaudador y Energía facturada [kWh]
         df_recaudacion = df_recaudacion[
             ["Recaudador", "Mes de consumo", "Energía facturada [kWh]"]
@@ -68,7 +66,6 @@ class ComparadorRecaudacionEnergia:
             .astype(float)
         )
 
-
         df_recaudacion = (
             df_recaudacion.groupby(["Suministrador-Mes"])
             .agg(
@@ -78,16 +75,29 @@ class ComparadorRecaudacionEnergia:
             )
             .reset_index()
         )
+
+        # Filtrar Energia 0
+        df_recaudacion = df_recaudacion[df_recaudacion["Energía facturada [kWh]"] > 0]
         
+        return df_recaudacion
+
     def combinar_datos(self, df_energia, df_recaudacion):
         df_combinado_regulados = pd.merge(
-            df_energia,
             df_recaudacion,
+            df_energia,
             on="Suministrador-Mes",
             how="left",
         ).reset_index(drop=True)
 
+        # Separa Suministrador de Mes y elimina columna
+        df_combinado_regulados["Suministrador"] = df_combinado_regulados["Suministrador-Mes"].apply(lambda x: x.split("-_-")[0])
+        df_combinado_regulados["Mes"] = df_combinado_regulados["Suministrador-Mes"].apply(lambda x: x.split("-_-")[1])
+        df_combinado_regulados.drop(columns=["Suministrador-Mes"], inplace=True)
+
+
+
+
         """ df_recaudacion["Recaudador"] = df_recaudacion["Recaudador"].apply(lambda x: pd.Series(x).mode()[0] if pd.Series(x).mode().size else None) """
 
-        return df_recaudacion
+        return df_combinado_regulados
         

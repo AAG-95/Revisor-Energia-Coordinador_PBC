@@ -18,12 +18,13 @@ import plotly.express as px
 
 # Clase para visualizar los datos de la base de datos
 class DashBarChart:
-    def __init__(self, df_combinado_energia, df_combinado_sistemas, df_clientes_ind, port=8052):
+    def __init__(self, df_combinado_energia, df_combinado_sistemas, df_clientes_ind, df_combinado_energia_clientes_r , port=8052):
         self.port = port
         self.app = dash.Dash(__name__)
         self.df_combinado_energia = df_combinado_energia
         self.df_combinado_sistemas = df_combinado_sistemas
         self.df_clientes_ind = df_clientes_ind
+        self.df_combinado_energia_clientes_r = df_combinado_energia_clientes_r
         self.df_dict = {} # Lista de Fechas
         for value in df_combinado_energia["Mes Consumo"].unique():
             self.df_dict[value] = df_combinado_energia[df_combinado_energia["Mes Consumo"] == value]
@@ -94,6 +95,28 @@ class DashBarChart:
             [
                 html.H1(
                     "Revisor de Clientes Individualizados",
+                    style={"text-align": "center", "color": "black"},
+                ),
+                html.Img(
+                    src="assets\coordinador_logo.png",
+                    style={"height": "80px", "margin-left": "auto"},
+                ),
+            ],
+            style={
+                "background-color": "lightblue",
+                "width": "100%",
+                "height": "80px",
+                "display": "flex",
+                "align-items": "center",
+                "justify-content": "start",
+                "padding": "0 10px",
+            },
+        )
+
+        inicio_energia_clientes_r= html.Div(
+            [
+                html.H1(
+                    "Revisor de Energía Clientes Regulados",
                     style={"text-align": "center", "color": "black"},
                 ),
                 html.Img(
@@ -258,7 +281,6 @@ class DashBarChart:
         # Sort the DataFrame by 'Mes Consumo'
         df_combinado_sistemas = df_combinado_sistemas.sort_values("Mes Consumo")
 
-
         # Ensure "Mes Consumo" is of datetime type
         df_combinado_sistemas["Mes Consumo"] = pd.to_datetime(
             df_combinado_sistemas["Mes Consumo"], format="%d-%m-%Y"
@@ -394,8 +416,26 @@ class DashBarChart:
             
         )        
 
+
+        #? Diseño de Página Revisor de Energia Clientes Regulados
+
+        #Preprocesamiento del dataframe
+        # Tablas Revisor de Energía
+        tabla_revision_energia_clientes_r = dash_table.DataTable(
+            id="tabla_revision_clientes_ind",
+            columns=[{"name": i, "id": i} for i in self.df_combinado_energia_clientes_r.columns],
+            data=self.df_combinado_energia_clientes_r.to_dict("records"),
+            export_format="csv",
+            export_headers="display",
+            style_table={'overflowX': 'auto', 'overflowY': 'auto'},
+            style_data_conditional=[
+             {
+            'backgroundColor': 'white',
+            'color': 'red'
+              }]
+        )        
+
 #! Layout--------------------------------------------------------------------------------------
-        
         # Wait for a few seconds
         self.app.layout = html.Div(
             [
@@ -418,6 +458,12 @@ class DashBarChart:
                             "Revisor de Clientes Individualizados",
                             href="/page-3",
                             id="page-3-link",
+                            className="button-link",
+                        ),
+                        dcc.Link(
+                            "Revisor de Energía Clientes Regulados",
+                            href="/page-4",
+                            id="page-4-link",
                             className="button-link",
                         ),
                     ],
@@ -623,7 +669,36 @@ class DashBarChart:
             ],
           className="tabla_clientes_ind",
         
-               ),])        
+               ),]) 
+        
+        #? Energia Clientes Regulados
+        energia_clientes_r_layout = html.Div(
+            [
+                dcc.Loading(
+            id="dropdown_clientes_r-loading_inicio",
+            type="circle",
+            className="your-class-name",  # replace with your actual class name
+            children=[
+                html.Div(
+            [
+                inicio_energia_clientes_r
+            ]
+        ),
+    ]
+),
+        html.Div(
+            [
+                dcc.Loading(
+                    id="loading_tipo_clientes_r",
+                    type="circle",
+                    children=[tabla_revision_energia_clientes_r],
+                      
+                )
+            ],
+          className="tabla_clientes_ind",
+        
+               ),])
+
                 
 #? Callbacks páginas
         # Pagina de la app
@@ -635,6 +710,9 @@ class DashBarChart:
                 return sistemas_layout
             elif pathname == "/page-3":
                 return clientes_ind_layout
+            elif pathname == "/page-4":
+                return energia_clientes_r_layout
+
             else:
                 return html.Div([])  # Empty Div for no match
             

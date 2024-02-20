@@ -33,9 +33,10 @@ df_clientes_ind = comparador_clientes_ind.cargar_datos_clientes_ind()
 
 # Create an instance of ComparadorRecaudacionEnergia
 comparador_energia_regulados= crr.ComparadorRecaudacionEnergia()
-df_combinado_energia = comparador_energia_regulados.combinar_datos(comparador_energia_regulados.cargar_datos_energia(), comparador_energia_regulados .cargar_datos_recaudacion()) 
+
+df_combinado_energia_clientes_r = comparador_energia_regulados.combinar_datos(comparador_energia_regulados.cargar_datos_energia(), comparador_energia_regulados .cargar_datos_recaudacion()) 
 
 
 # Run app
-vs.DashBarChart(df_combinado_energia, df_combinado_sistemas,df_clientes_ind).run()
+vs.DashBarChart(df_combinado_energia, df_combinado_sistemas,df_clientes_ind, df_combinado_energia_clientes_r).run()
 
