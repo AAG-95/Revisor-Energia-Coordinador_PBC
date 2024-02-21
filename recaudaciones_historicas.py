@@ -20,8 +20,8 @@ import funciones as func  # Se importa un módulo personalizado llamado Funcione
 # Definición de variables de año y mes
 primer_año = 2020
 primer_mes_primer_año = 6
-último_año = 2020
-último_mes_último_año = 7
+último_año = 2023
+último_mes_último_año = 11
 
 # Genera una lista de pares de años y meses
 pares_lista = func.ConversionDatos().generar_pares(

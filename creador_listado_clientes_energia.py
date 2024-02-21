@@ -19,7 +19,7 @@ ventana.iniciar()
 mes = ventana.visualizador()
 lista_meses = [x.strip() for x in mes.split(", ")]
 
-lista_meses = ["Jun2020","Jul2020"]
+lista_meses = ["Ene2020", "Feb2020", "Mar2020", "Abr2020", "May2020", "Jun2020", "Jul2020", "Ago2020", "Sep2020", "Oct2020", "Nov2020", "Dic2020", "Ene2021", "Feb2021", "Mar2021", "Abr2021", "May2021", "Jun2021", "Jul2021", "Ago2021", "Sep2021", "Oct2021", "Nov2021", "Dic2021", "Ene2022", "Feb2022", "Mar2022", "Abr2022", "May2022", "Jun2022", "Jul2022", "Ago2022", "Sep2022", "Oct2022", "Nov2022", "Dic2022", "Ene2023", "Feb2023", "Mar2023", "Abr2023", "May2023", "Jun2023", "Jul2023", "Ago2023", "Sep2023", "Oct2023", "Nov2023", "Dic2023"]
 
 #! Main Program
 # ? Paths inputs

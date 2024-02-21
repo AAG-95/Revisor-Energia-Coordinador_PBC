@@ -51,6 +51,9 @@ class ComparadorRecaudacionEnergia:
             ["Recaudador", "Mes de consumo", "Energía facturada [kWh]"]
         ]
         
+        # Columnas Mes de consumo de formato fecha d%m%Y
+        df_recaudacion["Mes de consumo"] = pd.to_datetime(df_recaudacion["Mes de consumo"], format='%Y-%m-%d %H:%M:%S').dt.strftime('%d-%m-%Y')
+
         df_recaudacion["Suministrador-Mes"] = (
             df_recaudacion["Recaudador"].astype(str)
             + "-_-"
@@ -66,6 +69,7 @@ class ComparadorRecaudacionEnergia:
             .astype(float)
         )
 
+       
         df_recaudacion = (
             df_recaudacion.groupby(["Suministrador-Mes"])
             .agg(
@@ -94,8 +98,23 @@ class ComparadorRecaudacionEnergia:
         df_combinado_regulados["Mes"] = df_combinado_regulados["Suministrador-Mes"].apply(lambda x: x.split("-_-")[1])
         df_combinado_regulados.drop(columns=["Suministrador-Mes"], inplace=True)
 
+        # Reordenar columnas
+        df_combinado_regulados = df_combinado_regulados[
+            ["Suministrador", "Mes", "Energía facturada [kWh]", "Energía Balance [kWh]"]
+        ]
+        
+        # Eliminar decimales de Energía Balance y Energía Facturada
+        df_combinado_regulados["Energía facturada [kWh]"] = df_combinado_regulados["Energía facturada [kWh]"].fillna(0).astype(int)
 
+        df_combinado_regulados["Energía Balance [kWh]"] = df_combinado_regulados["Energía Balance [kWh]"].fillna(0).astype(int)
 
+        #Diferencia Energía Balance Menos Facturada
+        df_combinado_regulados["Diferencia Energía [kWh]"] = df_combinado_regulados["Energía Balance [kWh]"] - df_combinado_regulados["Energía facturada [kWh]"]
+
+        # Diferencia Energía Balance Menos Facturada porcentual
+        df_combinado_regulados["Diferencia Energía [%]"] = ((df_combinado_regulados["Diferencia Energía [kWh]"] / df_combinado_regulados["Energía Balance [kWh]"]) * 100)
+        df_combinado_regulados["Diferencia Energía [%]"] = df_combinado_regulados["Diferencia Energía [%]"].replace([np.inf, -np.inf], 100)
+        df_combinado_regulados["Diferencia Energía [%]"] = df_combinado_regulados["Diferencia Energía [%]"].fillna(0).round(2)
 
         """ df_recaudacion["Recaudador"] = df_recaudacion["Recaudador"].apply(lambda x: pd.Series(x).mode()[0] if pd.Series(x).mode().size else None) """
 
