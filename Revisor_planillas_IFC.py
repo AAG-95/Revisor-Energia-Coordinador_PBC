@@ -38,7 +38,7 @@ try:
 
     # Definición de variables de año y mes
     primer_año = 2023
-    primer_mes_primer_año = 6
+    primer_mes_primer_año = 11
     último_año = 2023
     último_mes_último_año = 12
 
