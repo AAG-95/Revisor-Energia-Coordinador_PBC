@@ -37,8 +37,8 @@ try:
         warnings.filterwarnings("ignore", message=message)
 
     # Definición de variables de año y mes
-    primer_año = 2020
-    primer_mes_primer_año = 7
+    primer_año = 2023
+    primer_mes_primer_año = 6
     último_año = 2023
     último_mes_último_año = 12
 
