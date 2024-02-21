@@ -19,7 +19,7 @@ ventana.iniciar()
 mes = ventana.visualizador()
 lista_meses = [x.strip() for x in mes.split(", ")]
 
-lista_meses = ["Dic2023"]
+lista_meses = ["Jun2020","Jul2020"]
 
 #! Main Program
 # ? Paths inputs
@@ -426,7 +426,7 @@ for mes in lista_meses:
             for column in columnas_numericas:
                 df_retiros_historico_R_final[column] = df_retiros_historico_R_final[column].astype(str).str.replace(".", ",")   
 
-            
+            df_retiros_historico_R_final["Mes"] = pd.to_datetime(df_retiros_historico_R_final["Mes"])
             df_retiros_historico_R_final["Mes"] = df_retiros_historico_R_final["Mes"].dt.strftime("%m-%d-%Y")
             # Rewrite df_registro_cambios_empresas_final into ruta_registro_cambios_Empresas
             df_retiros_historico_R_final.to_csv(

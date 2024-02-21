@@ -18,10 +18,10 @@ import warnings
 import funciones as func  # Se importa un módulo personalizado llamado Funciones
 
 # Definición de variables de año y mes
-primer_año = 2023
-primer_mes_primer_año = 12
-último_año = 2023
-último_mes_último_año = 12
+primer_año = 2020
+primer_mes_primer_año = 6
+último_año = 2020
+último_mes_último_año = 7
 
 # Genera una lista de pares de años y meses
 pares_lista = func.ConversionDatos().generar_pares(
@@ -97,18 +97,22 @@ for par in pares_lista:
 lista_nombre_archivos = ["BDD Clientes Libres Históricos.csv", "BDD Clientes Regulados Históricos.csv", "BDD Observaciones Históricas.csv", "BDD Revisor Clientes L Históricos.csv", "BDD Revisor Clientes R Históricos.csv"]
 
 lista_df_historicos = [None for i in range(5)]
+lista_valores_mes = []
 
 for idx, nombre_archivo in enumerate(lista_nombre_archivos):
    
     if os.path.isfile(carpeta_entrada + "Revisión Histórica\\"+ nombre_archivo):
         lista_df_historicos[idx] = pd.read_csv(carpeta_entrada + "Revisión Histórica\\"+ nombre_archivo, sep=";", encoding = "UTF-8", header=0 )
-        if idx == 0:
-            valores_mes = lista_df_historicos[idx]["mes_repartición"].unique()
+       
+        lista_df_historicos[idx]["mes_repartición"] = pd.to_datetime(lista_df_historicos[idx]["mes_repartición"])
+        valores_mes = lista_df_historicos[idx]["mes_repartición"].dt.strftime('%d-%m-%Y').unique()
+        lista_valores_mes.append(valores_mes)
     else:
         print(f"No Existe {nombre_archivo} en: {carpeta_entrada}")
         lista_df_historicos[idx] = pd.DataFrame()
         if idx == 0:
             valores_mes = []
+            lista_valores_mes.append(valores_mes)
 
 #! Unión de Dataframes
 # Verificar si el mes de cada df de mes ya se encuentra en el histórico
@@ -133,7 +137,7 @@ for idx, (lista_dataframe, nombre_archivo) in enumerate(zip(lista_dataframes_mes
             df_vacio = True
            
         # Verificar si el mes de cada df de mes ya se encuentra en el histórico            
-        if mes_df in valores_mes or df_vacio:
+        if mes_df in lista_valores_mes[idx] or df_vacio:
             print(f"El mes {mes_rep} ya se encuentra en el en el histórico de la {nombre_archivo} o es un dataframe vacío")
         else: 
             lista_df_historicos[idx] = pd.concat([lista_df_historicos[idx], i])

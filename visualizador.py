@@ -428,7 +428,34 @@ class DashBarChart:
             export_format="csv",
             export_headers="display",
             style_table={'overflowX': 'auto', 'overflowY': 'auto'},
-        )        
+        )     
+
+         # Generate the dropdown options
+        dropdown_mes_consumo_clientes_r = dcc.Dropdown(
+            id="mes-consumo-dropdown_clientes_r",
+            options=[
+                {"label": i, "value": i} for i in df_combinado_energia_clientes_r["Mes"].unique()
+            ]
+            + [{"label": "Select All", "value": "ALL"}],
+            value=["ALL"],
+            multi=True,
+            className="dropdown_mes_consumo_sistemas",
+            style={"width": "100%"},
+        )
+
+        # Generate the dropdown_sistemas options
+        dropdown_suministrador_clientes_r = dcc.Dropdown(
+            id="suministrador-dropdown_clientes_r",
+            options=[
+                {"label": i, "value": i} for i in df_combinado_energia_clientes_r["Suministrador"].unique()
+            ]
+            + [{"label": "Select All", "value": "ALL"}],
+            value=["ALL"],
+            multi=True,
+            className="dropdown_recaudador_sistemas",
+            style={"width": "100%"},
+        )
+   
 
 #! Layout--------------------------------------------------------------------------------------
         # Wait for a few seconds
@@ -676,7 +703,24 @@ class DashBarChart:
             children=[
                 html.Div(
             [
-                inicio_energia_clientes_r
+                inicio_energia_clientes_r,
+                html.Div(
+                    [
+                        html.Label("Mes Consumo", className="label_mes_consumo"),
+                        dropdown_mes_consumo_clientes_r,
+                    ],
+                    className="label_mes-y-dropdown",
+                ),
+
+
+               html.Div(
+                 [
+                       html.Label("Suministrador", className="label_barra"),
+                        dropdown_suministrador_clientes_r,
+                    ],
+                   className="label_barra-y-dropdown",
+                ), 
+
             ]
         ),
     ]
