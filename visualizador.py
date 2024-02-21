@@ -419,10 +419,26 @@ class DashBarChart:
 
         #? Diseño de Página Revisor de Energia Clientes Regulados
 
+        df_combinado_energia_clientes_r["Mes"] = pd.to_datetime(df_combinado_energia_clientes_r["Mes"])
+
+        # Sort the DataFrame by 'Mes'
+        df_combinado_energia_clientes_r = df_combinado_energia_clientes_r.sort_values("Mes")
+
+        # Ensure "Mes" is of datetime type
+        df_combinado_energia_clientes_r["Mes"] = pd.to_datetime(
+            df_combinado_energia_clientes_r["Mes"], format="%d-%m-%Y"
+        )
+        
+
+         # Change column format to Ene-2023
+        df_combinado_energia_clientes_r["Mes"] = df_combinado_energia_clientes_r["Mes"].apply(
+            lambda x: self.meses_esp[x.day] + "-" + str(x.year)
+        )
+
         #Preprocesamiento del dataframe
         # Tablas Revisor de Energía
         tabla_revision_energia_clientes_r = dash_table.DataTable(
-            id="tabla_revision_clientes_ind",
+            id="tabla_revision_energia_clientes_r",
             columns=[{"name": i, "id": i} for i in self.df_combinado_energia_clientes_r.columns],
             data=self.df_combinado_energia_clientes_r.to_dict("records"),
             export_format="csv",
@@ -1349,8 +1365,124 @@ class DashBarChart:
                 )
                 return fig 
 
+#? Callbacks Revisor Clientes Regualdos
+        @self.app.callback(
+            [
+                Output("mes-consumo-dropdown_clientes_r", "options"),
+                Output("mes-consumo-dropdown_clientes_r", "value"),
+            ],
+            [Input("mes-consumo-dropdown_clientes_r", "value")],
+        )
+        def update_dropdown(selected_values):
+            if selected_values:
+                if "ALL" in selected_values:
+                    return [
+                        {"label": i, "value": i}
+                        for i in df_combinado_energia_clientes_r["Mes"].unique()
+                    ] + [{"label": "Select All", "value": "ALL"}], ["ALL"]
+                else:
+                    return [
+                        {"label": i, "value": i}
+                        for i in df_combinado_energia_clientes_r["Mes"].unique()
+                    ] + [{"label": "Select All", "value": "ALL"}], [
+                        value for value in selected_values if value != "ALL"
+                    ]  # All options are displayed, selected values are selected
+            else:
+                return [
+                    {"label": i, "value": i}
+                    for i in df_combinado_energia_clientes_r["Mes"].unique()
+                ] + [
+                    {"label": "Select All", "value": "ALL"}
+                ], selected_values  # Only "ALL" is displayed and selected
+
+      
+        @self.app.callback(
+            [
+                Output("suministrador-dropdown_clientes_r", "options"),
+                Output("suministrador-dropdown_clientes_r", "value"),
+            ],
+            [Input("suministrador-dropdown_clientes_r", "value")],
+        )
+        def update_dropdown(selected_values):
+            if selected_values:
+                if "ALL" in selected_values:
+                    return [
+                        {"label": i, "value": i}
+                        for i in df_combinado_energia_clientes_r["Suministrador"].unique()
+                    ] + [{"label": "Select All", "value": "ALL"}], ["ALL"]
+                else:
+                    return [
+                        {"label": i, "value": i}
+                        for i in df_combinado_energia_clientes_r["Suministrador"].unique()
+                    ] + [{"label": "Select All", "value": "ALL"}], [
+                        value for value in selected_values if value != "ALL"
+                    ]  # All options are displayed, selected values are selected
+            else:
+                return [
+                    {"label": i, "value": i}
+                    for i in df_combinado_energia_clientes_r["Suministrador"].unique()
+                ] + [
+                    {"label": "Select All", "value": "ALL"}
+                ], selected_values  # Only "ALL" is displayed and selected        
+
+        @self.app.callback(
+            Output("tabla_revision_energia_clientes_r", "data"),
+            [
+                Input("mes-consumo-dropdown_clientes_r", "value"),
+                Input("suministrador-dropdown_clientes_r", "value"),
+        
+            ],
+        )
+        def update_table(
+            selected_mes_consumo, selected_recaudador
+        ):
+            if (
+                selected_mes_consumo
+             
+                or selected_recaudador
+              
+            ):
+                if selected_mes_consumo == ["ALL"]:
+                    selected_mes_consumo = df_combinado_energia_clientes_r["Mes"].unique().tolist()
+
+            
+                if selected_recaudador == ["ALL"]:
+                    selected_recaudador =  df_combinado_energia_clientes_r["Suministrador"].unique().tolist()
+                    
 
 
+                df_combinado_filtrado = df_combinado_energia_clientes_r[
+                    df_combinado_energia_clientes_r["Mes"].isin(selected_mes_consumo)
+                
+                    & df_combinado_energia_clientes_r["Suministrador"].isin(selected_recaudador)
+                
+                ]
+
+                """ columnas_a_modificar = [
+                    "Energía Balance [kWh]",
+                    "Energía Declarada [kWh]",
+                    "Diferencia Energía [kWh]",
+                ]  # replace with your column names
+
+                for column in columnas_a_modificar:
+                    df_combinado_filtrado.loc[:, column] = df_combinado_filtrado[
+                        column
+                    ].apply(
+                        lambda x: "{:,.2f}".format(x)
+                        .replace(",", " ")
+                        .replace(".", ",")
+                        .replace(" ", ".")
+                    )
+
+                df_combinado_filtrado.loc[
+                    :, "% Diferencia Energía"
+                ] = df_combinado_filtrado["% Diferencia Energía"].apply(
+                    lambda x: "{:.2%}".format(x)
+                ) """
+
+                return df_combinado_filtrado.to_dict("records")
+            else:
+                return df_combinado_energia_clientes_r.to_dict("records")
 
     def open_browser(self):
         # Abre el navegador web para visualizar la aplicación
