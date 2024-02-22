@@ -120,7 +120,7 @@ class ComparadorRecaudacionEnergia:
     lambda x: "Suministrador No Informado En Mes"
     if x["Diferencia Energía [%]"] == 100
     else (
-        "Energía Facturada Sin Diferencias"
+        "Energía Facturada Sin Diferencias Mayores"
         if abs(x["Diferencia Energía [%]"]) <= 20
         else (
             "Diferencia Energía con Diferencias Con Mayor Facturación"
