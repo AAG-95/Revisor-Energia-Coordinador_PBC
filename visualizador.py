@@ -18,16 +18,25 @@ import plotly.express as px
 
 # Clase para visualizar los datos de la base de datos
 class DashBarChart:
-    def __init__(self, df_combinado_energia, df_combinado_sistemas, df_clientes_ind, df_combinado_energia_clientes_r , port=8052):
+    def __init__(
+        self,
+        df_combinado_energia,
+        df_combinado_sistemas,
+        df_clientes_ind,
+        df_combinado_energia_clientes_r,
+        port=8052,
+    ):
         self.port = port
         self.app = dash.Dash(__name__)
         self.df_combinado_energia = df_combinado_energia
         self.df_combinado_sistemas = df_combinado_sistemas
         self.df_clientes_ind = df_clientes_ind
         self.df_combinado_energia_clientes_r = df_combinado_energia_clientes_r
-        self.df_dict = {} # Lista de Fechas
+        self.df_dict = {}  # Lista de Fechas
         for value in df_combinado_energia["Mes Consumo"].unique():
-            self.df_dict[value] = df_combinado_energia[df_combinado_energia["Mes Consumo"] == value]
+            self.df_dict[value] = df_combinado_energia[
+                df_combinado_energia["Mes Consumo"] == value
+            ]
         # Spanish month abbreviations
         self.meses_esp = [
             "",
@@ -46,7 +55,7 @@ class DashBarChart:
         ]
 
         # Preprocess the data
-            
+
         inicio_energia = html.Div(
             [
                 html.H1(
@@ -69,7 +78,7 @@ class DashBarChart:
             },
         )
 
-        inicio_sistemas= html.Div(
+        inicio_sistemas = html.Div(
             [
                 html.H1(
                     "Revisor de Sistemas Zonales",
@@ -91,7 +100,7 @@ class DashBarChart:
             },
         )
 
-        inicio_cliente_individualizados= html.Div(
+        inicio_cliente_individualizados = html.Div(
             [
                 html.H1(
                     "Revisor de Clientes Individualizados",
@@ -113,7 +122,7 @@ class DashBarChart:
             },
         )
 
-        inicio_energia_clientes_r= html.Div(
+        inicio_energia_clientes_r = html.Div(
             [
                 html.H1(
                     "Revisor de Energía Clientes Regulados",
@@ -135,26 +144,27 @@ class DashBarChart:
             },
         )
 
-        #? Diseño de Página Revisor de Energía
-        #Preprocesamiento del dataframe 
+        # ? Diseño de Página Revisor de Energía
+        # Preprocesamiento del dataframe
         # Convert 'Mes Consumo' to datetime if it's not already
-        df_combinado_energia["Mes Consumo"] = pd.to_datetime(df_combinado_energia["Mes Consumo"])
+        df_combinado_energia["Mes Consumo"] = pd.to_datetime(
+            df_combinado_energia["Mes Consumo"]
+        )
 
         # Sort the DataFrame by 'Mes Consumo'
         df_combinado_energia = df_combinado_energia.sort_values("Mes Consumo")
-
 
         # Ensure "Mes Consumo" is of datetime type
         df_combinado_energia["Mes Consumo"] = pd.to_datetime(
             df_combinado_energia["Mes Consumo"], format="%d-%m-%Y"
         )
-          #df_combinado_sistemas["Mes Consumo"] type 
-       
+        # df_combinado_sistemas["Mes Consumo"] type
+
         # Change column format to Ene-2023
         df_combinado_energia["Mes Consumo"] = df_combinado_energia["Mes Consumo"].apply(
             lambda x: self.meses_esp[x.day] + "-" + str(x.year)
         )
-        # Revision por Tipo 
+        # Revision por Tipo
         df_combinado_por_tipo_energia = (
             df_combinado_energia.groupby(["Tipo"])
             .agg({"Diferencia Energía [kWh]": "sum"})
@@ -162,9 +172,9 @@ class DashBarChart:
         )
 
         #  thousands as dots
-        df_combinado_por_tipo_energia["Diferencia Energía [kWh]"] = df_combinado_por_tipo_energia[
+        df_combinado_por_tipo_energia[
             "Diferencia Energía [kWh]"
-        ].apply(
+        ] = df_combinado_por_tipo_energia["Diferencia Energía [kWh]"].apply(
             lambda x: "{:,}".format(x)
             .replace(",", " ")
             .replace(".", ",")
@@ -174,7 +184,9 @@ class DashBarChart:
         # Tablas Revisor de Energía
         tabla_revision_tipo_energia = dash_table.DataTable(
             id="tabla_revision_tipo_energia",
-            columns=[{"name": i, "id": i} for i in df_combinado_por_tipo_energia.columns],
+            columns=[
+                {"name": i, "id": i} for i in df_combinado_por_tipo_energia.columns
+            ],
             data=df_combinado_por_tipo_energia.to_dict("records"),
         )
 
@@ -195,8 +207,10 @@ class DashBarChart:
             .reset_index()
         )
 
-        df_combinado_por_recaudador_energia = df_combinado_por_recaudador_energia.sort_values(
-            "Diferencia Energía [kWh]", ascending=False
+        df_combinado_por_recaudador_energia = (
+            df_combinado_por_recaudador_energia.sort_values(
+                "Diferencia Energía [kWh]", ascending=False
+            )
         )
 
         # Assuming df_combinado_por_tipo is your DataFrame and 'Tipo' and 'Diferencia Energía [kWh]' are your columns
@@ -216,7 +230,8 @@ class DashBarChart:
         dropdown_mes_consumo = dcc.Dropdown(
             id="mes-consumo-dropdown_energia",
             options=[
-                {"label": i, "value": i} for i in df_combinado_energia["Mes Consumo"].unique()
+                {"label": i, "value": i}
+                for i in df_combinado_energia["Mes Consumo"].unique()
             ]
             + [{"label": "Select All", "value": "ALL"}],
             value=["ALL"],
@@ -236,13 +251,14 @@ class DashBarChart:
             multi=True,
             className="dropdown_barra",
             style={"width": "100%"},
-        )        
+        )
 
         # Generate the dropdown options
         dropdown_recaudador = dcc.Dropdown(
             id="recaudador-dropdown_energia",
             options=[
-                {"label": i, "value": i} for i in df_combinado_energia["Recaudador"].unique()
+                {"label": i, "value": i}
+                for i in df_combinado_energia["Recaudador"].unique()
             ]
             + [{"label": "Select All", "value": "ALL"}],
             value=["ALL"],
@@ -254,7 +270,9 @@ class DashBarChart:
         # Generate the dropdown options
         dropdown_clave = dcc.Dropdown(
             id="clave-dropdown_energia",
-            options=[{"label": i, "value": i} for i in df_combinado_energia["Clave"].unique()]
+            options=[
+                {"label": i, "value": i} for i in df_combinado_energia["Clave"].unique()
+            ]
             + [{"label": "Select All", "value": "ALL"}],
             value=["ALL"],
             multi=True,
@@ -265,7 +283,9 @@ class DashBarChart:
         # Generate the dropdown options
         dropdown_tipo = dcc.Dropdown(
             id="tipo-dropdown_energia",
-            options=[{"label": i, "value": i} for i in df_combinado_energia["Tipo"].unique()]
+            options=[
+                {"label": i, "value": i} for i in df_combinado_energia["Tipo"].unique()
+            ]
             + [{"label": "Select All", "value": "ALL"}],
             value=["ALL"],
             multi=True,
@@ -273,10 +293,12 @@ class DashBarChart:
             style={"width": "100%"},
         )
 
-        #? Diseño de Página Revisor de Sistemas
-        #Preprocesamiento del dataframe 
+        # ? Diseño de Página Revisor de Sistemas
+        # Preprocesamiento del dataframe
         # Convert 'Mes Consumo' to datetime if it's not already
-        df_combinado_sistemas["Mes Consumo"] = pd.to_datetime(df_combinado_sistemas["Mes Consumo"])
+        df_combinado_sistemas["Mes Consumo"] = pd.to_datetime(
+            df_combinado_sistemas["Mes Consumo"]
+        )
 
         # Sort the DataFrame by 'Mes Consumo'
         df_combinado_sistemas = df_combinado_sistemas.sort_values("Mes Consumo")
@@ -285,20 +307,25 @@ class DashBarChart:
         df_combinado_sistemas["Mes Consumo"] = pd.to_datetime(
             df_combinado_sistemas["Mes Consumo"], format="%d-%m-%Y"
         )
-        
-        #df_combinado_sistemas["Mes Consumo"] type 
-     
+
+        # df_combinado_sistemas["Mes Consumo"] type
+
         # Change column format to Ene-2023
-        df_combinado_sistemas["Mes Consumo"] = df_combinado_sistemas["Mes Consumo"].apply(
-            lambda x: self.meses_esp[x.day] + "-" + str(x.year))
-        
-        # Agrupar por tipo y obtener cantidad de errores 
-        df_combinado_por_tipo_sistemas = df_combinado_sistemas.groupby("Tipo").size().reset_index(name='Count')
-        
+        df_combinado_sistemas["Mes Consumo"] = df_combinado_sistemas[
+            "Mes Consumo"
+        ].apply(lambda x: self.meses_esp[x.day] + "-" + str(x.year))
+
+        # Agrupar por tipo y obtener cantidad de errores
+        df_combinado_por_tipo_sistemas = (
+            df_combinado_sistemas.groupby("Tipo").size().reset_index(name="Count")
+        )
+
         # Tablas Revisor de Energía
         tabla_revision_tipo_sistemas = dash_table.DataTable(
             id="tabla_revision_tipo_sistemas",
-            columns=[{"name": i, "id": i} for i in df_combinado_por_tipo_sistemas.columns],
+            columns=[
+                {"name": i, "id": i} for i in df_combinado_por_tipo_sistemas.columns
+            ],
             data=df_combinado_por_tipo_sistemas.to_dict("records"),
         )
 
@@ -311,15 +338,16 @@ class DashBarChart:
             export_headers="display",
             css=[{"selector": ".export_button", "rule": "width: 100%;"}],
         )
-        
-         # Gráfico diferencias por Recaudador
+
+        # Gráfico diferencias por Recaudador
         df_combinado_por_recaudador_sistemas = (
-            df_combinado_sistemas.groupby(["Recaudador"]).size().reset_index(name='Count')
-            
+            df_combinado_sistemas.groupby(["Recaudador"])
+            .size()
+            .reset_index(name="Count")
         )
 
-        df_combinado_por_recaudador_sistemas = df_combinado_por_recaudador_sistemas.sort_values(
-            "Count", ascending=False
+        df_combinado_por_recaudador_sistemas = (
+            df_combinado_por_recaudador_sistemas.sort_values("Count", ascending=False)
         )
 
         # Assuming df_combinado_por_tipo is your DataFrame and 'Tipo' and 'Diferencia Energía [kWh]' are your columns
@@ -335,11 +363,12 @@ class DashBarChart:
             className="grafico_recaudadores",
         )
 
-         # Generate the dropdown options
+        # Generate the dropdown options
         dropdown_mes_consumo_sistemas = dcc.Dropdown(
             id="mes-consumo-dropdown_sistemas",
             options=[
-                {"label": i, "value": i} for i in df_combinado_sistemas["Mes Consumo"].unique()
+                {"label": i, "value": i}
+                for i in df_combinado_sistemas["Mes Consumo"].unique()
             ]
             + [{"label": "Select All", "value": "ALL"}],
             value=["ALL"],
@@ -352,20 +381,22 @@ class DashBarChart:
         dropdown_barra_sistemas = dcc.Dropdown(
             id="barra-dropdown_sistemas",
             options=[
-                {"label": i, "value": i} for i in df_combinado_sistemas["Barra"].unique()
+                {"label": i, "value": i}
+                for i in df_combinado_sistemas["Barra"].unique()
             ]
             + [{"label": "Select All", "value": "ALL"}],
             value=["ALL"],
             multi=True,
             className="dropdown_barra_sistemas",
             style={"width": "100%"},
-        )        
+        )
 
         # Generate the dropdown_sistemas options
         dropdown_recaudador_sistemas = dcc.Dropdown(
             id="recaudador-dropdown_sistemas",
             options=[
-                {"label": i, "value": i} for i in df_combinado_sistemas["Recaudador"].unique()
+                {"label": i, "value": i}
+                for i in df_combinado_sistemas["Recaudador"].unique()
             ]
             + [{"label": "Select All", "value": "ALL"}],
             value=["ALL"],
@@ -377,7 +408,10 @@ class DashBarChart:
         # Generate the dropdown_sistemas options
         dropdown_clave_sistemas = dcc.Dropdown(
             id="clave-dropdown_sistemas",
-            options=[{"label": i, "value": i} for i in df_combinado_sistemas["Clave"].unique()]
+            options=[
+                {"label": i, "value": i}
+                for i in df_combinado_sistemas["Clave"].unique()
+            ]
             + [{"label": "Select All", "value": "ALL"}],
             value=["ALL"],
             multi=True,
@@ -388,7 +422,9 @@ class DashBarChart:
         # Generate the dropdown_sistemas options
         dropdown_tipo_sistemas = dcc.Dropdown(
             id="tipo-dropdown_sistemas",
-            options=[{"label": i, "value": i} for i in df_combinado_sistemas["Tipo"].unique()]
+            options=[
+                {"label": i, "value": i} for i in df_combinado_sistemas["Tipo"].unique()
+            ]
             + [{"label": "Select All", "value": "ALL"}],
             value=["ALL"],
             multi=True,
@@ -396,9 +432,9 @@ class DashBarChart:
             style={"width": "100%"},
         )
 
-        #? Diseño de Página Revisor de Clientes Individualizados
+        # ? Diseño de Página Revisor de Clientes Individualizados
 
-        #Preprocesamiento del dataframe
+        # Preprocesamiento del dataframe
         # Tablas Revisor de Energía
         tabla_revision_clientes_ind = dash_table.DataTable(
             id="tabla_revision_clientes_ind",
@@ -406,51 +442,60 @@ class DashBarChart:
             data=self.df_clientes_ind.to_dict("records"),
             export_format="csv",
             export_headers="display",
-            style_table={'overflowX': 'auto', 'overflowY': 'auto'},
+            style_table={"overflowX": "auto", "overflowY": "auto"},
             style_data_conditional=[
-             {
-            'if': {'column_id': 'Días para termino de contrato', 'filter_query': '{Días para termino de contrato} lt 100'},
-            'backgroundColor': 'white',
-            'color': 'red'
-              }]
-            
-        )        
+                {
+                    "if": {
+                        "column_id": "Días para termino de contrato",
+                        "filter_query": "{Días para termino de contrato} lt 100",
+                    },
+                    "backgroundColor": "white",
+                    "color": "red",
+                }
+            ],
+        )
 
+        # ? Diseño de Página Revisor de Energia Clientes Regulados
 
-        #? Diseño de Página Revisor de Energia Clientes Regulados
-
-        df_combinado_energia_clientes_r["Mes"] = pd.to_datetime(df_combinado_energia_clientes_r["Mes"])
+        df_combinado_energia_clientes_r["Mes"] = pd.to_datetime(
+            df_combinado_energia_clientes_r["Mes"]
+        )
 
         # Sort the DataFrame by 'Mes'
-        df_combinado_energia_clientes_r = df_combinado_energia_clientes_r.sort_values("Mes")
+        df_combinado_energia_clientes_r = df_combinado_energia_clientes_r.sort_values(
+            "Mes"
+        )
 
         # Ensure "Mes" is of datetime type
         df_combinado_energia_clientes_r["Mes"] = pd.to_datetime(
             df_combinado_energia_clientes_r["Mes"], format="%d-%m-%Y"
         )
-        
 
-         # Change column format to Ene-2023
-        df_combinado_energia_clientes_r["Mes"] = df_combinado_energia_clientes_r["Mes"].apply(
-            lambda x: self.meses_esp[x.day] + "-" + str(x.year)
-        )
+        # Change column format to Ene-2023
+        df_combinado_energia_clientes_r["Mes"] = df_combinado_energia_clientes_r[
+            "Mes"
+        ].apply(lambda x: self.meses_esp[x.day] + "-" + str(x.year))
 
-        #Preprocesamiento del dataframe
+        # Preprocesamiento del dataframe
         # Tablas Revisor de Energía
         tabla_revision_energia_clientes_r = dash_table.DataTable(
             id="tabla_revision_energia_clientes_r",
-            columns=[{"name": i, "id": i} for i in self.df_combinado_energia_clientes_r.columns],
+            columns=[
+                {"name": i, "id": i}
+                for i in self.df_combinado_energia_clientes_r.columns
+            ],
             data=self.df_combinado_energia_clientes_r.to_dict("records"),
             export_format="csv",
             export_headers="display",
-            style_table={'overflowX': 'auto', 'overflowY': 'auto'},
-        )     
+            style_table={"overflowX": "auto", "overflowY": "auto"},
+        )
 
-         # Generate the dropdown options
+        # Generate the dropdown options
         dropdown_mes_consumo_clientes_r = dcc.Dropdown(
             id="mes-consumo-dropdown_clientes_r",
             options=[
-                {"label": i, "value": i} for i in df_combinado_energia_clientes_r["Mes"].unique()
+                {"label": i, "value": i}
+                for i in df_combinado_energia_clientes_r["Mes"].unique()
             ]
             + [{"label": "Select All", "value": "ALL"}],
             value=["ALL"],
@@ -463,7 +508,8 @@ class DashBarChart:
         dropdown_suministrador_clientes_r = dcc.Dropdown(
             id="suministrador-dropdown_clientes_r",
             options=[
-                {"label": i, "value": i} for i in df_combinado_energia_clientes_r["Suministrador"].unique()
+                {"label": i, "value": i}
+                for i in df_combinado_energia_clientes_r["Suministrador"].unique()
             ]
             + [{"label": "Select All", "value": "ALL"}],
             value=["ALL"],
@@ -471,9 +517,8 @@ class DashBarChart:
             className="dropdown_recaudador_sistemas",
             style={"width": "100%"},
         )
-   
 
-#! Layout--------------------------------------------------------------------------------------
+        #! Layout--------------------------------------------------------------------------------------
         # Wait for a few seconds
         self.app.layout = html.Div(
             [
@@ -511,251 +556,254 @@ class DashBarChart:
             ]
         )
 
-        energia_layout = html.Div([ dcc.Loading(
-            id="dropdown-loading_inicio",
-            type="circle",
-            className="your-class-name",  # replace with your actual class name
-            children=[
-                html.Div(
-            [
-                inicio_energia,
-                html.Div(
-                    [
-                        html.Label("Mes Consumo", className="label_mes_consumo"),
-                        dropdown_mes_consumo,
-                    ],
-                    className="label_mes-y-dropdown",
-                ),
-
-               html.Div(
-                 [
-                       html.Label("Barra", className="label_barra"),
-                        dropdown_barra,
-                    ],
-                   className="label_barra-y-dropdown",
-                ), 
-
-                html.Div(
-                    [
-                        html.Label("Recaudador", className="label_recaudador"),
-                        dropdown_recaudador,
-                    ],
-                    className="label_recaudador-y-dropdown",
-                ),
-                html.Div(
-                    [
-                        html.Label("Clave", className="label_clave"),
-                        dropdown_clave,
-                    ],
-                    className="label_clave-y-dropdown",
-                ),
-                html.Div(
-                    [
-                        html.Label("Tipo", className="label_tipo"),
-                        dropdown_tipo,
-                    ],
-                    className="label_tipo-y-dropdown",
-                ),
-            ]
-        ),
-    ]
-),
-
-        html.Div(
+        energia_layout = html.Div(
             [
                 dcc.Loading(
-                    id="loading_tipo_energia",
+                    id="dropdown-loading_inicio",
                     type="circle",
-                    children=[tabla_revision_tipo_energia],
-                )
-            ],
-            className="tabla2",
-        ),
-        html.Div(
-            [
+                    className="your-class-name",  # replace with your actual class name
+                    children=[
+                        html.Div(
+                            [
+                                inicio_energia,
+                                html.Div(
+                                    [
+                                        html.Label(
+                                            "Mes Consumo", className="label_mes_consumo"
+                                        ),
+                                        dropdown_mes_consumo,
+                                    ],
+                                    className="label_mes-y-dropdown",
+                                ),
+                                html.Div(
+                                    [
+                                        html.Label("Barra", className="label_barra"),
+                                        dropdown_barra,
+                                    ],
+                                    className="label_barra-y-dropdown",
+                                ),
+                                html.Div(
+                                    [
+                                        html.Label(
+                                            "Recaudador", className="label_recaudador"
+                                        ),
+                                        dropdown_recaudador,
+                                    ],
+                                    className="label_recaudador-y-dropdown",
+                                ),
+                                html.Div(
+                                    [
+                                        html.Label("Clave", className="label_clave"),
+                                        dropdown_clave,
+                                    ],
+                                    className="label_clave-y-dropdown",
+                                ),
+                                html.Div(
+                                    [
+                                        html.Label("Tipo", className="label_tipo"),
+                                        dropdown_tipo,
+                                    ],
+                                    className="label_tipo-y-dropdown",
+                                ),
+                            ]
+                        ),
+                    ],
+                ),
+                html.Div(
+                    [
+                        dcc.Loading(
+                            id="loading_tipo_energia",
+                            type="circle",
+                            children=[tabla_revision_tipo_energia],
+                        )
+                    ],
+                    className="tabla2",
+                ),
                 html.Div(
                     [
                         html.Div(
                             [
-                                dcc.Loading(
-                                    id="loading_energia",
-                                    type="circle",
-                                    children=[tabla_revision_energia],
-                                    className="loading-container",
-                                )
+                                html.Div(
+                                    [
+                                        dcc.Loading(
+                                            id="loading_energia",
+                                            type="circle",
+                                            children=[tabla_revision_energia],
+                                            className="loading-container",
+                                        )
+                                    ],
+                                    className="tabla1",
+                                ),
                             ],
-                            className="tabla1",
+                            className="tabla_diferencias",
                         ),
+                        grafico_energia,
                     ],
-                    className="tabla_diferencias",
+                    className="tabla_y_figura_1",
                 ),
-                grafico_energia,
-            ],
-            className="tabla_y_figura_1",
-        ),])
+            ]
+        )
 
-
-        #? Sistemas 
+        # ? Sistemas
         sistemas_layout = html.Div(
             [
                 dcc.Loading(
-            id="dropdown_sistemas-loading_inicio",
-            type="circle",
-            className="your-class-name",  # replace with your actual class name
-            children=[
-                html.Div(
-            [
-                inicio_sistemas,
-                html.Div(
-                    [
-                        html.Label("Mes Consumo", className="label_mes_consumo"),
-                        dropdown_mes_consumo_sistemas,
-                    ],
-                    className="label_mes-y-dropdown",
-                ),
-
-
-               html.Div(
-                 [
-                       html.Label("Barra", className="label_barra"),
-                        dropdown_barra_sistemas,
-                    ],
-                   className="label_barra-y-dropdown",
-                ), 
-
-                html.Div(
-                    [
-                        html.Label("Recaudador", className="label_recaudador"),
-                        dropdown_recaudador_sistemas,
-                    ],
-                    className="label_recaudador-y-dropdown",
-                ),
-                html.Div(
-                    [
-                        html.Label("Clave", className="label_clave"),
-                        dropdown_clave_sistemas,
-                    ],
-                    className="label_clave-y-dropdown",
-                ),
-                html.Div(
-                    [
-                        html.Label("Tipo", className="label_tipo"),
-                        dropdown_tipo_sistemas,
-                    ],
-                    className="label_tipo-y-dropdown",
-                ),
-            ]
-        ),
-    ]
-),
-
-        html.Div(
-            [
-                dcc.Loading(
-                    id="loading_tipo_sistemas",
+                    id="dropdown_sistemas-loading_inicio",
                     type="circle",
-                    children=[tabla_revision_tipo_sistemas],
-                )
-            ],
-            className="tabla2",
-        ),html.Div(
-            [
+                    className="your-class-name",  # replace with your actual class name
+                    children=[
+                        html.Div(
+                            [
+                                inicio_sistemas,
+                                html.Div(
+                                    [
+                                        html.Label(
+                                            "Mes Consumo", className="label_mes_consumo"
+                                        ),
+                                        dropdown_mes_consumo_sistemas,
+                                    ],
+                                    className="label_mes-y-dropdown",
+                                ),
+                                html.Div(
+                                    [
+                                        html.Label("Barra", className="label_barra"),
+                                        dropdown_barra_sistemas,
+                                    ],
+                                    className="label_barra-y-dropdown",
+                                ),
+                                html.Div(
+                                    [
+                                        html.Label(
+                                            "Recaudador", className="label_recaudador"
+                                        ),
+                                        dropdown_recaudador_sistemas,
+                                    ],
+                                    className="label_recaudador-y-dropdown",
+                                ),
+                                html.Div(
+                                    [
+                                        html.Label("Clave", className="label_clave"),
+                                        dropdown_clave_sistemas,
+                                    ],
+                                    className="label_clave-y-dropdown",
+                                ),
+                                html.Div(
+                                    [
+                                        html.Label("Tipo", className="label_tipo"),
+                                        dropdown_tipo_sistemas,
+                                    ],
+                                    className="label_tipo-y-dropdown",
+                                ),
+                            ]
+                        ),
+                    ],
+                ),
+                html.Div(
+                    [
+                        dcc.Loading(
+                            id="loading_tipo_sistemas",
+                            type="circle",
+                            children=[tabla_revision_tipo_sistemas],
+                        )
+                    ],
+                    className="tabla2",
+                ),
                 html.Div(
                     [
                         html.Div(
                             [
-                                dcc.Loading(
-                                    id="loading_sistemas",
-                                    type="circle",
-                                    children=[tabla_revision_sistemas],
-                                    className="loading-container",
-                                )
+                                html.Div(
+                                    [
+                                        dcc.Loading(
+                                            id="loading_sistemas",
+                                            type="circle",
+                                            children=[tabla_revision_sistemas],
+                                            className="loading-container",
+                                        )
+                                    ],
+                                    className="tabla1",
+                                ),
                             ],
-                            className="tabla1",
+                            className="tabla_diferencias",
                         ),
+                        grafico_sistemas,
                     ],
-                    className="tabla_diferencias",
+                    className="tabla_y_figura_1",
                 ),
-                grafico_sistemas,
-            ],
-            className="tabla_y_figura_1",
-               ),])
-        
-        #? Clientes Individualizados
+            ]
+        )
+
+        # ? Clientes Individualizados
         clientes_ind_layout = html.Div(
             [
                 dcc.Loading(
-            id="dropdown_sistemas-loading_inicio",
-            type="circle",
-            className="your-class-name",  # replace with your actual class name
-            children=[
-                html.Div(
-            [
-                inicio_cliente_individualizados
-            ]
-        ),
-    ]
-),
-        html.Div(
-            [
-                dcc.Loading(
-                    id="loading_tipo_sistemas",
+                    id="dropdown_sistemas-loading_inicio",
                     type="circle",
-                    children=[tabla_revision_clientes_ind],
-                      
-                )
-            ],
-          className="tabla_clientes_ind",
-        
-               ),]) 
-        
-        #? Energia Clientes Regulados
+                    className="your-class-name",  # replace with your actual class name
+                    children=[
+                        html.Div([inicio_cliente_individualizados]),
+                    ],
+                ),
+                html.Div(
+                    [
+                        dcc.Loading(
+                            id="loading_tipo_sistemas",
+                            type="circle",
+                            children=[tabla_revision_clientes_ind],
+                        )
+                    ],
+                    className="tabla_clientes_ind",
+                ),
+            ]
+        )
+
+        # ? Energia Clientes Regulados
         energia_clientes_r_layout = html.Div(
             [
                 dcc.Loading(
-            id="dropdown_clientes_r-loading_inicio",
-            type="circle",
-            className="your-class-name",  # replace with your actual class name
-            children=[
-                html.Div(
-            [
-                inicio_energia_clientes_r,
+                    id="dropdown_clientes_r-loading_inicio",
+                    type="circle",
+                    className="your-class-name",  # replace with your actual class name
+                    children=[
+                        html.Div(
+                            [
+                                inicio_energia_clientes_r,
+                                html.Div(
+                                    [
+                                        html.Label(
+                                            "Mes Consumo", className="label_mes_consumo"
+                                        ),
+                                        dropdown_mes_consumo_clientes_r,
+                                    ],
+                                    className="label_mes-y-dropdown",
+                                ),
+                                html.Div(
+                                    [
+                                        html.Label(
+                                            "Suministrador", className="label_barra"
+                                        ),
+                                        dropdown_suministrador_clientes_r,
+                                    ],
+                                    className="label_barra-y-dropdown",
+                                ),
+                            ]
+                        ),
+                    ],
+                ),
                 html.Div(
                     [
-                        html.Label("Mes Consumo", className="label_mes_consumo"),
-                        dropdown_mes_consumo_clientes_r,
+                        dcc.Loading(
+                            id="loading_tipo_clientes_r",
+                            type="circle",
+                            children=[tabla_revision_energia_clientes_r],
+                        )
                     ],
-                    className="label_mes-y-dropdown",
+                    className="tabla_clientes_ind",
                 ),
-
-
-               html.Div(
-                 [
-                       html.Label("Suministrador", className="label_barra"),
-                        dropdown_suministrador_clientes_r,
-                    ],
-                   className="label_barra-y-dropdown",
-                ), 
-
             ]
-        ),
-    ]
-),
-        html.Div(
-            [
-                dcc.Loading(
-                    id="loading_tipo_clientes_r",
-                    type="circle",
-                    children=[tabla_revision_energia_clientes_r],
-                      
-                )
-            ],
-          className="tabla_clientes_ind",
-        
-               ),])
+        )
 
-                
-#? Callbacks páginas
+        # ? Callbacks páginas
         # Pagina de la app
         @self.app.callback(Output("page-content", "children"), Input("url", "pathname"))
         def display_page(pathname):
@@ -770,8 +818,8 @@ class DashBarChart:
 
             else:
                 return html.Div([])  # Empty Div for no match
-            
-#? Callbacks Revisor Energía
+
+        # ? Callbacks Revisor Energía
         # Mes consumo dropdown
         @self.app.callback(
             [
@@ -830,7 +878,7 @@ class DashBarChart:
                 ] + [
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  # Only "ALL" is displayed and selected"""
-        
+
         @self.app.callback(
             [
                 Output("recaudador-dropdown_energia", "options"),
@@ -871,17 +919,20 @@ class DashBarChart:
             if selected_values:
                 if "ALL" in selected_values:
                     return [
-                        {"label": i, "value": i} for i in df_combinado_energia["Clave"].unique()
+                        {"label": i, "value": i}
+                        for i in df_combinado_energia["Clave"].unique()
                     ] + [{"label": "Select All", "value": "ALL"}], ["ALL"]
                 else:
                     return [
-                        {"label": i, "value": i} for i in df_combinado_energia["Clave"].unique()
+                        {"label": i, "value": i}
+                        for i in df_combinado_energia["Clave"].unique()
                     ] + [{"label": "Select All", "value": "ALL"}], [
                         value for value in selected_values if value != "ALL"
                     ]  # All options are displayed, selected values are selected
             else:
                 return [
-                    {"label": i, "value": i} for i in df_combinado_energia["Clave"].unique()
+                    {"label": i, "value": i}
+                    for i in df_combinado_energia["Clave"].unique()
                 ] + [
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  # Only "ALL" is displayed and selected
@@ -897,17 +948,20 @@ class DashBarChart:
             if selected_values:
                 if "ALL" in selected_values:
                     return [
-                        {"label": i, "value": i} for i in df_combinado_energia["Tipo"].unique()
+                        {"label": i, "value": i}
+                        for i in df_combinado_energia["Tipo"].unique()
                     ] + [{"label": "Select All", "value": "ALL"}], ["ALL"]
                 else:
                     return [
-                        {"label": i, "value": i} for i in df_combinado_energia["Tipo"].unique()
+                        {"label": i, "value": i}
+                        for i in df_combinado_energia["Tipo"].unique()
                     ] + [{"label": "Select All", "value": "ALL"}], [
                         value for value in selected_values if value != "ALL"
                     ]  # All options are displayed, selected values are selected
             else:
                 return [
-                    {"label": i, "value": i} for i in df_combinado_energia["Tipo"].unique()
+                    {"label": i, "value": i}
+                    for i in df_combinado_energia["Tipo"].unique()
                 ] + [
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  # Only "ALL" is displayed and selected
@@ -923,7 +977,11 @@ class DashBarChart:
             ],
         )
         def update_table(
-            selected_mes_consumo, selected_barra, selected_recaudador, selected_clave, selected_tipo
+            selected_mes_consumo,
+            selected_barra,
+            selected_recaudador,
+            selected_clave,
+            selected_tipo,
         ):
             if (
                 selected_mes_consumo
@@ -933,14 +991,17 @@ class DashBarChart:
                 or selected_tipo
             ):
                 if selected_mes_consumo == ["ALL"]:
-                    selected_mes_consumo = df_combinado_energia["Mes Consumo"].unique().tolist()
+                    selected_mes_consumo = (
+                        df_combinado_energia["Mes Consumo"].unique().tolist()
+                    )
 
                 if selected_barra == ["ALL"]:
-                      selected_barra = df_combinado_energia["Barra"].unique().tolist()
-                
+                    selected_barra = df_combinado_energia["Barra"].unique().tolist()
+
                 if selected_recaudador == ["ALL"]:
-                    selected_recaudador =  df_combinado_energia["Recaudador"].unique().tolist()
-                    
+                    selected_recaudador = (
+                        df_combinado_energia["Recaudador"].unique().tolist()
+                    )
 
                 if selected_clave == ["ALL"]:
                     selected_clave = df_combinado_energia["Clave"].unique().tolist()
@@ -972,10 +1033,10 @@ class DashBarChart:
                         .replace(" ", ".")
                     )
 
-                df_combinado_filtrado.loc[
-                    :, "% Diferencia Energía"
-                ] = df_combinado_filtrado["% Diferencia Energía"].apply(
-                    lambda x: "{:.2%}".format(x)
+                df_combinado_filtrado.loc[:, "% Diferencia Energía"] = (
+                    df_combinado_filtrado["% Diferencia Energía"].apply(
+                        lambda x: "{:.2%}".format(x)
+                    )
                 )
 
                 return df_combinado_filtrado.to_dict("records")
@@ -992,7 +1053,9 @@ class DashBarChart:
         def update_table(selected_mes_consumo, selected_recaudador):
             if selected_mes_consumo and selected_recaudador:
                 if selected_mes_consumo == ["ALL"]:
-                    selected_mes_consumo = df_combinado_energia["Mes Consumo"].unique().tolist()
+                    selected_mes_consumo = (
+                        df_combinado_energia["Mes Consumo"].unique().tolist()
+                    )
 
                 if selected_recaudador == ["ALL"]:
                     selected_recaudador = (
@@ -1025,12 +1088,17 @@ class DashBarChart:
 
         @self.app.callback(
             Output("grafico_diferencias_recaudadores_energia", "figure"),
-            [Input("mes-consumo-dropdown_energia", "value"), Input("tipo-dropdown_energia", "value")],
+            [
+                Input("mes-consumo-dropdown_energia", "value"),
+                Input("tipo-dropdown_energia", "value"),
+            ],
         )
         def update_table(selected_mes_consumo, selected_tipo):
             if selected_mes_consumo:
                 if selected_mes_consumo == ["ALL"]:
-                    selected_mes_consumo = df_combinado_energia["Mes Consumo"].unique().tolist()
+                    selected_mes_consumo = (
+                        df_combinado_energia["Mes Consumo"].unique().tolist()
+                    )
 
                 if selected_tipo == ["ALL"]:
                     selected_tipo = df_combinado_energia["Tipo"].unique().tolist()
@@ -1068,9 +1136,9 @@ class DashBarChart:
                 )
                 return fig
 
-    #? Callbacks Revisor Sistema 
+        # ? Callbacks Revisor Sistema
 
-            # Mes consumo dropdown
+        # Mes consumo dropdown
         @self.app.callback(
             [
                 Output("mes-consumo-dropdown_sistemas", "options"),
@@ -1100,7 +1168,6 @@ class DashBarChart:
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  # Only "ALL" is displayed and selected
 
-
         @self.app.callback(
             [
                 Output("barra-dropdown_sistemas", "options"),
@@ -1129,9 +1196,9 @@ class DashBarChart:
                 ] + [
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  # Only "ALL" is displayed and selected"""
+
         #
 
-        
         @self.app.callback(
             [
                 Output("recaudador-dropdown_sistemas", "options"),
@@ -1172,17 +1239,20 @@ class DashBarChart:
             if selected_values:
                 if "ALL" in selected_values:
                     return [
-                        {"label": i, "value": i} for i in df_combinado_sistemas["Clave"].unique()
+                        {"label": i, "value": i}
+                        for i in df_combinado_sistemas["Clave"].unique()
                     ] + [{"label": "Select All", "value": "ALL"}], ["ALL"]
                 else:
                     return [
-                        {"label": i, "value": i} for i in df_combinado_sistemas["Clave"].unique()
+                        {"label": i, "value": i}
+                        for i in df_combinado_sistemas["Clave"].unique()
                     ] + [{"label": "Select All", "value": "ALL"}], [
                         value for value in selected_values if value != "ALL"
                     ]  # All options are displayed, selected values are selected
             else:
                 return [
-                    {"label": i, "value": i} for i in df_combinado_sistemas["Clave"].unique()
+                    {"label": i, "value": i}
+                    for i in df_combinado_sistemas["Clave"].unique()
                 ] + [
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  # Only "ALL" is displayed and selected
@@ -1198,21 +1268,24 @@ class DashBarChart:
             if selected_values:
                 if "ALL" in selected_values:
                     return [
-                        {"label": i, "value": i} for i in df_combinado_sistemas["Tipo"].unique()
+                        {"label": i, "value": i}
+                        for i in df_combinado_sistemas["Tipo"].unique()
                     ] + [{"label": "Select All", "value": "ALL"}], ["ALL"]
                 else:
                     return [
-                        {"label": i, "value": i} for i in df_combinado_sistemas["Tipo"].unique()
+                        {"label": i, "value": i}
+                        for i in df_combinado_sistemas["Tipo"].unique()
                     ] + [{"label": "Select All", "value": "ALL"}], [
                         value for value in selected_values if value != "ALL"
                     ]  # All options are displayed, selected values are selected
             else:
                 return [
-                    {"label": i, "value": i} for i in df_combinado_sistemas["Tipo"].unique()
+                    {"label": i, "value": i}
+                    for i in df_combinado_sistemas["Tipo"].unique()
                 ] + [
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  # Only "ALL" is displayed and selected
-            
+
         @self.app.callback(
             Output("tabla_revision_sistemas", "data"),
             [
@@ -1224,7 +1297,11 @@ class DashBarChart:
             ],
         )
         def update_table(
-            selected_mes_consumo, selected_barra, selected_recaudador, selected_clave, selected_tipo
+            selected_mes_consumo,
+            selected_barra,
+            selected_recaudador,
+            selected_clave,
+            selected_tipo,
         ):
             if (
                 selected_mes_consumo
@@ -1234,14 +1311,17 @@ class DashBarChart:
                 or selected_tipo
             ):
                 if selected_mes_consumo == ["ALL"]:
-                    selected_mes_consumo = df_combinado_sistemas["Mes Consumo"].unique().tolist()
+                    selected_mes_consumo = (
+                        df_combinado_sistemas["Mes Consumo"].unique().tolist()
+                    )
 
                 if selected_barra == ["ALL"]:
-                      selected_barra = df_combinado_sistemas["Barra"].unique().tolist()
-                
+                    selected_barra = df_combinado_sistemas["Barra"].unique().tolist()
+
                 if selected_recaudador == ["ALL"]:
-                    selected_recaudador =  df_combinado_sistemas["Recaudador"].unique().tolist()
-                    
+                    selected_recaudador = (
+                        df_combinado_sistemas["Recaudador"].unique().tolist()
+                    )
 
                 if selected_clave == ["ALL"]:
                     selected_clave = df_combinado_sistemas["Clave"].unique().tolist()
@@ -1282,54 +1362,63 @@ class DashBarChart:
                 return df_combinado_filtrado.to_dict("records")
             else:
                 return df_combinado_sistemas.to_dict("records")
-            
+
         @self.app.callback(
-                Output("tabla_revision_tipo_sistemas", "data"),
-                [
-                    Input("mes-consumo-dropdown_sistemas", "value"),
-                    Input("recaudador-dropdown_sistemas", "value"),
-                ],
-            )
+            Output("tabla_revision_tipo_sistemas", "data"),
+            [
+                Input("mes-consumo-dropdown_sistemas", "value"),
+                Input("recaudador-dropdown_sistemas", "value"),
+            ],
+        )
         def update_table(selected_mes_consumo, selected_recaudador):
-                if selected_mes_consumo and selected_recaudador:
-                    if selected_mes_consumo == ["ALL"]:
-                        selected_mes_consumo = df_combinado_sistemas["Mes Consumo"].unique().tolist()
-
-                    if selected_recaudador == ["ALL"]:
-                        selected_recaudador = (
-                            df_combinado_sistemas["Recaudador"].unique().tolist()
-                        )
-
-                    df_combinado_filtrado = df_combinado_sistemas[
-                        df_combinado_sistemas["Mes Consumo"].isin(selected_mes_consumo)
-                        & df_combinado_sistemas["Recaudador"].isin(selected_recaudador)
-                    ]
- 
-                    df_combinado_por_tipo_filtrado = (
-                        df_combinado_filtrado.groupby("Tipo").size().reset_index(name='Count')
+            if selected_mes_consumo and selected_recaudador:
+                if selected_mes_consumo == ["ALL"]:
+                    selected_mes_consumo = (
+                        df_combinado_sistemas["Mes Consumo"].unique().tolist()
                     )
 
-                    """ df_combinado_por_tipo_filtrado[
+                if selected_recaudador == ["ALL"]:
+                    selected_recaudador = (
+                        df_combinado_sistemas["Recaudador"].unique().tolist()
+                    )
+
+                df_combinado_filtrado = df_combinado_sistemas[
+                    df_combinado_sistemas["Mes Consumo"].isin(selected_mes_consumo)
+                    & df_combinado_sistemas["Recaudador"].isin(selected_recaudador)
+                ]
+
+                df_combinado_por_tipo_filtrado = (
+                    df_combinado_filtrado.groupby("Tipo")
+                    .size()
+                    .reset_index(name="Count")
+                )
+
+                """ df_combinado_por_tipo_filtrado[
                         "Diferencia Energía [kWh]"
                     ] = df_combinado_por_tipo_filtrado["Diferencia Energía [kWh]"].apply(
                         lambda x: "{:,.0f}".format(x)
                         .replace(",", " ")
                         .replace(".", ",")
                         .replace(" ", ".")
-                    ) """ 
+                    ) """
 
-                    return df_combinado_por_tipo_filtrado.to_dict("records")
-                else:
-                    return df_combinado_por_tipo_sistemas.to_dict("records")
-                
+                return df_combinado_por_tipo_filtrado.to_dict("records")
+            else:
+                return df_combinado_por_tipo_sistemas.to_dict("records")
+
         @self.app.callback(
             Output("grafico_diferencias_recaudadores_sistemas", "figure"),
-            [Input("mes-consumo-dropdown_sistemas", "value"), Input("tipo-dropdown_sistemas", "value")],
+            [
+                Input("mes-consumo-dropdown_sistemas", "value"),
+                Input("tipo-dropdown_sistemas", "value"),
+            ],
         )
         def update_table(selected_mes_consumo, selected_tipo):
             if selected_mes_consumo:
                 if selected_mes_consumo == ["ALL"]:
-                    selected_mes_consumo = df_combinado_sistemas["Mes Consumo"].unique().tolist()
+                    selected_mes_consumo = (
+                        df_combinado_sistemas["Mes Consumo"].unique().tolist()
+                    )
 
                 if selected_tipo == ["ALL"]:
                     selected_tipo = df_combinado_sistemas["Tipo"].unique().tolist()
@@ -1340,7 +1429,9 @@ class DashBarChart:
                 ]
 
                 df_combinado_por_recaudador_filtrado = (
-                    df_combinado_filtrado.groupby("Recaudador").size().reset_index(name='Count')
+                    df_combinado_filtrado.groupby("Recaudador")
+                    .size()
+                    .reset_index(name="Count")
                 )
 
                 df_combinado_por_recaudador_filtrado = (
@@ -1363,9 +1454,9 @@ class DashBarChart:
                     x="Count",
                     orientation="h",
                 )
-                return fig 
+                return fig
 
-#? Callbacks Revisor Clientes Regualdos
+        # ? Callbacks Revisor Clientes Regualdos
         @self.app.callback(
             [
                 Output("mes-consumo-dropdown_clientes_r", "options"),
@@ -1395,7 +1486,6 @@ class DashBarChart:
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  # Only "ALL" is displayed and selected
 
-      
         @self.app.callback(
             [
                 Output("suministrador-dropdown_clientes_r", "options"),
@@ -1408,12 +1498,16 @@ class DashBarChart:
                 if "ALL" in selected_values:
                     return [
                         {"label": i, "value": i}
-                        for i in df_combinado_energia_clientes_r["Suministrador"].unique()
+                        for i in df_combinado_energia_clientes_r[
+                            "Suministrador"
+                        ].unique()
                     ] + [{"label": "Select All", "value": "ALL"}], ["ALL"]
                 else:
                     return [
                         {"label": i, "value": i}
-                        for i in df_combinado_energia_clientes_r["Suministrador"].unique()
+                        for i in df_combinado_energia_clientes_r[
+                            "Suministrador"
+                        ].unique()
                     ] + [{"label": "Select All", "value": "ALL"}], [
                         value for value in selected_values if value != "ALL"
                     ]  # All options are displayed, selected values are selected
@@ -1423,39 +1517,34 @@ class DashBarChart:
                     for i in df_combinado_energia_clientes_r["Suministrador"].unique()
                 ] + [
                     {"label": "Select All", "value": "ALL"}
-                ], selected_values  # Only "ALL" is displayed and selected        
+                ], selected_values  # Only "ALL" is displayed and selected
 
         @self.app.callback(
             Output("tabla_revision_energia_clientes_r", "data"),
             [
                 Input("mes-consumo-dropdown_clientes_r", "value"),
                 Input("suministrador-dropdown_clientes_r", "value"),
-        
             ],
         )
-        def update_table(
-            selected_mes_consumo, selected_recaudador
-        ):
-            if (
-                selected_mes_consumo
-             
-                or selected_recaudador
-              
-            ):
+        def update_table(selected_mes_consumo, selected_recaudador):
+            if selected_mes_consumo or selected_recaudador:
                 if selected_mes_consumo == ["ALL"]:
-                    selected_mes_consumo = df_combinado_energia_clientes_r["Mes"].unique().tolist()
+                    selected_mes_consumo = (
+                        df_combinado_energia_clientes_r["Mes"].unique().tolist()
+                    )
 
-            
                 if selected_recaudador == ["ALL"]:
-                    selected_recaudador =  df_combinado_energia_clientes_r["Suministrador"].unique().tolist()
-                    
-
+                    selected_recaudador = (
+                        df_combinado_energia_clientes_r["Suministrador"]
+                        .unique()
+                        .tolist()
+                    )
 
                 df_combinado_filtrado = df_combinado_energia_clientes_r[
                     df_combinado_energia_clientes_r["Mes"].isin(selected_mes_consumo)
-                
-                    & df_combinado_energia_clientes_r["Suministrador"].isin(selected_recaudador)
-                
+                    & df_combinado_energia_clientes_r["Suministrador"].isin(
+                        selected_recaudador
+                    )
                 ]
 
                 """ columnas_a_modificar = [
