@@ -11,7 +11,7 @@ carpeta_entrada = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\
 """ # Create an instance of ComparadorRecaudacionEnergia
 comparador_energia = cre.ComparadorRecaudacionEnergia()
 
-# Call the methods on the instance
+# Call the methods on the instance 
 df_combinado_energia = comparador_energia.combinar_datos(comparador_energia.cargar_datos_energia(), comparador_energia .cargar_datos_recaudacion())  """
 
 df_combinado_energia = pd.read_csv(carpeta_entrada + "df_revision_energia.csv", sep=";", encoding="UTF-8")

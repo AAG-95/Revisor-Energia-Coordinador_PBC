@@ -113,8 +113,27 @@ class ComparadorRecaudacionEnergia:
 
         # Diferencia Energía Balance Menos Facturada porcentual
         df_combinado_regulados["Diferencia Energía [%]"] = ((df_combinado_regulados["Diferencia Energía [kWh]"] / df_combinado_regulados["Energía Balance [kWh]"]) * 100)
-        df_combinado_regulados["Diferencia Energía [%]"] = df_combinado_regulados["Diferencia Energía [%]"].replace([np.inf, -np.inf], 100)
+        df_combinado_regulados["Diferencia Energía [%]"] = df_combinado_regulados["Diferencia Energía [%]"].replace({np.inf: 100, -np.inf: 0})
         df_combinado_regulados["Diferencia Energía [%]"] = df_combinado_regulados["Diferencia Energía [%]"].fillna(0).round(2)
+
+        df_combinado_regulados["Tipo"] = df_combinado_regulados.apply(
+    lambda x: "Suministrador No Informado En Mes"
+    if x["Diferencia Energía [%]"] == 100
+    else (
+        "Energía Facturada Sin Diferencias"
+        if abs(x["Diferencia Energía [%]"]) <= 20
+        else (
+            "Diferencia Energía con Diferencias Con Mayor Facturación"
+            if x["Diferencia Energía [%]"] < -20
+            else (
+                "Diferencia Energía con Diferencias Con Menor Facturación"
+                if x["Diferencia Energía [%]"] > 20
+                else "Other"  # You need to add an else condition here
+            )
+        )
+    ),
+    axis=1,
+)
 
         """ df_recaudacion["Recaudador"] = df_recaudacion["Recaudador"].apply(lambda x: pd.Series(x).mode()[0] if pd.Series(x).mode().size else None) """
 
