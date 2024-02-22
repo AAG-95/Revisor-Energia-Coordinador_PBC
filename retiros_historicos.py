@@ -100,6 +100,7 @@ for pair in pares_lista:
     dataframe_clientes_R.append(df_mes_clientes_R)
 
 
+  # ? Update Registros Históricos Clientes Libres--------------------------------------------------------------
 # Verificar si el mes de cada df de mes ya se encuentra en el histórico
 #! Unión de Dataframes
 for df_clientes_L in dataframe_clientes_L:
@@ -235,12 +236,13 @@ for df_clientes_L in dataframe_clientes_L:
             print(
                 "Revisar Base De Datos de Clientes Libres Históricos, el Mes Actual"
                 + mes_fecha
-                + "ya fue actualizado anteriormente"
-            )
+                + " ya fue actualizado anteriormente"
 
+            )
+  # ? Update Registros Históricos Clientes Regulados--------------------------------------------------------------
 
 for df_clientes_R in dataframe_clientes_R:
-    # ? Update Registros Históricos Clientes Regulados--------------------------------------------------------------
+  
     if os.path.isfile(
         ruta_balances_historicos_clientes_R + "\Retiros_Históricos_Clientes_R.csv"
     ):
@@ -372,7 +374,7 @@ for df_clientes_R in dataframe_clientes_R:
             print(
                 "Revisar Base De Datos de Clientes Regulados Históricos, el Mes Actual"
                 + mes_fecha
-                + "ya fue actualizado anteriormente"
+                + " ya fue actualizado anteriormente"
             )
 
         """ df_historico = pd.concat([df_historico, i])
