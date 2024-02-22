@@ -9,17 +9,30 @@ El actual Proyecto tiene como objetivo, automatizar diversos proceso dentro del 
 - "Revisor Clientes Libres_": Registra diferencias de energía que se presentan en la hoja "Formulario de Clientes Libres" de la planilla de recaudación CUT.
 - "Revisor Clientes Regulados_": en la hoja "Formulario de Clientes Regulados" de la planilla de recaudación CUT
 
-2- recaudaciones_historicas.py: El código concatena las bases de datos creadas en Revisor_Planillas.py y posteriormente actualiza elregistro histórico.
+2 - recaudaciones_historicas.py: El código concatena las bases de datos creadas en Revisor_Planillas.py y posteriormente actualiza elregistro histórico.
 
-3- creador_listado_clientes_energia.py: El código crea el registro de clientes que están registrados en el balance de energía, además de registrar cambios de empresas, nuevas incorporaciones y empresas eliminadas.
+3 - creador_listado_clientes_energia.py: El código crea el registro de clientes que están registrados en el balance de energía, además de registrar cambios de empresas, nuevas incorporaciones y empresas eliminadas.
 
-4- retiros_historicos.py:  El código concatena las bases de datos creadas en creador_listado_clientes_energia.py y posteriormente actualiza elregistro histórico. 
+4 - retiros_historicos.py:  El código concatena las bases de datos creadas en creador_listado_clientes_energia.py y posteriormente actualiza elregistro histórico. 
 
-5- comparador_recaudacion_y_energia_clientes_libres.py: Compara la energía de clientes libres facturadas (informadas por los coordinados) y el balance de energía y crea una base de datos a partir de ella.
+5 - comparador_recaudacion_y_energia_clientes_libres.py: Compara la energía de clientes libres facturadas (informadas por los coordinados) y el balance de energía y crea una base de datos a partir de ella.
 
-6- comparador_recaudacion_y_energia_clientes_regulados.py: Compara la energía de clientes regulados facturadas (informadas por los coordinados) y el balance de energía y crea una base de datos a partir de ella.
+6 - comparador_recaudacion_y_energia_clientes_regulados.py: Compara la energía de clientes regulados facturadas (informadas por los coordinados) y el balance de energía y crea una base de datos a partir de ella.
 
-7- comparador_cliente_individualizado: Obtiene un registro, a partir de la planilla "Revisores RCUT" del departamento, para observar los contratos que están pronto a caducar.
+7 - comparador_cliente_individualizado: Obtiene un registro, a partir de la planilla "Revisores RCUT" del departamento, para observar los contratos que están pronto a caducar.
 
-8- comparador_cliente_sistemas: Obtiene un registro, a partir de la planilla "Revisores RCUT" del departamento, para observar las diferencias de sistemas y nivel de tensión que se han producido entre lo informa.
+8 - comparador_cliente_sistemas: Obtiene un registro, a partir de la planilla "Revisores RCUT" del departamento, para observar las diferencias de sistemas y nivel de tensión que se han producido entre lo informado y lo presente en el balance de energía.
+
+9 - funciones.py: Contiene las funciones que se utilizan en los diferentes códigos.
+
+10 - visualizador.py: Contiene los gráficos y tablas que se obtienen a partir de los códigos de comparación (los cuales se cargan desde un registro histórico). Se utiliza la librería dash de python para visualizar.
+
+11 - style.css: Contiene el diseño de las clases utilizadas en el código visualizador.py
+
+12 - entrada_datos_gui_clientes: Interfaz del proyecto con tkinter.
+
+13 - main.py: Conecta los códigos entre sí y contiene una interfaz para seleccionar que tarea se requiere realizar.
+
+14 - README.md: Explicación general del proyecto. 
+
 
