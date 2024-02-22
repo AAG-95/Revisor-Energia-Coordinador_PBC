@@ -186,8 +186,6 @@ for mes in lista_meses:
                     )
                     sys.exit()
 
-                
-
                 # retiros divided in R and L
                 retiros_clientes_R = retiros_clientes[
                     retiros_clientes["Tipo"].isin(["R"])
