@@ -20,3 +20,6 @@ El actual Proyecto tiene como objetivo, automatizar diversos proceso dentro del 
 6- comparador_recaudacion_y_energia_clientes_regulados.py: Compara la energía de clientes regulados facturadas (informadas por los coordinados) y el balance de energía y crea una base de datos a partir de ella.
 
 7- comparador_cliente_individualizado: Obtiene un registro, a partir de la planilla "Revisores RCUT" del departamento, para observar los contratos que están pronto a caducar.
+
+8- comparador_cliente_sistemas: Obtiene un registro, a partir de la planilla "Revisores RCUT" del departamento, para observar las diferencias de sistemas y nivel de tensión que se han producido entre lo informa.
+
