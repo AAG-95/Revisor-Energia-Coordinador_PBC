@@ -1,6 +1,7 @@
 
+# Proyecto Revisor de Energía en el Proceso RCUT
 
-El actual Proyecto tiene como objetivo, automatizar diversos proceso dentro del departamento de transferencias de potencia y cargos de transmisión. A continuación, se indicarán los códigos que se pencuentran en el repositorio y su utilidad.
+El actual proyecto tiene como objetivo, automatizar diversos proceso dentro del departamento de transferencias de potencia y cargos de transmisión, específicamente en el proces de repartición de cargos únicos de transmisión. A continuación, se indicarán los códigos que se encuentran en el repositorio y su utilidad.
 
 1- Revisor_Planillas.py: El código crea una base de datos mensual de los siguientes temas relacionados al envío de la recaudación por parte de los coordinados: 
 - "Clientes_": Contiene el registro de los clientes informados por los coordinados.
