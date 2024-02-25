@@ -472,9 +472,10 @@ class ProcesadorRetirosHistoricos:
                 sep=";", encoding="UTF-8", index=False)
             """
 
+    def run_procesador_retiros_historicos(primer_año, primer_mes_primer_año, último_año, último_mes_último_año):
+        processor = ProcesadorRetirosHistoricos(primer_año, primer_mes_primer_año, último_año, último_mes_último_año)
+        processor.carga_informacion_historica()
+        processor.procesamiento_mensual()
+        processor.carga_datos_historicos()
+        print("Process completed successfully")
 
-processor = ProcesadorRetirosHistoricos(2020, 1, 2020, 2)
-processor.carga_informacion_historica()
-processor.procesamiento_mensual()
-processor.carga_datos_historicos()
-print("s")

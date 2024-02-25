@@ -294,8 +294,3 @@ class ProcesadorRecaudacionesHistoricas:
         print("Process completed successfully")
 
 
-# Usage
-processor = ProcesadorRecaudacionesHistoricas(2020, 8, 2020, 10)
-processor.procesamiento_datos()
-processor.actualizador_recaudacion_historica()
-print("s")
