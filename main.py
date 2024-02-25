@@ -5,6 +5,11 @@ import comparador_cliente_individualizado as cci
 import comparador_recaudacion_y_energia_clientes_regulados as crr
 import pandas as pd
 
+
+
+# run code revisor_planillas_IFC.py
+
+
 # Carpeta de entrada
 carpeta_entrada = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Balance-Recaudación\\"
 

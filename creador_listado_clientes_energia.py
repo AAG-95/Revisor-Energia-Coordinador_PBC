@@ -10,7 +10,7 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import openpyxl
 import os
-import entrada_datos_gui_clientes as gui
+import interfaz as gui
 import sys
 
 #! Month Selection
