@@ -1,13 +1,23 @@
 import visualizador as vs
+import revisor_planillas_IFC as rpi
+import recaudaciones_historicas as rh
+import creador_listado_clientes_energia as clc
+import retiros_historicos as rh
 import comparador_recaudacion_y_energia_clientes_libres as cre
-import comparador_sistemas as csi
-import comparador_cliente_individualizado as cci
 import comparador_recaudacion_y_energia_clientes_regulados as crr
+import comparador_cliente_individualizado as cci
+import comparador_sistemas as csi
+import interfaz as gui
+import funciones as fc
 import pandas as pd
 
 
 
-# run code revisor_planillas_IFC.py
+# Interfaz Meses
+ventana_meses = gui.VentanaIngresoDatos()
+ventana_meses.iniciar()
+meses = ventana_meses.visualizador()
+lista_meses = [x.strip() for x in meses.split(", ")]
 
 
 # Carpeta de entrada

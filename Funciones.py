@@ -364,3 +364,23 @@ class ConversionDatos:
                 pares_lista.append(año_mes)
 
         return pares_lista
+    
+    def años_y_meses(lista_meses):
+    # Map Spanish month abbreviations to numbers
+        mes_a_numero = {
+    'Ene': 1, 'Feb': 2, 'Mar': 3, 'Abr': 4, 'May': 5, 'Jun': 6,
+    'Jul': 7, 'Ago': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dic': 12
+}
+
+        # Analizar los años y meses y ordenarlos
+        años_y_meses = sorted(
+            (int(mes[3:]), mes_a_numero[mes[:3]]) for mes in lista_meses
+        )
+
+        # Obtener los primeros y últimos años y meses
+        primer_año, primer_mes = años_y_meses[0]
+        ultimo_año, ultimo_mes = años_y_meses[-1]
+
+    # Devolver el primer año, último año, primer mes y último mes
+        return primer_año, ultimo_año, primer_mes, ultimo_mes
+

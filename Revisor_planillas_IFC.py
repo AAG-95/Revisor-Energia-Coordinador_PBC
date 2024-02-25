@@ -443,6 +443,6 @@ class PlanillaRevisor:
                     dataframes_regulados_R,
                 )
 
-# Usage:
+""" # Usage:
 revisor = PlanillaRevisor(2023, 2023, 11, 12)
-revisor.run()        
+revisor.run()         """

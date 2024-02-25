@@ -517,4 +517,4 @@ class ClientListCreator:
 if __name__ == "__main__":
     client_list_creator = ClientListCreator()
     client_list_creator.run()  
-    print("s")          
+    

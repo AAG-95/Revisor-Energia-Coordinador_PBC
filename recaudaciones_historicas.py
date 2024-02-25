@@ -287,6 +287,11 @@ class ProcesadorRecaudacionesHistoricas:
             variable.to_csv(
                 carpeta_salida + nombre_archivo, sep=";", encoding="UTF-8", index=False
             )
+    def run(primer_año, primer_mes_primer_año, último_año, último_mes_último_año):
+        processor = ProcesadorRecaudacionesHistoricas(primer_año, primer_mes_primer_año, último_año, último_mes_último_año)
+        processor.procesamiento_datos()
+        processor.actualizador_recaudacion_historica()
+        print("Process completed successfully")
 
 
 # Usage
