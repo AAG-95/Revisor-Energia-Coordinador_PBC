@@ -12,63 +12,63 @@ class ComparadorRecaudacionEnergia:
         self.carpeta_energia = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\\02 Repartición\Balances\\Listados de Clientes\\Retiros Históricos Clientes\\"
      
     def cargar_datos_energia(self):
-        df_energia = pd.read_csv(
+        self.df_energia = pd.read_csv(
             self.carpeta_energia + "Retiros_Históricos_Clientes_L.csv",
             sep=";",
             encoding="UTF-8",
         )
-        df_energia["Barra-Clave-Mes"] = (
-            df_energia["Barra"].astype(str)
+        self.df_energia["Barra-Clave-Mes"] = (
+            self.df_energia["Barra"].astype(str)
             + "-_-"
-            + df_energia["Clave"].astype(str)
+            + self.df_energia["Clave"].astype(str)
             + "-_-" 
-            + df_energia["Mes"].astype(str)
+            + self.df_energia["Mes"].astype(str)
         )
-        df_energia["Medida 2"] = (
-            df_energia["Medida 2"].str.replace(",", ".").astype(float)
+        self.df_energia["Medida 2"] = (
+            self.df_energia["Medida 2"].str.replace(",", ".").astype(float)
         )
-        df_energia["Medida 2"] = df_energia["Medida 2"] * -1
-        df_energia.rename(columns={"Medida 2": "Energía Balance [kWh]"}, inplace=True)
-        df_energia = df_energia[
+        self.df_energia["Medida 2"] = self.df_energia["Medida 2"] * -1
+        self.df_energia.rename(columns={"Medida 2": "Energía Balance [kWh]"}, inplace=True)
+        self.df_energia = self.df_energia[
             ["Barra-Clave-Mes", "Energía Balance [kWh]","Suministrador_final" ]
         ]
-        df_energia = (
-            df_energia.groupby(["Barra-Clave-Mes"])
+        self.df_energia = (
+            self.df_energia.groupby(["Barra-Clave-Mes"])
             .agg({"Energía Balance [kWh]": "sum",
                     "Suministrador_final": lambda x: list(x)[0],})
             .reset_index()
         )
-        return df_energia
+        return self.df_energia
 
     def cargar_datos_recaudacion(self):
-        df_recaudacion = pd.read_csv(
+        self.df_recaudacion = pd.read_csv(
             self.carpeta_recaudacion + "BDD Clientes Libres Históricos.csv",
             sep=";",
             encoding="UTF-8",
         )
 
         # Filtrar dataframe para obtener empresas informantes que sean recaduador y revissar caso que no hay recaduador pero sí energía
-        df_recaudacion = df_recaudacion[
+        self.df_recaudacion = self.df_recaudacion[
             ~(
-                (df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 0)
-                & (df_recaudacion["Recaudador No Informado"] == 0)
+                (self.df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 0)
+                & (self.df_recaudacion["Recaudador No Informado"] == 0)
             )
         ]
         
-        df_recaudacion =  df_recaudacion[
+        self.df_recaudacion =  self.df_recaudacion[
             
-                (df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 1)]
+                (self.df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 1)]
 
-        df_recaudacion["Barra-Clave-Mes"] = (
-            df_recaudacion["Barra"].astype(str)
+        self.df_recaudacion["Barra-Clave-Mes"] = (
+            self.df_recaudacion["Barra"].astype(str)
             + "-_-"
-            + df_recaudacion["Clave"].astype(str)
+            + self.df_recaudacion["Clave"].astype(str)
             + "-_-"
-            + df_recaudacion["Mes Consumo"].astype(str)
+            + self.df_recaudacion["Mes Consumo"].astype(str)
         )
 
-        df_recaudacion["Energía [kWh]"] = (
-            df_recaudacion["Energía [kWh]"]
+        self.df_recaudacion["Energía [kWh]"] = (
+            self.df_recaudacion["Energía [kWh]"]
             .str.replace(",", ".")
             .replace("-", np.nan, regex=False)
             .replace("[^0-9.]", np.nan, regex=True)
@@ -77,8 +77,8 @@ class ComparadorRecaudacionEnergia:
         )
 
 
-        df_recaudacion = (
-            df_recaudacion.groupby(["Barra-Clave-Mes"])
+        self.df_recaudacion = (
+            self.df_recaudacion.groupby(["Barra-Clave-Mes"])
             .agg(
                 {
                     "Energía [kWh]": "sum",
@@ -91,14 +91,14 @@ class ComparadorRecaudacionEnergia:
             .reset_index()
         )
 
-        """ df_recaudacion["Recaudador"] = df_recaudacion["Recaudador"].apply(lambda x: pd.Series(x).mode()[0] if pd.Series(x).mode().size else None) """
+        """ self.df_recaudacion["Recaudador"] = self.df_recaudacion["Recaudador"].apply(lambda x: pd.Series(x).mode()[0] if pd.Series(x).mode().size else None) """
 
-        return df_recaudacion
+        return self.df_recaudacion
 
-    def combinar_datos(self, df_energia, df_recaudacion):
+    def combinar_datos(self):
         df_combinado_energia = pd.merge(
-            df_energia,
-            df_recaudacion[
+            self.df_energia,
+            self.df_recaudacion[
                 [
                     "Barra-Clave-Mes",
                     "Recaudador",
@@ -196,3 +196,9 @@ class ComparadorRecaudacionEnergia:
         df_combinado_energia.to_csv(self.carpeta_salida + "df_revision_energia.csv", sep=";", encoding="UTF-8", index=False)
 
         return df_combinado_energia
+
+    def run(self):
+        self.cargar_datos_energia()
+        self.cargar_datos_recaudacion()
+        self.combinar_datos()
+

@@ -62,6 +62,16 @@ if codigos_a_correr['revisor_retiros_historico']:
 
 
 
+if codigos_a_correr['comparador_recaudacion_clientes_libres']:
+        cre.ComparadorRecaudacionEnergia().run()
+        # Run code block 1
+        print("a")
+        # Run code block 2
+        print("b")
+        pass
+
+
+
 # Carpeta de entrada
 carpeta_entrada = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Balance-Recaudación\\"
 
