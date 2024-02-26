@@ -38,73 +38,61 @@ if (
     )
 
     if codigos_a_correr["revisor_recaudacion_mensual"]:
+        print("Entrando a revisor_planillas_IFC.py...")
         rpi.PlanillaRevisor(primer_año, ultimo_año, primer_mes, ultimo_mes).run()
-        # Run code block 1
-        print("a")
+        print("Saliendo de revisor_planillas_IFC.py...")
         pass
 
     if codigos_a_correr["revisor_recaudacion_historico"]:
+        print("Entrando a recaudaciones_historicas.py...")
         rech.ProcesadorRecaudacionesHistoricas(
             primer_año, ultimo_año, primer_mes, ultimo_mes
         ).run()
-        # Run code block 1
-        print("a")
-        # Run code block 2
-        print("b")
+        print("Saliend de recaudaciones_historicas.py...")
         pass
 
     if codigos_a_correr["revisor_clientes_balance_mensual"]:
+        print("Entrando a creador_listado_clientes_energia.py...")
         clc.CreadorListaClientesBalance(lista_meses).run()
-        # Run code block 1
-        print("a")
-        # Run code block 2
-        print("b")
+        print("Saliendo de creador_listado_clientes_energia.py...")
         pass
 
     if codigos_a_correr["revisor_retiros_historico"]:
+        print("Entrando a retiros_historicos.py...")
         reth.ProcesadorRetirosHistoricos(
             primer_año, ultimo_año, primer_mes, ultimo_mes
         ).run()
-        # Run code block 1
-        print("a")
-        # Run code block 2
-        print("b")
+
+        print("Saliendo de retiros_historicos.py...")
         pass
 
 if codigos_a_correr["comparador_recaudacion_clientes_libres"]:
+    print("Entrando a comparador_recaudacion_y_energia_clientes_libres.py...")
     cre.ComparadorRecaudacionEnergia().run()
-    # Run code block 1
-    print("a")
-    # Run code block 2
-    print("b")
+    print("Saliendo de comparador_recaudacion_y_energia_clientes_libres.py...")
     pass
 
 if codigos_a_correr["comparador_recaudacion_clientes_regulados"]:
+    print("Entrando a comparador_recaudacion_y_energia_clientes_regulados.py...")
     crr.ComparadorRecaudacionEnergia().run()
-    # Run code block 1
-    print("a")
-    # Run code block 2
-    print("b")
+    print("Saliendo de comparador_recaudacion_y_energia_clientes_regulados.py...")
     pass
 
 if codigos_a_correr["comparador_sistemas"]:
+    print("Entrando a comparador_sistemas.py...")
     csi.ComparadorSistemas().run()
-    # Run code block 1
-    print("a")
-    # Run code block 2
-    print("b")
+    print("Saliendo de comparador_sistemas.py...")
     pass
 
 if codigos_a_correr["comparador_clientes_ind"]:
+    print("Entrando a comparador_cliente_individualizado.py...")
     cci.ComparadorClienteIndividualizado().run()
-    # Run code block 1
-    print("a")
-    # Run code block 2
-    print("b")
+    print("Saliendo de comparador_cliente_individualizado.py...")
     pass
 
 
 if codigos_a_correr["visualizador"]:
+    print("Entrando a visualizador.py...")
     # Carpeta de entrada
     carpeta_entrada = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Balance-Recaudación\\"
 
@@ -128,9 +116,5 @@ if codigos_a_correr["visualizador"]:
         df_combinado_ind,
         df_combinado_energia_regulados,
     ).run()
-
-    # Run code block 1
-    print("a")
-    # Run code block 2
-    print("b")
+    print("Saliendo de visualizador.py...")
     pass
