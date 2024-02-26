@@ -365,7 +365,7 @@ class ConversionDatos:
 
         return pares_lista
     
-    def años_y_meses(lista_meses):
+    def años_y_meses(self, lista_meses):
     # Map Spanish month abbreviations to numbers
         mes_a_numero = {
     'Ene': 1, 'Feb': 2, 'Mar': 3, 'Abr': 4, 'May': 5, 'Jun': 6,

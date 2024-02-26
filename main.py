@@ -19,7 +19,8 @@ ventana_meses.iniciar()
 meses = ventana_meses.visualizador()
 lista_meses = [x.strip() for x in meses.split(", ")]
 
-
+datos_fechas = fc.ConversionDatos()
+primer_año, ultimo_año, primer_mes, ultimo_mes = datos_fechas.años_y_meses(lista_meses)
 # Carpeta de entrada
 carpeta_entrada = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Balance-Recaudación\\"
 
