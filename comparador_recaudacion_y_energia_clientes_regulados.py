@@ -159,7 +159,7 @@ class ComparadorRecaudacionEnergia:
             axis=1,
         )
 
-        df_combinado_regulados.to_csv(self.carpeta_salida + "df_revision_energia_clientes_regulados.csv", sep=";", encoding="UTF-8", index=False)
+        df_combinado_regulados.to_csv(self.carpeta_salida + "df_revision_energia_regulados.csv", sep=";", encoding="UTF-8", index=False)
 
     def run(self):
         self.cargar_datos_energia()

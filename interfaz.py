@@ -78,6 +78,10 @@ class SeleccionProcesos:
         self.checkbox_code8 = tk.Checkbutton(self.ventana, text="Comparador Clientes Individualizados", variable=self.run_code8)
         self.checkbox_code8.pack()
 
+        self.run_code9 = tk.BooleanVar()
+        self.checkbox_code9 = tk.Checkbutton(self.ventana, text="Aplicación Revisor - Visualizador", variable=self.run_code9)
+        self.checkbox_code9.pack()
+
         # Botón para procesar la entrada
         self.boton_procesar = tk.Button(
             self.ventana, text="Procesar", command=self.visualizador
@@ -95,6 +99,7 @@ class SeleccionProcesos:
         self.code6 = self.run_code6.get()
         self.code7 = self.run_code7.get()
         self.code8 = self.run_code8.get()
+        self.code9 = self.run_code9.get()
 
         self.ventana.destroy()  # Destroy the ventana
 
@@ -103,4 +108,4 @@ class SeleccionProcesos:
         self.ventana.mainloop()
 
         # Return the state of the checkboxes
-        return {'revisor_recaudacion_mensual': self.code1, 'revisor_recaudacion_historico': self.code2, 'revisor_clientes_balance_mensual': self.code3, 'revisor_retiros_historico': self.code4, 'comparador_recaudacion_clientes_libres': self.code5, 'comparador_recaudacion_clientes_regulados': self.code6, 'comparador_sistemas': self.code7, 'comparador_clientes_ind': self.code8}
+        return {'revisor_recaudacion_mensual': self.code1, 'revisor_recaudacion_historico': self.code2, 'revisor_clientes_balance_mensual': self.code3, 'revisor_retiros_historico': self.code4, 'comparador_recaudacion_clientes_libres': self.code5, 'comparador_recaudacion_clientes_regulados': self.code6, 'comparador_sistemas': self.code7, 'comparador_clientes_ind': self.code8, 'visualizador': self.code9}
