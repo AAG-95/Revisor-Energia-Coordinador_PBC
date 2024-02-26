@@ -32,17 +32,17 @@ class ComparadorSistemas:
         ]
 
     def cargar_datos_sistemas(self):
-        df_sistemas = pd.read_excel(
+        self.df_sistemas = pd.read_excel(
             self.carpeta_sistemas + "Revisores RCUT.xlsm",
             sheet_name="Sistemas Zonales vigentes Clien",
             header=None,
             engine="openpyxl",
         )
 
-        df_sistemas = fc.ObtencionDatos().obtencion_Tablas(df_sistemas, 5, 6)
+        self.df_sistemas = fc.ObtencionDatos().obtencion_Tablas(self.df_sistemas, 5, 6)
 
         # Mantain Barra, Zonal (RE244 2019) and Sistema (RE244 2019) and Nivel Tensión Zonal (según Barra)
-        df_sistemas = df_sistemas[
+        self.df_sistemas = self.df_sistemas[
             [
                 "Barra",
                 "Zonal (RE244 2019)",
@@ -52,20 +52,20 @@ class ComparadorSistemas:
         ]
 
         # Mayusculas
-        df_sistemas["Zonal (RE244 2019)"] = df_sistemas[
+        self.df_sistemas["Zonal (RE244 2019)"] = self.df_sistemas[
             "Zonal (RE244 2019)"
         ].str.upper()
-        df_sistemas["Nivel Tensión Zonal (según Barra)"] = df_sistemas[
+        self.df_sistemas["Nivel Tensión Zonal (según Barra)"] = self.df_sistemas[
             "Nivel Tensión Zonal (según Barra)"
         ].str.upper()
 
         # Si valor de nivel de tensión no está en la lista de zonal ni niveles de tensión permitidos, se reemplaza por "Nacional/Dedicado"
-        df_sistemas["Zonal (RE244 2019)"] = df_sistemas["Zonal (RE244 2019)"].apply(
+        self.df_sistemas["Zonal (RE244 2019)"] = self.df_sistemas["Zonal (RE244 2019)"].apply(
             lambda x: (
                 x if x in self.sistemas_zonales_permitidos else "Nacional/Dedicado"
             )
         )
-        df_sistemas["Nivel Tensión Zonal (según Barra)"] = df_sistemas[
+        self.df_sistemas["Nivel Tensión Zonal (según Barra)"] = self.df_sistemas[
             "Nivel Tensión Zonal (según Barra)"
         ].apply(
             lambda x: (
@@ -73,28 +73,28 @@ class ComparadorSistemas:
             )
         )
 
-        return df_sistemas
+        return self.df_sistemas
 
     def cargar_datos_recaudacion(self):
-        df_recaudacion = pd.read_csv(
+        self.df_recaudacion = pd.read_csv(
             self.carpeta_recaudacion + "BDD Clientes Libres Históricos.csv",
             sep=";",
             encoding="UTF-8",
         )
 
         # Filtrar dataframe para obtener empresas informantes que sean recaduador y revissar caso que no hay recaduador pero sí energía
-        df_recaudacion = df_recaudacion[
+        self.df_recaudacion = self.df_recaudacion[
             ~(
-                (df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 0)
-                & (df_recaudacion["Recaudador No Informado"] == 0)
+                (self.df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 0)
+                & (self.df_recaudacion["Recaudador No Informado"] == 0)
             )
         ]
 
-        df_recaudacion = df_recaudacion[
-            (df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 1)
+        self.df_recaudacion = self.df_recaudacion[
+            (self.df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 1)
         ]
 
-        df_recaudacion = df_recaudacion[
+        self.df_recaudacion = self.df_recaudacion[
             [
                 "Barra",
                 "Clave",
@@ -108,18 +108,18 @@ class ComparadorSistemas:
         ]
 
         # Mayusculas
-        df_recaudacion["Zonal"] = df_recaudacion["Zonal"].str.upper()
-        df_recaudacion["Nivel Tensión Zonal"] = df_recaudacion[
+        self.df_recaudacion["Zonal"] = self.df_recaudacion["Zonal"].str.upper()
+        self.df_recaudacion["Nivel Tensión Zonal"] = self.df_recaudacion[
             "Nivel Tensión Zonal"
         ].str.upper()
 
         # Si valor de nivel de tensión no está en la lista de zonal ni niveles de tensión permitidos, se reemplaza por "Nacional/Dedicado"
-        df_recaudacion["Zonal"] = df_recaudacion["Zonal"].apply(
+        self.df_recaudacion["Zonal"] = self.df_recaudacion["Zonal"].apply(
             lambda x: (
                 x if x in self.sistemas_zonales_permitidos else "Nacional/Dedicado"
             )
         )
-        df_recaudacion["Nivel Tensión Zonal"] = df_recaudacion[
+        self.df_recaudacion["Nivel Tensión Zonal"] = self.df_recaudacion[
             "Nivel Tensión Zonal"
         ].apply(
             lambda x: (
@@ -127,12 +127,12 @@ class ComparadorSistemas:
             )
         )
 
-        return df_recaudacion
+        return self.df_recaudacion
 
-    def combinar_datos(self, df_sistemas, df_recaudacion):
+    def combinar_datos(self):
         df_combinado_sistemas = pd.merge(
-            df_sistemas,
-            df_recaudacion,
+            self.df_sistemas,
+            self.df_recaudacion,
             on="Barra",
             how="left",
         ).reset_index(drop=True)
@@ -165,3 +165,8 @@ class ComparadorSistemas:
         df_combinado_sistemas = df_combinado_sistemas[df_combinado_sistemas["Tipo"] != "Correcto"]"""        
         df_combinado_sistemas.to_csv(self.carpeta_salida + "df_revision_sistemas.csv", sep=";", encoding="UTF-8", index=False)
         return df_combinado_sistemas
+
+    def run(self):
+        self.cargar_datos_sistemas()
+        self.cargar_datos_recaudacion()
+        self.combinar_datos()

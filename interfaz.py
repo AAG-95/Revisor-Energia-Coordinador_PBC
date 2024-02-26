@@ -63,12 +63,20 @@ class SeleccionProcesos:
         self.checkbox_code4.pack()
 
         self.run_code5 = tk.BooleanVar()
-        self.checkbox_code5 = tk.Checkbutton(self.ventana, text="Comparador Recaudación - Balance de Energía, Clientes Libres ", variable=self.run_code5)
+        self.checkbox_code5 = tk.Checkbutton(self.ventana, text="Comparador Recaudación - Balance de Energía, Clientes Libres", variable=self.run_code5)
         self.checkbox_code5.pack()
 
         self.run_code6 = tk.BooleanVar()
-        self.checkbox_code6 = tk.Checkbutton(self.ventana, text="Comparador Recaudación - Balance de Energía, Clientes Regulados ", variable=self.run_code6)
+        self.checkbox_code6 = tk.Checkbutton(self.ventana, text="Comparador Recaudación - Balance de Energía, Clientes Regulados", variable=self.run_code6)
         self.checkbox_code6.pack()
+
+        self.run_code7 = tk.BooleanVar()
+        self.checkbox_code7 = tk.Checkbutton(self.ventana, text="Comparador Recaudación - Sistemas", variable=self.run_code7)
+        self.checkbox_code7.pack()
+
+        self.run_code8 = tk.BooleanVar()
+        self.checkbox_code8 = tk.Checkbutton(self.ventana, text="Comparador Clientes Individualizados", variable=self.run_code8)
+        self.checkbox_code8.pack()
 
         # Botón para procesar la entrada
         self.boton_procesar = tk.Button(
@@ -85,6 +93,8 @@ class SeleccionProcesos:
         self.code4 = self.run_code4.get()
         self.code5 = self.run_code5.get()
         self.code6 = self.run_code6.get()
+        self.code7 = self.run_code7.get()
+        self.code8 = self.run_code8.get()
 
         self.ventana.destroy()  # Destroy the ventana
 
@@ -93,4 +103,4 @@ class SeleccionProcesos:
         self.ventana.mainloop()
 
         # Return the state of the checkboxes
-        return {'revisor_recaudacion_mensual': self.code1, 'revisor_recaudacion_historico': self.code2, 'revisor_clientes_balance_mensual': self.code3, 'revisor_retiros_historico': self.code4, 'comparador_recaudacion_clientes_libres': self.code5, 'comparador_recaudacion_clientes_regulados': self.code6}
+        return {'revisor_recaudacion_mensual': self.code1, 'revisor_recaudacion_historico': self.code2, 'revisor_clientes_balance_mensual': self.code3, 'revisor_retiros_historico': self.code4, 'comparador_recaudacion_clientes_libres': self.code5, 'comparador_recaudacion_clientes_regulados': self.code6, 'comparador_sistemas': self.code7, 'comparador_clientes_ind': self.code8}

@@ -6,6 +6,8 @@ class ComparadorClienteIndividualizado:
     def __init__(self):
         
         # Carpeta de energía
+        self.carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Balance-Recaudación\\"
+        
         self.carpeta_sistemas = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\\02 Repartición\\Revisiones\\Revisión Recaudación\\"
 
     def cargar_datos_clientes_ind(self):
@@ -47,5 +49,8 @@ class ComparadorClienteIndividualizado:
         # Sort by smaller Días para termino de contrato
         df_clientes_ind = df_clientes_ind.sort_values(by=["Días para termino de contrato"], ascending=True).reset_index(drop=True)
         
+        df_clientes_ind.to_csv(self.carpeta_salida + "df_clientes_ind.csv", sep=";", encoding="UTF-8", index=False)
 
-        return df_clientes_ind
+    def run(self):
+        self.cargar_datos_clientes_ind()
+            
