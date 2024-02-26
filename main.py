@@ -12,56 +12,64 @@ import funciones as fc
 import pandas as pd
 
 
-# Interfaz Meses
-ventana_meses = gui.VentanaIngresoDatos()
-ventana_meses.iniciar()
-meses = ventana_meses.visualizador()
-lista_meses = [x.strip() for x in meses.split(", ")]
-ventana_meses.cerrar_ventana()
-
-# Obtención de años y meses
-datos_fechas = fc.ConversionDatos()
-primer_año, ultimo_año, primer_mes, ultimo_mes = datos_fechas.años_y_meses(lista_meses)
-
 # Create an instance of SeleccionProcesos
 seleccion_procesos = gui.SeleccionProcesos()
 
 # Start the GUI and get the user's input
 codigos_a_correr = seleccion_procesos.iniciar()
 
-if codigos_a_correr["revisor_recaudacion_mensual"]:
-    rpi.PlanillaRevisor(primer_año, ultimo_año, primer_mes, ultimo_mes).run()
-    # Run code block 1
-    print("a")
-    pass
+if (
+    codigos_a_correr["revisor_recaudacion_mensual"]
+    or codigos_a_correr["revisor_recaudacion_historico"]
+    or codigos_a_correr["revisor_clientes_balance_mensual"]
+    or codigos_a_correr["revisor_retiros_historico"]
+):
+    # Interfaz Meses
+    ventana_meses = gui.VentanaIngresoDatos()
+    ventana_meses.iniciar()
+    meses = ventana_meses.visualizador()
+    lista_meses = [x.strip() for x in meses.split(", ")]
+    ventana_meses.cerrar_ventana()
 
-if codigos_a_correr["revisor_recaudacion_historico"]:
-    rech.ProcesadorRecaudacionesHistoricas(
-        primer_año, ultimo_año, primer_mes, ultimo_mes
-    ).run()
-    # Run code block 1
-    print("a")
-    # Run code block 2
-    print("b")
-    pass
+    # Obtención de años y meses
+    datos_fechas = fc.ConversionDatos()
+    primer_año, ultimo_año, primer_mes, ultimo_mes = datos_fechas.años_y_meses(
+        lista_meses
+    )
 
-if codigos_a_correr["revisor_clientes_balance_mensual"]:
-    clc.CreadorListaClientesBalance(lista_meses).run()
-    # Run code block 1
-    print("a")
-    # Run code block 2
-    print("b")
-    pass
+    if codigos_a_correr["revisor_recaudacion_mensual"]:
+        rpi.PlanillaRevisor(primer_año, ultimo_año, primer_mes, ultimo_mes).run()
+        # Run code block 1
+        print("a")
+        pass
 
-if codigos_a_correr["revisor_retiros_historico"]:
-    reth.ProcesadorRetirosHistoricos(
-        primer_año, ultimo_año, primer_mes, ultimo_mes
-    ).run()
-    # Run code block 1
-    print("a")
-    # Run code block 2
-    print("b")
-    pass
+    if codigos_a_correr["revisor_recaudacion_historico"]:
+        rech.ProcesadorRecaudacionesHistoricas(
+            primer_año, ultimo_año, primer_mes, ultimo_mes
+        ).run()
+        # Run code block 1
+        print("a")
+        # Run code block 2
+        print("b")
+        pass
+
+    if codigos_a_correr["revisor_clientes_balance_mensual"]:
+        clc.CreadorListaClientesBalance(lista_meses).run()
+        # Run code block 1
+        print("a")
+        # Run code block 2
+        print("b")
+        pass
+
+    if codigos_a_correr["revisor_retiros_historico"]:
+        reth.ProcesadorRetirosHistoricos(
+            primer_año, ultimo_año, primer_mes, ultimo_mes
+        ).run()
+        # Run code block 1
+        print("a")
+        # Run code block 2
+        print("b")
+        pass
 
 if codigos_a_correr["comparador_recaudacion_clientes_libres"]:
     cre.ComparadorRecaudacionEnergia().run()
@@ -121,13 +129,8 @@ if codigos_a_correr["visualizador"]:
         df_combinado_energia_regulados,
     ).run()
 
-   
     # Run code block 1
     print("a")
     # Run code block 2
     print("b")
     pass
-
-
-
-
