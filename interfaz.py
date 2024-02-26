@@ -51,8 +51,16 @@ class SeleccionProcesos:
         self.checkbox_code1.pack()
 
         self.run_code2 = tk.BooleanVar()
-        self.checkbox_code2 = tk.Checkbutton(self.ventana, text="Actualizador Revisor Recaudación Histórica", variable=self.run_code2)
+        self.checkbox_code2 = tk.Checkbutton(self.ventana, text="Creador Registro Recaudación Histórica", variable=self.run_code2)
         self.checkbox_code2.pack()
+
+        self.run_code3 = tk.BooleanVar()
+        self.checkbox_code3 = tk.Checkbutton(self.ventana, text="Revisor Clientes Listado de Clientes Balance de Energía", variable=self.run_code3)
+        self.checkbox_code3.pack()
+
+        self.run_code4 = tk.BooleanVar()
+        self.checkbox_code4 = tk.Checkbutton(self.ventana, text="Creador Listado de Clientes Balance de Energía Histórica", variable=self.run_code4)
+        self.checkbox_code4.pack()
 
         # Botón para procesar la entrada
         self.boton_procesar = tk.Button(
@@ -65,6 +73,8 @@ class SeleccionProcesos:
         # Store the state of the checkboxes in instance variables
         self.code1 = self.run_code1.get()
         self.code2 = self.run_code2.get()
+        self.code3 = self.run_code3.get()
+        self.code4 = self.run_code4.get()
 
         self.ventana.destroy()  # Destroy the ventana
 
@@ -73,4 +83,4 @@ class SeleccionProcesos:
         self.ventana.mainloop()
 
         # Return the state of the checkboxes
-        return {'revisor_recaudacion_mensual': self.code1, 'revisor_recaudacion_historico': self.code2}
+        return {'revisor_recaudacion_mensual': self.code1, 'revisor_recaudacion_historico': self.code2, 'revisor_clientes_balance_mensual': self.code3, 'revisor_retiros_historico': self.code4}

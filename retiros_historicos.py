@@ -11,7 +11,7 @@ warnings.filterwarnings("ignore", category=pd.errors.DtypeWarning)
 
 class ProcesadorRetirosHistoricos:
     def __init__(
-        self, primer_año, primer_mes_primer_año, último_año, último_mes_último_año
+        self, primer_año,  último_año, primer_mes_primer_año, último_mes_último_año
     ):
         self.ruta_balances_clientes_libres = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Retiros Mensuales"
         self.ruta_balances_historicos_clientes_L = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Retiros Históricos Clientes"
@@ -472,10 +472,9 @@ class ProcesadorRetirosHistoricos:
                 sep=";", encoding="UTF-8", index=False)
             """
 
-    def run_procesador_retiros_historicos(primer_año, primer_mes_primer_año, último_año, último_mes_último_año):
-        processor = ProcesadorRetirosHistoricos(primer_año, primer_mes_primer_año, último_año, último_mes_último_año)
-        processor.carga_informacion_historica()
-        processor.procesamiento_mensual()
-        processor.carga_datos_historicos()
+    def run(self):
+        self.carga_informacion_historica()
+        self.procesamiento_mensual()
+        self.carga_datos_historicos()
         print("Process completed successfully")
 

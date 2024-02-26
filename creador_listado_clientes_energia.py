@@ -16,13 +16,13 @@ import warnings
 
 warnings.filterwarnings("ignore", category=pd.errors.DtypeWarning)
 
-class ClientListCreator:
-    def __init__(self):
+class CreadorListaClientesBalance:
+    def __init__(self,lista_meses):
         #! Month Selection
-        self.ventana = gui.VentanaIngresoDatos()
+        """ self.ventana = gui.VentanaIngresoDatos()
         self.ventana.iniciar()
-        self.mes = self.ventana.visualizador()
-        self.lista_meses = [x.strip() for x in self.mes.split(", ")]
+        self.mes = self.ventana.visualizador() """
+        self.lista_meses = lista_meses    
         # ? Paths inputs
         self.ruta_homologa_propietarios = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Homologaciones\Homologacion_Propietarios_Balance_Fisico.xlsx"
         self.ruta_control_versiones = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Versiones_Balances.xlsx"
@@ -515,6 +515,6 @@ class ClientListCreator:
             self.procesar_meses(mes)
 
 if __name__ == "__main__":
-    client_list_creator = ClientListCreator()
+    client_list_creator = CreadorListaClientesBalance()
     client_list_creator.run()  
     

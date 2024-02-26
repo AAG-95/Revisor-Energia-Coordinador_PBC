@@ -2,7 +2,7 @@ import visualizador as vs
 import revisor_planillas_IFC as rpi
 import recaudaciones_historicas as rech
 import creador_listado_clientes_energia as clc
-import retiros_historicos as rh
+import retiros_historicos as reth
 import comparador_recaudacion_y_energia_clientes_libres as cre
 import comparador_recaudacion_y_energia_clientes_regulados as crr
 import comparador_cliente_individualizado as cci
@@ -43,6 +43,24 @@ if codigos_a_correr['revisor_recaudacion_historico']:
         # Run code block 2
         print("b")
         pass
+
+if codigos_a_correr['revisor_clientes_balance_mensual']:
+        clc.CreadorListaClientesBalance(lista_meses).run()
+        # Run code block 1
+        print("a")
+        # Run code block 2
+        print("b")
+        pass
+
+if codigos_a_correr['revisor_retiros_historico']:
+        reth.ProcesadorRetirosHistoricos(primer_año, ultimo_año, primer_mes, ultimo_mes).run()
+        # Run code block 1
+        print("a")
+        # Run code block 2
+        print("b")
+        pass
+
+
 
 # Carpeta de entrada
 carpeta_entrada = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Balance-Recaudación\\"
