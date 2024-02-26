@@ -18,9 +18,28 @@ ventana_meses = gui.VentanaIngresoDatos()
 ventana_meses.iniciar()
 meses = ventana_meses.visualizador()
 lista_meses = [x.strip() for x in meses.split(", ")]
+ventana_meses.cerrar_ventana()
 
+# Obtención de años y meses
 datos_fechas = fc.ConversionDatos()
 primer_año, ultimo_año, primer_mes, ultimo_mes = datos_fechas.años_y_meses(lista_meses)
+
+# Create an instance of SeleccionProcesos
+seleccion_procesos = gui.SeleccionProcesos()
+
+    # Start the GUI and get the user's input
+run_codes = seleccion_procesos.iniciar()
+
+if run_codes['code1']:
+        # Run code block 1
+        print("a")
+        pass
+
+if run_codes['code2']:
+        # Run code block 2
+        print("b")
+        pass
+
 # Carpeta de entrada
 carpeta_entrada = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Balance-Recaudación\\"
 
@@ -51,7 +70,6 @@ df_clientes_ind = comparador_clientes_ind.cargar_datos_clientes_ind()
 comparador_energia_regulados= crr.ComparadorRecaudacionEnergia()
 
 df_combinado_energia_clientes_r = comparador_energia_regulados.combinar_datos(comparador_energia_regulados.cargar_datos_energia(), comparador_energia_regulados .cargar_datos_recaudacion()) 
-
 
 # Run app
 vs.DashBarChart(df_combinado_energia, df_combinado_sistemas,df_clientes_ind, df_combinado_energia_clientes_r).run()

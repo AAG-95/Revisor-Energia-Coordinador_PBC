@@ -34,3 +34,43 @@ class VentanaIngresoDatos:
     def iniciar(self):
         # Iniciar la interfaz gráfica
         self.ventana.mainloop()
+
+    def cerrar_ventana(self):
+        self.ventana.destroy()    
+
+
+class SeleccionProcesos:
+    def __init__(self):
+        # Crear la ventana principal
+        self.ventana = tk.Tk()
+        self.ventana.title("Ingreso de Datos")
+
+        # Checkboxes for code blocks to run
+        self.run_code1 = tk.BooleanVar()
+        self.checkbox_code1 = tk.Checkbutton(self.ventana, text="Run code block 1", variable=self.run_code1)
+        self.checkbox_code1.pack()
+
+        self.run_code2 = tk.BooleanVar()
+        self.checkbox_code2 = tk.Checkbutton(self.ventana, text="Run code block 2", variable=self.run_code2)
+        self.checkbox_code2.pack()
+
+        # Botón para procesar la entrada
+        self.boton_procesar = tk.Button(
+            self.ventana, text="Procesar", command=self.visualizador
+        )
+        self.boton_procesar.pack()
+
+    # Función para procesar la entrada
+    def visualizador(self):
+        # Store the state of the checkboxes in instance variables
+        self.code1 = self.run_code1.get()
+        self.code2 = self.run_code2.get()
+
+        self.ventana.destroy()  # Destroy the ventana
+
+    def iniciar(self):
+        # Iniciar la interfaz gráfica
+        self.ventana.mainloop()
+
+        # Return the state of the checkboxes
+        return {'code1': self.code1, 'code2': self.code2}
