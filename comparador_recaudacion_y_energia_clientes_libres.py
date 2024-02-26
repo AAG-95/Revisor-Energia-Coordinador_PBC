@@ -193,7 +193,7 @@ class ComparadorRecaudacionEnergia:
 
         df_combinado_energia = df_combinado_energia.reset_index(drop=True)
 
-        df_combinado_energia.to_csv(self.carpeta_salida + "df_revision_energia.csv", sep=";", encoding="UTF-8", index=False)
+        df_combinado_energia.to_csv(self.carpeta_salida + "df_revision_energia_clientes_libres.csv", sep=";", encoding="UTF-8", index=False)
 
         return df_combinado_energia
 

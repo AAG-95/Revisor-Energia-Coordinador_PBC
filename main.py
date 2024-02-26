@@ -60,8 +60,6 @@ if codigos_a_correr['revisor_retiros_historico']:
         print("b")
         pass
 
-
-
 if codigos_a_correr['comparador_recaudacion_clientes_libres']:
         cre.ComparadorRecaudacionEnergia().run()
         # Run code block 1
@@ -70,6 +68,13 @@ if codigos_a_correr['comparador_recaudacion_clientes_libres']:
         print("b")
         pass
 
+if codigos_a_correr['comparador_recaudacion_clientes_regulados']:
+        crr.ComparadorRecaudacionEnergia().run()
+        # Run code block 1
+        print("a")
+        # Run code block 2
+        print("b")
+        pass
 
 
 # Carpeta de entrada
