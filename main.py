@@ -1,6 +1,6 @@
 import visualizador as vs
 import revisor_planillas_IFC as rpi
-import recaudaciones_historicas as rh
+import recaudaciones_historicas as rech
 import creador_listado_clientes_energia as clc
 import retiros_historicos as rh
 import comparador_recaudacion_y_energia_clientes_libres as cre
@@ -28,14 +28,18 @@ primer_año, ultimo_año, primer_mes, ultimo_mes = datos_fechas.años_y_meses(li
 seleccion_procesos = gui.SeleccionProcesos()
 
     # Start the GUI and get the user's input
-run_codes = seleccion_procesos.iniciar()
+codigos_a_correr = seleccion_procesos.iniciar()
 
-if run_codes['code1']:
+if codigos_a_correr['revisor_recaudacion_mensual']:
+        rpi.PlanillaRevisor(primer_año, ultimo_año, primer_mes, ultimo_mes).run()
         # Run code block 1
         print("a")
         pass
 
-if run_codes['code2']:
+if codigos_a_correr['revisor_recaudacion_historico']:
+        rech.ProcesadorRecaudacionesHistoricas(primer_año, ultimo_año, primer_mes, ultimo_mes).run()
+        # Run code block 1
+        print("a")
         # Run code block 2
         print("b")
         pass

@@ -47,11 +47,11 @@ class SeleccionProcesos:
 
         # Checkboxes for code blocks to run
         self.run_code1 = tk.BooleanVar()
-        self.checkbox_code1 = tk.Checkbutton(self.ventana, text="Run code block 1", variable=self.run_code1)
+        self.checkbox_code1 = tk.Checkbutton(self.ventana, text="Revisor Planillas Recaudación Mensuales", variable=self.run_code1)
         self.checkbox_code1.pack()
 
         self.run_code2 = tk.BooleanVar()
-        self.checkbox_code2 = tk.Checkbutton(self.ventana, text="Run code block 2", variable=self.run_code2)
+        self.checkbox_code2 = tk.Checkbutton(self.ventana, text="Actualizador Revisor Recaudación Histórica", variable=self.run_code2)
         self.checkbox_code2.pack()
 
         # Botón para procesar la entrada
@@ -73,4 +73,4 @@ class SeleccionProcesos:
         self.ventana.mainloop()
 
         # Return the state of the checkboxes
-        return {'code1': self.code1, 'code2': self.code2}
+        return {'revisor_recaudacion_mensual': self.code1, 'revisor_recaudacion_historico': self.code2}

@@ -20,7 +20,7 @@ import funciones as func  # Se importa un módulo personalizado llamado Funcione
 
 class ProcesadorRecaudacionesHistoricas:
     def __init__(
-        self, primer_año, primer_mes_primer_año, último_año, último_mes_último_año
+        self, primer_año,  último_año,primer_mes_primer_año, último_mes_último_año
     ):
         self.primer_año = primer_año
         self.primer_mes_primer_año = primer_mes_primer_año
@@ -38,22 +38,11 @@ class ProcesadorRecaudacionesHistoricas:
         self.meses_rep = []
 
     def procesamiento_datos(self):
-
-        carpeta_entrada = rf"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Recaudación\\"
-
-        # Convert values
-        dataframe_clientes_libres = []
-        dataframe_clientes_regulados = []
-        dataframe_observaciones = []
-        dataframe_revisor_clientes_L = []
-        dataframe_revisor_clientes_R = []
-        meses_rep = []
-
         for par in self.pares_lista:
 
             # ? Histórico de Clientes Libres
             df_clientes_L = pd.read_csv(
-                carpeta_entrada
+                self.carpeta_entrada
                 + "Revisiones Mensuales\\BDD_"
                 + str(par[1])
                 + "\\"
@@ -68,7 +57,7 @@ class ProcesadorRecaudacionesHistoricas:
             df_clientes_L["Cliente Nuevo"] = 0
 
             df_nvs_clientes_L = pd.read_csv(
-                carpeta_entrada
+                self.carpeta_entrada
                 + "Revisiones Mensuales\\BDD_"
                 + str(par[1])
                 + "\\"
@@ -91,12 +80,12 @@ class ProcesadorRecaudacionesHistoricas:
                 subset=["Barra", "Clave", "Suministrador"], inplace=True
             )
 
-            dataframe_clientes_libres.append(df_clientes_L_total)
+            self.dataframe_clientes_libres.append(df_clientes_L_total)
 
             # ? Histórico de Clientes Regulados
 
             df_clientes_R = pd.read_csv(
-                carpeta_entrada
+                self.carpeta_entrada
                 + "Revisiones Mensuales\\BDD_"
                 + str(par[1])
                 + "\\"
@@ -108,11 +97,11 @@ class ProcesadorRecaudacionesHistoricas:
                 header=0,
             )
 
-            dataframe_clientes_regulados.append(df_clientes_R)
+            self.dataframe_clientes_regulados.append(df_clientes_R)
 
             # ? Histórico de Observaciones
             df_observaciones_clientes_L = pd.read_csv(
-                carpeta_entrada
+                self.carpeta_entrada
                 + "Revisiones Mensuales\\BDD_"
                 + str(par[1])
                 + "\\"
@@ -127,7 +116,7 @@ class ProcesadorRecaudacionesHistoricas:
             df_observaciones_clientes_L["Tipo Cliente"] = "L"
 
             df_observaciones_clientes_R = pd.read_csv(
-                carpeta_entrada
+                self.carpeta_entrada
                 + "Revisiones Mensuales\\BDD_"
                 + str(par[1])
                 + "\\"
@@ -146,11 +135,11 @@ class ProcesadorRecaudacionesHistoricas:
                 ignore_index=True,
             )
 
-            dataframe_observaciones.append(df_observaciones_total)
+            self.dataframe_observaciones.append(df_observaciones_total)
 
             # ? Histórico de Revisor de Clientes Libres
             df_revisor_clientes_L = pd.read_csv(
-                carpeta_entrada
+                self.carpeta_entrada
                 + "Revisiones Mensuales\\BDD_"
                 + str(par[1])
                 + "\\"
@@ -162,11 +151,11 @@ class ProcesadorRecaudacionesHistoricas:
                 header=0,
             )
 
-            dataframe_revisor_clientes_L.append(df_revisor_clientes_L)
+            self.dataframe_revisor_clientes_L.append(df_revisor_clientes_L)
 
             # ? Histórico de Revisor de Clientes Regulados
             df_revisor_clientes_R = pd.read_csv(
-                carpeta_entrada
+                self.carpeta_entrada
                 + "Revisiones Mensuales\\BDD_"
                 + str(par[1])
                 + "\\"
@@ -178,7 +167,7 @@ class ProcesadorRecaudacionesHistoricas:
                 header=0,
             )
 
-            dataframe_revisor_clientes_R.append(df_revisor_clientes_R)
+            self.dataframe_revisor_clientes_R.append(df_revisor_clientes_R)
 
             # Parse the date string in 'YYYY-MM-DD' format
             mes_rep = datetime.strptime(
@@ -187,7 +176,7 @@ class ProcesadorRecaudacionesHistoricas:
 
             # Format the date as 'DD-MM-YYYY'
             mes_rep = mes_rep.strftime("%d-%m-%Y")
-            meses_rep.append(mes_rep)
+            self.meses_rep.append(mes_rep)
 
         #! Dataframes históricos
 
@@ -205,10 +194,10 @@ class ProcesadorRecaudacionesHistoricas:
         for idx, nombre_archivo in enumerate(self.lista_nombre_archivos):
 
             if os.path.isfile(
-                carpeta_entrada + "Revisión Histórica\\" + nombre_archivo
+                self.carpeta_entrada + "Revisión Histórica\\" + nombre_archivo
             ):
                 self.lista_df_historicos[idx] = pd.read_csv(
-                    carpeta_entrada + "Revisión Histórica\\" + nombre_archivo,
+                    self.carpeta_entrada + "Revisión Histórica\\" + nombre_archivo,
                     sep=";",
                     encoding="UTF-8",
                     header=0,
@@ -224,7 +213,7 @@ class ProcesadorRecaudacionesHistoricas:
                 )
                 lista_valores_mes.append(valores_mes)
             else:
-                print(f"No Existe {nombre_archivo} en: {carpeta_entrada}")
+                print(f"No Existe {nombre_archivo} en: {self.carpeta_entrada}")
                 self.lista_df_historicos[idx] = pd.DataFrame()
                 if idx == 0:
                     valores_mes = []
@@ -233,11 +222,11 @@ class ProcesadorRecaudacionesHistoricas:
         #! Unión de Dataframes
         # Verificar si el mes de cada df de mes ya se encuentra en el histórico
         lista_dataframes_mes_analizado = [
-            dataframe_clientes_libres,
-            dataframe_clientes_regulados,
-            dataframe_observaciones,
-            dataframe_revisor_clientes_L,
-            dataframe_revisor_clientes_R,
+            self.dataframe_clientes_libres,
+            self.dataframe_clientes_regulados,
+            self.dataframe_observaciones,
+            self.dataframe_revisor_clientes_L,
+            self.dataframe_revisor_clientes_R,
         ]
 
         # Verificar si el mes de cada df de mes ya se encuentra en el histórico, si no, se incorpora
@@ -246,7 +235,7 @@ class ProcesadorRecaudacionesHistoricas:
         ):
             print(f"Actualización archivo {nombre_archivo}")
 
-            for i, mes_rep in zip(lista_dataframe, meses_rep):
+            for i, mes_rep in zip(lista_dataframe, self.meses_rep):
                 # Verificar que el dataframe no esté vacío
                 df_vacio = False
                 meses_unicos = i["mes_repartición"].unique()
@@ -287,10 +276,9 @@ class ProcesadorRecaudacionesHistoricas:
             variable.to_csv(
                 carpeta_salida + nombre_archivo, sep=";", encoding="UTF-8", index=False
             )
-    def run(primer_año, primer_mes_primer_año, último_año, último_mes_último_año):
-        processor = ProcesadorRecaudacionesHistoricas(primer_año, primer_mes_primer_año, último_año, último_mes_último_año)
-        processor.procesamiento_datos()
-        processor.actualizador_recaudacion_historica()
+    def run(self):
+        self.procesamiento_datos()
+        self.actualizador_recaudacion_historica()
         print("Process completed successfully")
 
 
