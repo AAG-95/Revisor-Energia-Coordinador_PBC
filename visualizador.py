@@ -164,6 +164,24 @@ class DashBarChart:
         df_combinado_energia["Mes Consumo"] = df_combinado_energia["Mes Consumo"].apply(
             lambda x: self.meses_esp[x.day] + "-" + str(x.year)
         )
+
+
+        df_combinado_energia["mes_repartición"] = df_combinado_energia["mes_repartición"].apply(
+    lambda x: [pd.to_datetime(date) for date in x] if isinstance(x, list) else pd.to_datetime(x) if pd.notnull(x) else x)
+
+        # Ensure "Mes Consumo" is of datetime type
+        df_combinado_energia["mes_repartición"] = df_combinado_energia["mes_repartición"].apply(lambda x: [pd.to_datetime(date) for date in x] if isinstance(x, list) else pd.to_datetime(x))
+        
+        df_combinado_energia["Mes Consumo"] = pd.to_datetime(
+            df_combinado_energia["Mes Consumo"], format="%d-%m-%Y"
+        )
+        # df_combinado_sistemas["Mes Consumo"] type
+
+        # Change column format to Ene-2023
+        df_combinado_energia["Mes Consumo"] = df_combinado_energia["Mes Consumo"].apply(
+            lambda x: self.meses_esp[x.day] + "-" + str(x.year)
+        )
+
         # Revision por Tipo
         df_combinado_por_tipo_energia = (
             df_combinado_energia.groupby(["Tipo"])
@@ -294,6 +312,7 @@ class DashBarChart:
         )
 
         # ? Diseño de Página Revisor de Sistemas
+
         # Preprocesamiento del dataframe
         # Convert 'Mes Consumo' to datetime if it's not already
         df_combinado_sistemas["Mes Consumo"] = pd.to_datetime(
@@ -313,6 +332,27 @@ class DashBarChart:
         # Change column format to Ene-2023
         df_combinado_sistemas["Mes Consumo"] = df_combinado_sistemas[
             "Mes Consumo"
+        ].apply(lambda x: self.meses_esp[x.day] + "-" + str(x.year))
+
+                # Preprocesamiento del dataframe
+        # Convert 'mes_repartición' to datetime if it's not already
+        df_combinado_sistemas["mes_repartición"] = pd.to_datetime(
+            df_combinado_sistemas["mes_repartición"]
+        )
+
+        """ # Sort the DataFrame by 'mes_repartición'
+        df_combinado_sistemas = df_combinado_sistemas.sort_values("mes_repartición") """
+
+        # Ensure "mes_repartición" is of datetime type
+        df_combinado_sistemas["mes_repartición"] = pd.to_datetime(
+            df_combinado_sistemas["mes_repartición"], format="%d-%m-%Y"
+        )
+
+        # df_combinado_sistemas["mes_repartición"] type
+
+        # Change column format to Ene-2023
+        df_combinado_sistemas["mes_repartición"] = df_combinado_sistemas[
+            "mes_repartición"
         ].apply(lambda x: self.meses_esp[x.day] + "-" + str(x.year))
 
         # Agrupar por tipo y obtener cantidad de errores

@@ -37,7 +37,7 @@ body {
 }
 
 .button-link_sistemas:hover {
-    background: linear-gradient(to bottom, #bfff00 0%, #33ccff 100%);
+    background: linear-gradient(to bottom, #fff200 0%, #33ccff 100%);
     box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.2);
     color: white;
     transform: translateY(-7px);
