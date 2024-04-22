@@ -180,7 +180,7 @@ class ProcesadorRetirosHistoricos:
                     df_historico_clientes_L["Mes"]
                 ).dt.strftime("%m-%d-%Y")
                 df_clientes_L["Mes"] = pd.to_datetime(df_clientes_L["Mes"])
-
+                
                 if mes_fecha not in df_historico_clientes_L["Mes"].unique().tolist():
                     print(
                         "Se actualiza el archivo Registro de Cambios Históricos Libre con registro mes: "
@@ -210,9 +210,8 @@ class ProcesadorRetirosHistoricos:
                             .str.replace(".", ",")
                         )
 
-                    df_retiros_historico_L_final["Mes"] = df_retiros_historico_L_final[
-                        "Mes"
-                    ].dt.strftime("%m-%d-%Y")
+                    df_retiros_historico_L_final["Mes"] = pd.to_datetime(df_retiros_historico_L_final["Mes"]).dt.strftime("%m-%d-%Y")
+
                     # Rewrite df_registro_cambios_empresas_final into ruta_registro_cambios_Empresas
                     df_retiros_historico_L_final.to_csv(
                         self.ruta_balances_historicos_clientes_L
