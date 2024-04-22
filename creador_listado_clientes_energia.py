@@ -266,7 +266,7 @@ class CreadorListaClientesBalance:
                     + str(mes_fecha)
                 )
 
-                df_clientes_unique["Mes"] = pd.to_datetime(df_clientes_unique["Mes"]).dt.strftime('%d-%m-%Y')
+                #df_clientes_unique["Mes"] = pd.to_datetime(df_clientes_unique["Mes"]).dt.strftime('%d-%m-%Y')
 
                 df_registro_cambios_empresas_final = pd.concat(
                     [
