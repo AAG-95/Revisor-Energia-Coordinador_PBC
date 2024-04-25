@@ -164,10 +164,14 @@ class PlanillaRevisor:
                 df = df.assign(mes_repartición=mes_rep)
                 df = df.assign(Empresa_Planilla=nombre_empresa[0])
 
+                 # Convertir a mayúsculas
+                df["Empresa_Planilla"] = df["Empresa_Planilla"].str.upper()
+                df["Recaudador"] = df["Recaudador"].str.upper()
+
                 df["Empresa_Planilla_Recauda_Cliente"] = np.where(
                     df["Recaudador"] == df["Empresa_Planilla"], 1, 0
                 )
-
+               
                 # Revisor para ver que el suministrador informa al recaudador
                 df["Energía [kWh]"] = df["Energía [kWh]"].replace(["-", ""], np.nan)
                 df["Energía [kWh]"] = pd.to_numeric(

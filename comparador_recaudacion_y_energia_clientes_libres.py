@@ -47,7 +47,7 @@ class ComparadorRecaudacionEnergia:
             encoding="UTF-8",
         )
 
-        # Filtrar dataframe para obtener empresas informantes que sean recaduador y revissar caso que no hay recaduador pero sí energía
+        # Filtrar dataframe para obtener empresas informantes que sean recaduador y revisar caso que no hay recaduador pero sí energía
         self.df_recaudacion = self.df_recaudacion[
             ~(
                 (self.df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 0)
@@ -92,6 +92,7 @@ class ComparadorRecaudacionEnergia:
         )
 
         """ self.df_recaudacion["Recaudador"] = self.df_recaudacion["Recaudador"].apply(lambda x: pd.Series(x).mode()[0] if pd.Series(x).mode().size else None) """
+
 
         return self.df_recaudacion
 
