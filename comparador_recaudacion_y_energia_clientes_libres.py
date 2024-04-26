@@ -30,12 +30,13 @@ class ComparadorRecaudacionEnergia:
         self.df_energia["Medida 2"] = self.df_energia["Medida 2"] * -1
         self.df_energia.rename(columns={"Medida 2": "Energía Balance [kWh]"}, inplace=True)
         self.df_energia = self.df_energia[
-            ["Barra-Clave-Mes", "Energía Balance [kWh]","Suministrador_final" ]
+            ["Barra-Clave-Mes", "Nombre", "Energía Balance [kWh]","Suministrador_final" ]
         ]
         self.df_energia = (
             self.df_energia.groupby(["Barra-Clave-Mes"])
             .agg({"Energía Balance [kWh]": "sum",
-                    "Suministrador_final": lambda x: list(x)[0],})
+                    "Suministrador_final": lambda x: list(x)[0],
+                    "Nombre": lambda x: list(x)[0]})
             .reset_index()
         )
         return self.df_energia
@@ -176,6 +177,7 @@ class ComparadorRecaudacionEnergia:
         df_combinado_energia = df_combinado_energia[
             [
                 "Barra",
+                "Nombre",
                 "Clave",
                 "Suministrador",
                 "Recaudador",
