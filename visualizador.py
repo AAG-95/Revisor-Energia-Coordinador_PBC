@@ -166,10 +166,28 @@ class DashBarChart:
         )
 
         # Revision por Tipo
+        df_combinado_energia["Cantidad Registros"] = df_combinado_energia.groupby(
+            "Tipo"
+        )["Tipo"].transform("count")
+
         df_combinado_por_tipo_energia = (
             df_combinado_energia.groupby(["Tipo"])
-            .agg({"Diferencia Energía [kWh]": "sum"})
+            .agg({"Diferencia Energía [kWh]": "sum", "Cantidad Registros": "first"})
             .reset_index()
+        )
+
+        df_combinado_energia.drop("Cantidad Registros", axis=1, inplace=True)
+
+        df_combinado_por_tipo_energia["Porcentaje Registros [%]"] = (
+            df_combinado_por_tipo_energia["Cantidad Registros"]
+            / df_combinado_por_tipo_energia["Cantidad Registros"].sum()
+            * 100
+        )
+
+        df_combinado_por_tipo_energia["Porcentaje Energía Diferencias [%]"] = (
+            df_combinado_por_tipo_energia["Diferencia Energía [kWh]"]
+            / df_combinado_por_tipo_energia["Diferencia Energía [kWh]"].sum()
+            * 100
         )
 
         #  thousands as dots
@@ -192,7 +210,6 @@ class DashBarChart:
         )
 
         # Revision general
-        # Revision general
         tabla_revision_energia = dash_table.DataTable(
             id="tabla_revision_energia",
             columns=[{"name": i, "id": i} for i in df_combinado_energia.columns],
@@ -202,7 +219,7 @@ class DashBarChart:
             export_headers="display",
             css=[{"selector": ".export_button", "rule": "width: 100%;"}],
         )
-        
+
         # Gráfico diferencias por Recaudador
         df_combinado_por_recaudador_energia = (
             df_combinado_energia.groupby(["Recaudador"])
@@ -342,7 +359,9 @@ class DashBarChart:
 
         # Agrupar por tipo y obtener cantidad de errores
         df_combinado_por_tipo_sistemas = (
-            df_combinado_sistemas.groupby("Tipo").size().reset_index(name="Count")
+            df_combinado_energia.groupby(["Tipo"])
+            .agg({"Diferencia Energía [kWh]": "sum"})
+            .reset_index()
         )
 
         # Tablas Revisor de Energía
@@ -1113,10 +1132,32 @@ class DashBarChart:
                     & df_combinado_energia["Recaudador"].isin(selected_recaudador)
                 ]
 
+                # Revision por Tipo
+                df_combinado_filtrado["Cantidad Registros"] = (
+                    df_combinado_filtrado.groupby("Tipo")["Tipo"].transform("count")
+                )
+
                 df_combinado_por_tipo_filtrado = (
                     df_combinado_filtrado.groupby(["Tipo"])
-                    .agg({"Diferencia Energía [kWh]": "sum"})
+                    .agg(
+                        {
+                            "Diferencia Energía [kWh]": "sum",
+                            "Cantidad Registros": "first",
+                        }
+                    )
                     .reset_index()
+                )
+
+                df_combinado_por_tipo_filtrado["Porcentaje Registros [%]"] = (
+                    df_combinado_por_tipo_filtrado["Cantidad Registros"]
+                    / df_combinado_por_tipo_filtrado["Cantidad Registros"].sum()
+                    * 100
+                )
+
+                df_combinado_por_tipo_filtrado["Porcentaje Energía Diferencias [%]"] = (
+                    df_combinado_por_tipo_filtrado["Diferencia Energía [kWh]"]
+                    / df_combinado_por_tipo_filtrado["Diferencia Energía [kWh]"].sum()
+                    * 100
                 )
 
                 df_combinado_por_tipo_filtrado[
