@@ -1162,8 +1162,8 @@ class DashBarChart:
                 )
 
                 df_combinado_por_tipo_filtrado["Porcentaje Energía Dif [%]"] = (
-                    df_combinado_por_tipo_filtrado["Diferencia Energía [kWh]"]
-                    / df_combinado_por_tipo_filtrado["Diferencia Energía [kWh]"].sum()
+                    abs(df_combinado_por_tipo_filtrado["Diferencia Energía [kWh]"])
+                    / df_combinado_por_tipo_filtrado["Diferencia Energía [kWh]"].abs().sum()
                     * 100
                 )
 
