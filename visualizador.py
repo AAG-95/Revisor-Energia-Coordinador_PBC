@@ -184,21 +184,28 @@ class DashBarChart:
             * 100
         )
 
-        df_combinado_por_tipo_energia["Porcentaje Energía Diferencias [%]"] = (
+        df_combinado_por_tipo_energia["Porcentaje Energía Dif [%]"] = (
             df_combinado_por_tipo_energia["Diferencia Energía [kWh]"]
             / df_combinado_por_tipo_energia["Diferencia Energía [kWh]"].sum()
             * 100
         )
 
         #  thousands as dots
-        df_combinado_por_tipo_energia[
-            "Diferencia Energía [kWh]"
-        ] = df_combinado_por_tipo_energia["Diferencia Energía [kWh]"].apply(
-            lambda x: "{:,}".format(x)
-            .replace(",", " ")
-            .replace(".", ",")
-            .replace(" ", ".")
-        )
+        columns_to_format = [
+            "Diferencia Energía [kWh]",
+            "Porcentaje Registros [%]",
+            "Porcentaje Energía Dif [%]",
+        ]
+
+        for column in columns_to_format:
+            df_combinado_por_tipo_energia[column] = df_combinado_por_tipo_energia[
+                column
+            ].apply(
+                lambda x: "{:,.2f}".format(x)
+                .replace(",", " ")
+                .replace(".", ",")
+                .replace(" ", ".")
+            )
 
         # Tablas Revisor de Energía
         tabla_revision_tipo_energia = dash_table.DataTable(
@@ -1154,20 +1161,31 @@ class DashBarChart:
                     * 100
                 )
 
-                df_combinado_por_tipo_filtrado["Porcentaje Energía Diferencias [%]"] = (
+                df_combinado_por_tipo_filtrado["Porcentaje Energía Dif [%]"] = (
                     df_combinado_por_tipo_filtrado["Diferencia Energía [kWh]"]
                     / df_combinado_por_tipo_filtrado["Diferencia Energía [kWh]"].sum()
                     * 100
                 )
 
-                df_combinado_por_tipo_filtrado[
-                    "Diferencia Energía [kWh]"
-                ] = df_combinado_por_tipo_filtrado["Diferencia Energía [kWh]"].apply(
-                    lambda x: "{:,.0f}".format(x)
-                    .replace(",", " ")
-                    .replace(".", ",")
-                    .replace(" ", ".")
-                )
+
+                   #  thousands as dots
+                columns_to_format = [
+                    
+                    "Porcentaje Registros [%]",
+                    "Porcentaje Energía Dif [%]",
+                    "Diferencia Energía [kWh]",
+                ]
+
+                for column in columns_to_format:
+                    df_combinado_por_tipo_filtrado[column] = df_combinado_por_tipo_filtrado[
+                        column
+                    ].apply(
+                        lambda x: "{:,.2f}".format(x)
+                        .replace(",", " ")
+                        .replace(".", ",")
+                        .replace(" ", ".")
+                    )
+
 
                 return df_combinado_por_tipo_filtrado.to_dict("records")
             else:
