@@ -185,8 +185,8 @@ class DashBarChart:
         )
 
         df_combinado_por_tipo_energia["Porcentaje Energía Dif [%]"] = (
-            df_combinado_por_tipo_energia["Diferencia Energía [kWh]"]
-            / df_combinado_por_tipo_energia["Diferencia Energía [kWh]"].sum()
+            abs(df_combinado_por_tipo_energia["Diferencia Energía [kWh]"])
+            / df_combinado_por_tipo_energia["Diferencia Energía [kWh]"].abs().sum()
             * 100
         )
 
@@ -366,9 +366,22 @@ class DashBarChart:
 
         # Agrupar por tipo y obtener cantidad de errores
         df_combinado_por_tipo_sistemas = (
-            df_combinado_energia.groupby(["Tipo"])
-            .agg({"Diferencia Energía [kWh]": "sum"})
-            .reset_index()
+            df_combinado_sistemas.groupby("Tipo").size().reset_index(name="Cantidad Registros")
+        )
+
+        df_combinado_por_tipo_sistemas["Porcentaje Registros [%]"] = (
+            df_combinado_por_tipo_sistemas["Cantidad Registros"]
+            / df_combinado_por_tipo_sistemas["Cantidad Registros"].sum()
+            * 100
+        )
+
+        df_combinado_por_tipo_sistemas[
+            "Porcentaje Registros [%]"
+        ] = df_combinado_por_tipo_sistemas["Porcentaje Registros [%]"].apply(
+            lambda x: "{:,.2f}".format(x)
+            .replace(",", " ")
+            .replace(".", ",")
+            .replace(" ", ".")
         )
 
         # Tablas Revisor de Energía
@@ -394,18 +407,18 @@ class DashBarChart:
         df_combinado_por_recaudador_sistemas = (
             df_combinado_sistemas.groupby(["Recaudador"])
             .size()
-            .reset_index(name="Count")
+            .reset_index(name="Cantidad Registros")
         )
 
         df_combinado_por_recaudador_sistemas = (
-            df_combinado_por_recaudador_sistemas.sort_values("Count", ascending=False)
+            df_combinado_por_recaudador_sistemas.sort_values("Cantidad Registros", ascending=False)
         )
 
         # Assuming df_combinado_por_tipo is your DataFrame and 'Tipo' and 'Diferencia Energía [kWh]' are your columns
         fig_sistemas = px.bar(
             df_combinado_por_recaudador_sistemas,
             y="Recaudador",
-            x="Count",
+            x="Cantidad Registros",
             orientation="h",
         )
         grafico_sistemas = dcc.Graph(
@@ -1163,29 +1176,28 @@ class DashBarChart:
 
                 df_combinado_por_tipo_filtrado["Porcentaje Energía Dif [%]"] = (
                     abs(df_combinado_por_tipo_filtrado["Diferencia Energía [kWh]"])
-                    / df_combinado_por_tipo_filtrado["Diferencia Energía [kWh]"].abs().sum()
+                    / df_combinado_por_tipo_filtrado["Diferencia Energía [kWh]"]
+                    .abs()
+                    .sum()
                     * 100
                 )
 
-
-                   #  thousands as dots
-                columns_to_format = [
-                    
+                #  thousands as dots
+                columnas_nuevo_formato = [
                     "Porcentaje Registros [%]",
                     "Porcentaje Energía Dif [%]",
                     "Diferencia Energía [kWh]",
                 ]
 
-                for column in columns_to_format:
-                    df_combinado_por_tipo_filtrado[column] = df_combinado_por_tipo_filtrado[
+                for column in columnas_nuevo_formato:
+                    df_combinado_por_tipo_filtrado[
                         column
-                    ].apply(
+                    ] = df_combinado_por_tipo_filtrado[column].apply(
                         lambda x: "{:,.2f}".format(x)
                         .replace(",", " ")
                         .replace(".", ",")
                         .replace(" ", ".")
                     )
-
 
                 return df_combinado_por_tipo_filtrado.to_dict("records")
             else:
@@ -1495,7 +1507,22 @@ class DashBarChart:
                 df_combinado_por_tipo_filtrado = (
                     df_combinado_filtrado.groupby("Tipo")
                     .size()
-                    .reset_index(name="Count")
+                    .reset_index(name="Cantidad Registros")
+                )
+
+                df_combinado_por_tipo_filtrado["Porcentaje Registros [%]"] = (
+                    df_combinado_por_tipo_filtrado["Cantidad Registros"]
+                    / df_combinado_por_tipo_filtrado["Cantidad Registros"].sum()
+                    * 100
+                )
+
+                df_combinado_por_tipo_filtrado[
+                    "Porcentaje Registros [%]"
+                ] = df_combinado_por_tipo_filtrado["Porcentaje Registros [%]"].apply(
+                    lambda x: "{:,.2f}".format(x)
+                    .replace(",", " ")
+                    .replace(".", ",")
+                    .replace(" ", ".")
                 )
 
                 """ df_combinado_por_tipo_filtrado[
@@ -1536,19 +1563,19 @@ class DashBarChart:
                 df_combinado_por_recaudador_filtrado = (
                     df_combinado_filtrado.groupby("Recaudador")
                     .size()
-                    .reset_index(name="Count")
+                    .reset_index(name="Cantidad Registros")
                 )
 
                 df_combinado_por_recaudador_filtrado = (
                     df_combinado_por_recaudador_filtrado.sort_values(
-                        "Count", ascending=False
+                        "Cantidad Registros", ascending=False
                     )
                 )
 
                 fig_filtrada = px.bar(
                     df_combinado_por_recaudador_filtrado,
                     y="Recaudador",
-                    x="Count",
+                    x="Cantidad Registros",
                     orientation="h",
                 )
                 return fig_filtrada
@@ -1556,7 +1583,7 @@ class DashBarChart:
                 fig = px.bar(
                     df_combinado_por_recaudador_sistemas,
                     y="Recaudador",
-                    x="Count",
+                    x="Cantidad Registros",
                     orientation="h",
                 )
                 return fig
