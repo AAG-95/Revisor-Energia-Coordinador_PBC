@@ -11,7 +11,7 @@ import interfaz as gui
 import funciones as fc
 import pandas as pd
 
-
+print("Iniciando programa...")
 # Create an instance of SeleccionProcesos
 seleccion_procesos = gui.SeleccionProcesos()
 
