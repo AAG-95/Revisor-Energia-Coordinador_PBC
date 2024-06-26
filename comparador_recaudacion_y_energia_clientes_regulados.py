@@ -54,7 +54,7 @@ class ComparadorRecaudacionEnergia:
 
         # Columnas Mes de consumo de formato fecha d%m%Y
         self.df_recaudacion["Mes de consumo"] = pd.to_datetime(
-            self.df_recaudacion["Mes de consumo"], format="%Y-%m-%d %H:%M:%S"
+            self.df_recaudacion["Mes de consumo"], format="%d-%m-%Y %H:%M"
         ).dt.strftime("%d-%m-%Y")
 
         self.df_recaudacion["Suministrador-Mes"] = (
