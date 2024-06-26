@@ -156,16 +156,18 @@ class ComparadorRecaudacionEnergia:
             self.df_diferencias_clientes["Mes Final"]
         ).dt.strftime("%d-%m-%Y")
 
+
+        # Update 'Meses Particulares' column to change format only if value does not contain ","
+        self.df_diferencias_clientes["Meses Particulares"] = self.df_diferencias_clientes["Meses Particulares"].apply(
+    lambda x: pd.to_datetime(x, errors='coerce').strftime("%d-%m-%Y") 
+    if not pd.isna(x) and "," not in str(x) and pd.to_datetime(x, errors='coerce') is not pd.NaT 
+    else x
+)
+
                 # Convert "Meses Particulares" to datetime and then format as "%d-%m-%Y"
         # Convert "Meses Particulares" to datetime and then format as "%d-%m-%Y"
         # Directly apply the logic within the apply method
-        self.df_diferencias_clientes["Meses Particulares"] = self.df_diferencias_clientes["Meses Particulares"].apply(
-    lambda value: pd.to_datetime(value, errors='coerce').strftime('%d-%m-%Y') 
-    if not pd.isna(pd.to_datetime(value, errors='coerce')) else value
-)
-
-
-        # add in Meses particulares the months between Mes Inicial and Mes Final separated by "," where row is not null, null row must mantain the original value in column Meses Particulares
+    # add in Meses particulares the months between Mes Inicial and Mes Final separated by "," where row is not null, null row must mantain the original value in column Meses Particulares
         # Update 'Meses Particulares' column
         self.df_diferencias_clientes["Meses Particulares"] = (
             self.df_diferencias_clientes.apply(
@@ -185,6 +187,12 @@ class ComparadorRecaudacionEnergia:
                 axis=1,
             )
         )
+
+        self.df_diferencias_clientes["Meses Particulares"] = self.df_diferencias_clientes["Meses Particulares"].apply(
+    lambda value: pd.to_datetime(value, errors='coerce').strftime('%m-%d-%Y') 
+    if not pd.isna(pd.to_datetime(value, errors='coerce')) else value
+)
+      
 
         self.df_homologa_clientes = func.ObtencionDatos().obtencion_tablas_clientes(
             self.df_revision_clientes, 5, 17, 22
