@@ -121,6 +121,7 @@ class ComparadorRecaudacionEnergia:
             self.df_revision_clientes, 5, 2, 15
         )
 
+        #! Clientes con diferencias de energía registrados
         # Eliminate rows where all columns (excluding the first column) are NaN
         self.df_diferencias_clientes = self.df_diferencias_clientes.dropna(
             subset=self.df_diferencias_clientes.columns[1:], how="all"
@@ -131,6 +132,7 @@ class ComparadorRecaudacionEnergia:
             [
                 "Barra",
                 "Clave",
+                "Tipo",
                 "Mes Inicial",
                 "Mes Final",
                 "Meses Particulares",
@@ -140,35 +142,28 @@ class ComparadorRecaudacionEnergia:
         # Change date format of column Mes Inicial and Mes Final
 
         # Replace "-" with np.nan just in "Mes Inicial" and "Mes Final" columns
-        self.df_diferencias_clientes["Mes Inicial"] = self.df_diferencias_clientes[
-            "Mes Inicial"
-        ].replace("-", np.nan)
-
-        self.df_diferencias_clientes["Mes Inicial"] = pd.to_datetime(
-            self.df_diferencias_clientes["Mes Inicial"]
-        ).dt.strftime("%d-%m-%Y")
-
-        self.df_diferencias_clientes["Mes Final"] = self.df_diferencias_clientes[
-            "Mes Final"
-        ].replace("-", np.nan)
-
-        self.df_diferencias_clientes["Mes Final"] = pd.to_datetime(
-            self.df_diferencias_clientes["Mes Final"]
-        ).dt.strftime("%d-%m-%Y")
-
+        # Replace "-" with np.nan and convert to datetime format in fewer lines
+        columnas_rango_fecha = ["Mes Inicial", "Mes Final"]
+        self.df_diferencias_clientes[columnas_rango_fecha] = (
+            self.df_diferencias_clientes[columnas_rango_fecha]
+            .replace("-", np.nan)
+            .apply(lambda x: pd.to_datetime(x).dt.strftime("%d-%m-%Y"))
+        )
 
         # Update 'Meses Particulares' column to change format only if value does not contain ","
-        self.df_diferencias_clientes["Meses Particulares"] = self.df_diferencias_clientes["Meses Particulares"].apply(
-    lambda x: pd.to_datetime(x, errors='coerce').strftime("%d-%m-%Y") 
-    if not pd.isna(x) and "," not in str(x) and pd.to_datetime(x, errors='coerce') is not pd.NaT 
-    else x
-)
+        self.df_diferencias_clientes[
+            "Meses Particulares"
+        ] = self.df_diferencias_clientes["Meses Particulares"].apply(
+            lambda x: (
+                pd.to_datetime(x, errors="coerce").strftime("%d-%m-%Y")
+                if not pd.isna(x)
+                and "," not in str(x)
+                and pd.to_datetime(x, errors="coerce") is not pd.NaT
+                else x
+            )
+        )
 
-                # Convert "Meses Particulares" to datetime and then format as "%d-%m-%Y"
         # Convert "Meses Particulares" to datetime and then format as "%d-%m-%Y"
-        # Directly apply the logic within the apply method
-    # add in Meses particulares the months between Mes Inicial and Mes Final separated by "," where row is not null, null row must mantain the original value in column Meses Particulares
-        # Update 'Meses Particulares' column
         self.df_diferencias_clientes["Meses Particulares"] = (
             self.df_diferencias_clientes.apply(
                 lambda x: (
@@ -179,38 +174,128 @@ class ComparadorRecaudacionEnergia:
                             freq="MS",
                         ).strftime("%d-%m-%Y")
                     )
-                    if pd.notna(x["Mes Inicial"])
-                    and pd.notna(x["Mes Final"])
-                   
+                    if pd.notna(x["Mes Inicial"]) and pd.notna(x["Mes Final"])
                     else x["Meses Particulares"]
                 ),
                 axis=1,
             )
         )
 
-        self.df_diferencias_clientes["Meses Particulares"] = self.df_diferencias_clientes["Meses Particulares"].apply(
-    lambda value: pd.to_datetime(value, errors='coerce').strftime('%m-%d-%Y') 
-    if not pd.isna(pd.to_datetime(value, errors='coerce')) else value
-)
-      
+        # Split "Meses Particulares" by ", " and then explode the column
+        self.df_diferencias_clientes = self.df_diferencias_clientes.assign(
+            Mes=self.df_diferencias_clientes["Meses Particulares"].str.split(", ")
+        ).explode("Meses Particulares")
 
+        #! Clientes homologados
         self.df_homologa_clientes = func.ObtencionDatos().obtencion_tablas_clientes(
-            self.df_revision_clientes, 5, 17, 22
+            self.df_revision_clientes, 5, 17, 23
         )
 
+        # Eliminate rows where all columns (excluding the first column) are NaN
         self.df_homologa_clientes = self.df_homologa_clientes.dropna(
-            subset=self.df_homologa_clientes.columns[1:]
+            subset=self.df_homologa_clientes.columns[1:], how="all"
         )
 
-        self.df_homologa_clientes_barras = (
-            func.ObtencionDatos().obtencion_tablas_clientes(
-                self.df_revision_clientes, 5, 24, 31
+        # Mantain column Barra, Clave, Mes Inicial, Mes Final, Meses Particulares
+
+        self.df_homologa_clientes = self.df_homologa_clientes[
+            [
+                "Barra",
+                "Clave Original",
+                "Clave Homologada",
+                "Mes Inicial",
+                "Mes Final",
+            ]
+        ]
+
+        # Change date format of column Mes Inicial and Mes Final
+
+        # Replace "-" with np.nan just in "Mes Inicial" and "Mes Final" columns
+        columnas_rango_fecha = ["Mes Inicial", "Mes Final"]
+        self.df_homologa_clientes[columnas_rango_fecha] = (
+            self.df_homologa_clientes[columnas_rango_fecha]
+            .replace("-", np.nan)
+            .apply(lambda x: pd.to_datetime(x).dt.strftime("%d-%m-%Y"))
+        )
+
+        # Convert "Meses Particulares" to datetime and then format as "%d-%m-%Y"
+        self.df_homologa_clientes["Meses Particulares"] = (
+            self.df_homologa_clientes.apply(
+                lambda x: (
+                    ", ".join(
+                        pd.date_range(
+                            start=pd.to_datetime(x["Mes Inicial"], format="%d-%m-%Y"),
+                            end=pd.to_datetime(x["Mes Final"], format="%d-%m-%Y"),
+                            freq="MS",
+                        ).strftime("%d-%m-%Y")
+                    )
+                    if pd.notna(x["Mes Inicial"]) and pd.notna(x["Mes Final"])
+                    else None
+                ),
+                axis=1,
             )
         )
 
-        self.df_homologa_clientes_barras = self.df_homologa_clientes_barras.dropna(
-            subset=self.df_homologa_clientes_barras.columns[1:]
+        # Split "Meses Particulares" by ", " and then explode the column
+        self.df_homologa_clientes = self.df_homologa_clientes.assign(
+            Mes=self.df_homologa_clientes["Meses Particulares"].str.split(", ")
+        ).explode("Mes")
+
+        #! Clientes homologados con clientes y barras
+        self.df_homologa_clientes_barras = (
+            func.ObtencionDatos().obtencion_tablas_clientes(
+                self.df_revision_clientes, 5, 25, 32
+            )
         )
+
+        # Eliminate rows where all columns (excluding the first column) are NaN
+        self.df_homologa_clientes_barras = self.df_homologa_clientes_barras.dropna(
+            subset=self.df_homologa_clientes_barras.columns[1:], how="all"
+        )
+        print(self.df_homologa_clientes_barras.columns)
+        # Mantain column Barra, Clave, Mes Inicial, Mes Final, Meses Particulares
+        self.df_homologa_clientes_barras = self.df_homologa_clientes_barras[
+            [
+                "Clave Original",
+                "Clave Homologada",
+                "Barra Original",
+                "Barra Homologada",
+                "Mes Inicial",
+                "Mes Final",
+            ]
+        ]
+
+        # Change date format of column Mes Inicial and Mes Final
+
+        # Replace "-" with np.nan just in "Mes Inicial" and "Mes Final" columns
+        columnas_rango_fecha = ["Mes Inicial", "Mes Final"]
+        self.df_homologa_clientes_barras[columnas_rango_fecha] = (
+            self.df_homologa_clientes_barras[columnas_rango_fecha]
+            .replace("-", np.nan)
+            .apply(lambda x: pd.to_datetime(x).dt.strftime("%d-%m-%Y"))
+        )
+
+        self.df_homologa_clientes_barras["Meses Particulares"] = (
+            self.df_homologa_clientes_barras.apply(
+                lambda x: (
+                    ", ".join(
+                        pd.date_range(
+                            start=pd.to_datetime(x["Mes Inicial"], format="%d-%m-%Y"),
+                            end=pd.to_datetime(x["Mes Final"], format="%d-%m-%Y"),
+                            freq="MS",
+                        ).strftime("%d-%m-%Y")
+                    )
+                    if pd.notna(x["Mes Inicial"]) and pd.notna(x["Mes Final"])
+                    else None
+                ),
+                axis=1,
+            )
+        )
+
+        # Split "Meses Particulares" by ", " and then explode the column
+        self.df_homologa_clientes_barras = self.df_homologa_clientes_barras.assign(
+            Mes=self.df_homologa_clientes_barras["Meses Particulares"].str.split(", ")
+        ).explode("Mes")
 
         return self.df_revision_clientes
 
