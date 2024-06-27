@@ -132,12 +132,13 @@ class ComparadorRecaudacionEnergia:
             [
                 "Barra",
                 "Clave",
-                "Tipo",
                 "Mes Inicial",
                 "Mes Final",
                 "Meses Particulares",
             ]
         ]
+
+        
 
         # Change date format of column Mes Inicial and Mes Final
 
@@ -183,8 +184,26 @@ class ComparadorRecaudacionEnergia:
 
         # Split "Meses Particulares" by ", " and then explode the column
         self.df_diferencias_clientes = self.df_diferencias_clientes.assign(
-            Mes=self.df_diferencias_clientes["Meses Particulares"].str.split(", ")
-        ).explode("Meses Particulares")
+            Mes_Consumo=self.df_diferencias_clientes["Meses Particulares"].str.split(
+                ", "
+            )
+        ).explode("Mes_Consumo")
+
+        # Create column Barra-Clave-Mes
+        self.df_diferencias_clientes["Barra-Clave-Mes"] = (
+            self.df_diferencias_clientes["Barra"].astype(str)
+            + "-_-"
+            + self.df_diferencias_clientes["Clave"].astype(str)
+            + "-_-"
+            + self.df_diferencias_clientes["Mes_Consumo"].astype(str)
+        )
+
+        # Drop other columns
+        self.df_diferencias_clientes = self.df_diferencias_clientes[
+            [
+                "Barra-Clave-Mes",
+            ]
+        ]
 
         #! Clientes homologados
         self.df_homologa_clientes = func.ObtencionDatos().obtencion_tablas_clientes(
@@ -238,8 +257,30 @@ class ComparadorRecaudacionEnergia:
 
         # Split "Meses Particulares" by ", " and then explode the column
         self.df_homologa_clientes = self.df_homologa_clientes.assign(
-            Mes=self.df_homologa_clientes["Meses Particulares"].str.split(", ")
-        ).explode("Mes")
+            Mes_Consumo=self.df_homologa_clientes["Meses Particulares"].str.split(", ")
+        ).explode("Mes_Consumo")
+
+        # Create column Barra-Clave-Mes
+        self.df_homologa_clientes["Barra-Clave Orginal-Mes"] = (
+            self.df_homologa_clientes["Barra"].astype(str)
+            + "-_-"
+            + self.df_homologa_clientes["Clave Original"].astype(str)
+            + "-_-"
+            + self.df_homologa_clientes["Mes_Consumo"].astype(str)
+        )
+
+        self.df_homologa_clientes["Barra-Clave Homologada-Mes"] = (
+            self.df_homologa_clientes["Barra"].astype(str)
+            + "-_-"
+            + self.df_homologa_clientes["Clave Homologada"].astype(str)
+            + "-_-"
+            + self.df_homologa_clientes["Mes_Consumo"].astype(str)
+        )
+
+        # Drop other columns
+        self.df_homologa_clientes = self.df_homologa_clientes[
+            ["Barra-Clave Orginal-Mes", "Barra-Clave Homologada-Mes"]
+        ]
 
         #! Clientes homologados con clientes y barras
         self.df_homologa_clientes_barras = (
@@ -294,10 +335,81 @@ class ComparadorRecaudacionEnergia:
 
         # Split "Meses Particulares" by ", " and then explode the column
         self.df_homologa_clientes_barras = self.df_homologa_clientes_barras.assign(
-            Mes=self.df_homologa_clientes_barras["Meses Particulares"].str.split(", ")
-        ).explode("Mes")
+            Mes_Consumo=self.df_homologa_clientes_barras[
+                "Meses Particulares"
+            ].str.split(", ")
+        ).explode("Mes_Consumo")
+
+        # Create column Barra Original -Clave Original-Mes
+
+        self.df_homologa_clientes_barras["Barra Original-Clave Original-Mes"] = (
+            self.df_homologa_clientes_barras["Barra Original"].astype(str)
+            + "-_-"
+            + self.df_homologa_clientes_barras["Clave Original"].astype(str)
+            + "-_-"
+            + self.df_homologa_clientes_barras["Mes_Consumo"].astype(str)
+        )
+
+        self.df_homologa_clientes_barras["Barra Homologada-Clave Homologada-Mes"] = (
+            self.df_homologa_clientes_barras["Barra Homologada"].astype(str)
+            + "-_-"
+            + self.df_homologa_clientes_barras["Clave Homologada"].astype(str)
+            + "-_-"
+            + self.df_homologa_clientes_barras["Mes_Consumo"].astype(str)
+        )
+
+        # Drop other columns
+        self.df_homologa_clientes_barras = self.df_homologa_clientes_barras[
+            [
+                "Barra Original-Clave Original-Mes",
+                "Barra Homologada-Clave Homologada-Mes",
+            ]
+        ]
 
         return self.df_revision_clientes
+
+    def filtro_clientes(self):
+        # Add new column in df_recaudacion as Filtro Registro Cliente - If column Barra-Clave-Mes is in df_diferencias_clientes then a 1, if not a 0
+        self.df_energia["Filtro_Registro_Cliente"] = self.df_energia[
+            "Barra-Clave-Mes"
+        ].apply(
+            lambda x: (
+                1 if x in self.df_diferencias_clientes["Barra-Clave-Mes"].values else 0
+            )
+        )
+        # Replace Barra-Clave-Mes of df_recaudación wirh Barra-Clave Homologada-Mes of df_homologa_clientes when Barra Clave Mes match with Barra-Clave Orginal-Mes
+        self.df_recaudacion["Barra-Clave-Mes"] = self.df_recaudacion[
+            "Barra-Clave-Mes"
+        ].apply(
+            lambda x: (
+                self.df_homologa_clientes.loc[
+                    self.df_homologa_clientes["Barra-Clave Orginal-Mes"] == x,
+                    "Barra-Clave Homologada-Mes",
+                ].values[0]
+                if x in self.df_homologa_clientes["Barra-Clave Orginal-Mes"].values
+                else x
+            )
+        )
+        # Replace Barra-Clave-Mes of df_recaudación wirh Barra Homologada - Clave Homologada - Mes of df_homologa_clientes_barras when Barra Clave Mes match with Barra Original -Clave Orginal-Mes
+        self.df_recaudacion["Barra-Clave-Mes"] = self.df_recaudacion[
+            "Barra-Clave-Mes"
+        ].apply(
+            lambda x: (
+                self.df_homologa_clientes_barras.loc[
+                    self.df_homologa_clientes_barras[
+                        "Barra Original-Clave Original-Mes"
+                    ]
+                    == x,
+                    "Barra Homologada-Clave Homologada-Mes",
+                ].values[0]
+                if x
+                in self.df_homologa_clientes_barras[
+                    "Barra Original-Clave Original-Mes"
+                ].values
+                else x
+            )
+        )
+        return self.df_recaudacion
 
     def combinar_datos(self):
         df_combinado_energia = pd.merge(
@@ -309,6 +421,7 @@ class ComparadorRecaudacionEnergia:
                     "Energía [kWh]",
                     "mes_repartición",
                     "Recaudador No Informado",
+                 
                 ]
             ],
             on="Barra-Clave-Mes",
@@ -340,29 +453,33 @@ class ComparadorRecaudacionEnergia:
         )
         df_combinado_energia["Tipo"] = df_combinado_energia.apply(
             lambda x: (
-                "Recaudador No Informado"
-                if (np.array(x["Recaudador No Informado"]) == 1).any()
-                or x["Recaudador No Informado"] == 1
+                "Cliente Filtrado"
+                if x["Filtro_Registro_Cliente"] == 1
                 else (
-                    "Cliente Informado con Diferente Clave"
-                    if pd.isna(x["Energía Balance [kWh]"])
-                    or x["Energía Balance [kWh]"] == 0
-                    and x["Energía Declarada [kWh]"] > 0
+                    "Recaudador No Informado"
+                    if (np.array(x["Recaudador No Informado"]) == 1).any()
+                    or x["Recaudador No Informado"] == 1
                     else (
-                        "Clave Obsoleta"
+                        "Cliente Informado con Diferente Clave"
                         if pd.isna(x["Energía Balance [kWh]"])
                         or x["Energía Balance [kWh]"] == 0
+                        and x["Energía Declarada [kWh]"] > 0
                         else (
-                            "Clave no informada en RCUT"
-                            if (
-                                pd.isna(x["Energía Declarada [kWh]"])
-                                or x["Energía Declarada [kWh]"] == 0
-                            )
-                            and x["Energía Balance [kWh]"] > 0
+                            "Clave Obsoleta"
+                            if pd.isna(x["Energía Balance [kWh]"])
+                            or x["Energía Balance [kWh]"] == 0
                             else (
-                                "Diferencia Energía con Diferencias"
-                                if abs(x["% Diferencia Energía"]) > 0.05
-                                else "Diferencia Energía sin Diferencias"
+                                "Clave no informada en RCUT"
+                                if (
+                                    pd.isna(x["Energía Declarada [kWh]"])
+                                    or x["Energía Declarada [kWh]"] == 0
+                                )
+                                and x["Energía Balance [kWh]"] > 0
+                                else (
+                                    "Diferencia Energía con Diferencias"
+                                    if abs(x["% Diferencia Energía"]) > 0.05
+                                    else "Diferencia Energía sin Diferencias"
+                                )
                             )
                         )
                     )
@@ -412,12 +529,13 @@ class ComparadorRecaudacionEnergia:
             sep=";",
             encoding="UTF-8",
             index=False,
-        )
+        ) 
 
         return df_combinado_energia
 
     def run(self):
-        # self.cargar_datos_energia()
-        # self.cargar_datos_recaudacion()
+        self.cargar_datos_energia()
+        self.cargar_datos_recaudacion()
         self.cargar_datos_revision_clientes()
-        # self.combinar_datos()
+        self.filtro_clientes()
+        self.combinar_datos()
