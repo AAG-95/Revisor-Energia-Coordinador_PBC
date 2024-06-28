@@ -190,6 +190,22 @@ class DashBarChart:
             * 100
         )
 
+        df_combinado_por_tipo_y_filtro_energia = (
+            df_combinado_energia.groupby(["Tipo", "Filtro_Registro_Cliente"])
+            .agg({"Diferencia Energía [kWh]": "sum"})
+            .reset_index()
+        )
+
+        df_combinado_por_tipo_y_filtro_energia["Porcentaje Registros [%]"] = (
+            df_combinado_por_tipo_y_filtro_energia["Diferencia Energía [kWh]"]
+            / df_combinado_por_tipo_y_filtro_energia["Diferencia Energía [kWh]"].sum()
+            * 100
+        )
+
+
+        # Revision De Clientes Filtrados de Energía 
+
+
         #  thousands as dots
         columns_to_format = [
             "Diferencia Energía [kWh]",
@@ -207,7 +223,7 @@ class DashBarChart:
                 .replace(" ", ".")
             )
 
-        # Tablas Revisor de Energía
+        # Tablas Revisor de Energía por tipo
         tabla_revision_tipo_energia = dash_table.DataTable(
             id="tabla_revision_tipo_energia",
             columns=[
@@ -216,7 +232,18 @@ class DashBarChart:
             data=df_combinado_por_tipo_energia.to_dict("records"),
         )
 
-        # Revision general
+        # Tabla Revision Filtro 
+        tabla_revision_energia_filtro = dash_table.DataTable(
+            id="tabla_revision_energia_filtro",
+            columns=[
+                {"name": i, "id": i} for i in df_combinado_por_tipo_y_filtro_energia.columns
+            ],
+            data=df_combinado_por_tipo_y_filtro_energia.to_dict("records"),
+        )
+
+            
+
+        # Tabla Revision detallada
         tabla_revision_energia = dash_table.DataTable(
             id="tabla_revision_energia",
             columns=[{"name": i, "id": i} for i in df_combinado_energia.columns],
@@ -688,15 +715,23 @@ class DashBarChart:
                     ],
                 ),
                 html.Div(
-                    [
-                        dcc.Loading(
-                            id="loading_tipo_energia",
-                            type="circle",
-                            children=[tabla_revision_tipo_energia],
-                        )
-                    ],
-                    className="tabla2",
-                ),
+    children=[
+    dcc.Loading(
+        id="loading_tipo_energia_1",  # Unique ID for the first loading component
+        type="circle",
+        children=[tabla_revision_tipo_energia],
+        style={'flex': '1', 'marginRight': '10px'}  # Add marginRight for spacing
+    ),
+    dcc.Loading(
+        id="loading_tipo_energia_2",  # Unique ID for the second loading component
+        type="circle",
+        children=[tabla_revision_energia_filtro],
+        style={'flex': '1', 'marginLeft': '10px'}  # Add marginLeft for spacing
+    )
+],
+className="tabla2",
+style={'display': 'flex', 'justifyContent': 'space-between'}
+),
                 html.Div(
                     [
                         html.Div(

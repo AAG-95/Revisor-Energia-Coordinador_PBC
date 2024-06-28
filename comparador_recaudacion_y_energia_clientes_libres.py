@@ -374,7 +374,7 @@ class ComparadorRecaudacionEnergia:
             "Barra-Clave-Mes"
         ].apply(
             lambda x: (
-                1 if x in self.df_diferencias_clientes["Barra-Clave-Mes"].values else 0
+                "Clientes Filtrados" if x in self.df_diferencias_clientes["Barra-Clave-Mes"].values else "Clientes No Filtrados"
             )
         )
         # Replace Barra-Clave-Mes of df_recaudación wirh Barra-Clave Homologada-Mes of df_homologa_clientes when Barra Clave Mes match with Barra-Clave Orginal-Mes
@@ -453,9 +453,6 @@ class ComparadorRecaudacionEnergia:
         )
         df_combinado_energia["Tipo"] = df_combinado_energia.apply(
             lambda x: (
-                "Cliente Filtrado"
-                if x["Filtro_Registro_Cliente"] == 1
-                else (
                     "Recaudador No Informado"
                     if (np.array(x["Recaudador No Informado"]) == 1).any()
                     or x["Recaudador No Informado"] == 1
@@ -476,14 +473,14 @@ class ComparadorRecaudacionEnergia:
                                 )
                                 and x["Energía Balance [kWh]"] > 0
                                 else (
-                                    "Diferencia Energía con Diferencias"
+                                    "Energía con Diferencias"
                                     if abs(x["% Diferencia Energía"]) > 0.05
-                                    else "Diferencia Energía sin Diferencias"
+                                    else "Energía sin Diferencias"
                                 )
                             )
                         )
                     )
-                )
+                
             ),
             axis=1,
         )
@@ -512,6 +509,7 @@ class ComparadorRecaudacionEnergia:
                 "Diferencia Energía [kWh]",
                 "% Diferencia Energía",
                 "Tipo",
+                "Filtro_Registro_Cliente"
             ]
         ]
 
