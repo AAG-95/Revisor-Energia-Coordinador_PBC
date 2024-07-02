@@ -39,6 +39,10 @@ class CreadorListaClientesBalance:
             "REVISION_SUR_DX_",
             "REVISION_RES_DX_SUR_",
             "REVISION_RES_DX_NORTE_",
+            "REVISION_RES_SUR_DX_",
+            "REVISION_RES_SUR_",
+            "REVISION_RES_NORTE_DX",
+            "REVISION_RES_NORTE_",
         ]
         self.rutas_posibles = [
             "01 Resultados/02 Balance Físico/",

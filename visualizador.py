@@ -176,7 +176,7 @@ class DashBarChart:
             .reset_index()
         )
 
-        df_combinado_energia.drop("Cantidad Registros", axis=1, inplace=True)
+        
 
         df_combinado_por_tipo_energia["Porcentaje Registros [%]"] = (
             df_combinado_por_tipo_energia["Cantidad Registros"]
@@ -192,16 +192,36 @@ class DashBarChart:
 
         df_combinado_por_tipo_y_filtro_energia = (
             df_combinado_energia.groupby(["Tipo", "Filtro_Registro_Cliente"])
-            .agg({"Diferencia Energía [kWh]": "sum"})
+            .agg({"Diferencia Energía [kWh]": "sum", "Cantidad Registros": "count"})
             .reset_index()
         )
+
+                # Step 1: Pivot for "Diferencia Energía [kWh]"
+        pivot_diferencia = df_combinado_por_tipo_y_filtro_energia.pivot(index='Tipo', columns='Filtro_Registro_Cliente', values='Diferencia Energía [kWh]')
+
+        # Rename the columns to reflect the content
+        pivot_diferencia.columns = [f'Diferencia_{col}' for col in pivot_diferencia.columns]
+
+        # Step 1: Pivot for "Cantidad Registros"
+        pivot_cantidad = df_combinado_por_tipo_y_filtro_energia.pivot(index='Tipo', columns='Filtro_Registro_Cliente', values='Cantidad Registros')
+
+        # Rename the columns to reflect the content
+        pivot_cantidad.columns = [f'Cantidad_{col}' for col in pivot_cantidad.columns]
+
+        # Step 2: Flatten the MultiIndex columns (if using MultiIndex) - Not necessary here due to renaming
+
+        # Step 3: Merge the two pivoted DataFrames
+        df_combinado_por_tipo_y_filtro_energia = pivot_diferencia.join(pivot_cantidad, how='outer').reset_index()
+
 
         df_combinado_por_tipo_y_filtro_energia["Porcentaje Registros [%]"] = (
             df_combinado_por_tipo_y_filtro_energia["Diferencia Energía [kWh]"]
             / df_combinado_por_tipo_y_filtro_energia["Diferencia Energía [kWh]"].sum()
             * 100
         )
+        
 
+        df_combinado_energia.drop("Cantidad Registros", axis=1, inplace=True)
 
         # Revision De Clientes Filtrados de Energía 
 
@@ -714,23 +734,44 @@ class DashBarChart:
                         ),
                     ],
                 ),
-                html.Div(
+              html.Div(
     children=[
-    dcc.Loading(
-        id="loading_tipo_energia_1",  # Unique ID for the first loading component
-        type="circle",
-        children=[tabla_revision_tipo_energia],
-        style={'flex': '1', 'marginRight': '10px'}  # Add marginRight for spacing
+    html.Div(
+        dcc.Loading(
+            id="loading_tipo_energia_1",
+            type="circle",
+            children=[tabla_revision_tipo_energia],
+            style={'flex': '1'}
+        ),
+        className="table2",
+        style={
+            'marginRight': '10px',  # Right margin for spacing
+            'borderRadius': '15px',  # Rounded edges
+            'overflow': 'hidden'  # Ensures the child components do not overflow the rounded corners
+        }
     ),
-    dcc.Loading(
-        id="loading_tipo_energia_2",  # Unique ID for the second loading component
-        type="circle",
-        children=[tabla_revision_energia_filtro],
-        style={'flex': '1', 'marginLeft': '10px'}  # Add marginLeft for spacing
+    html.Div(
+        dcc.Loading(
+            id="loading_tipo_energia_2",
+            type="circle",
+            children=[tabla_revision_energia_filtro],
+            style={'flex': '1'}
+        ),
+        className="table2",
+        style={
+            'marginLeft': '10px',  # Left margin for spacing
+            'borderRadius': '15px',  # Rounded edges
+            'overflow': 'hidden'  # Ensures the child components do not overflow the rounded corners
+        }
     )
 ],
-className="tabla2",
-style={'display': 'flex', 'justifyContent': 'space-between'}
+style={
+    'display': 'flex',
+    'justifyContent': 'center',  # Center horizontally
+    'alignItems': 'center',      # Center vertically
+    'transform': 'translateX(-79px)',  # Shift everything slightly left
+    'marginBottom': '20px'
+}
 ),
                 html.Div(
                     [
