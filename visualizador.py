@@ -170,21 +170,30 @@ class DashBarChart:
             "Tipo"
         )["Tipo"].transform("count")
 
+        # Original aggregation
         df_combinado_por_tipo_energia = (
             df_combinado_energia.groupby(["Tipo"])
-            .agg({ "Cantidad Registros": "first", "Diferencia Energía [kWh]": "sum"})
+            .agg({"Cantidad Registros": "first", "Diferencia Energía [kWh]": "sum"})
             .reset_index()
+        )
+
+        # Aggregation by Tipo and Filtro_Registro_Cliente
+        df_combinado_filtro_clientes = (
+            df_combinado_energia.groupby(["Tipo", "Filtro_Registro_Cliente"])
+            .size()  # This counts the number of occurrences
+            .unstack(
+                fill_value=0
+            )  # Unstack to make Filtro_Registro_Cliente values into columns, filling missing values with 0
+        )
+
+        # Join the two DataFrames
+        df_combinado_por_tipo_energia = df_combinado_por_tipo_energia.join(
+            df_combinado_filtro_clientes, on="Tipo"
         )
 
         df_combinado_por_tipo_energia["Porcentaje Registros [%]"] = (
             df_combinado_por_tipo_energia["Cantidad Registros"]
             / df_combinado_por_tipo_energia["Cantidad Registros"].sum()
-            * 100
-        )
-
-        df_combinado_por_tipo_energia["Porcentaje Energía Dif [%]"] = (
-            abs(df_combinado_por_tipo_energia["Diferencia Energía [kWh]"])
-            / df_combinado_por_tipo_energia["Diferencia Energía [kWh]"].abs().sum()
             * 100
         )
 
@@ -199,6 +208,25 @@ class DashBarChart:
             / df_combinado_por_tipo_y_filtro_energia["Diferencia Energía [kWh]"].sum()
             * 100
         )
+
+        df_combinado_por_tipo_energia["Porcentaje Energía Dif [%]"] = (
+            abs(df_combinado_por_tipo_energia["Diferencia Energía [kWh]"])
+            / df_combinado_por_tipo_energia["Diferencia Energía [kWh]"].abs().sum()
+            * 100
+        )
+
+        # Reordenar columnas
+        df_combinado_por_tipo_energia = df_combinado_por_tipo_energia[
+            [
+                "Tipo",
+                "Cantidad Registros",
+                "Clientes Filtrados",
+                "Clientes No Filtrados",
+                "Diferencia Energía [kWh]",
+                "Porcentaje Registros [%]",
+                "Porcentaje Energía Dif [%]"
+            ]
+        ]
 
         df_combinado_energia.drop("Cantidad Registros", axis=1, inplace=True)
 
@@ -725,24 +753,9 @@ class DashBarChart:
                                 style={"flex": "1", "marginRight": "100px"},
                             ),
                             className="tabla2",
-                            style={
-                                "width": "45%",
-                                "marginRight": "20px",
-                            },  # Adjust spacing and width
+                            
                         ),
-                        html.Div(
-                            dcc.Loading(
-                                id="loading_tipo_energia_2",
-                                type="circle",
-                                children=[tabla_revision_energia_filtro],
-                                style={"flex": "1", "marginLeft": "100px"},
-                            ),
-                            className="tabla2",
-                            style={
-                                "width": "45%",
-                                "marginLeft": "20px",
-                            },  # Adjust spacing and width
-                        ),
+                       
                     ],
                     style={
                         "display": "flex",
@@ -1222,6 +1235,17 @@ class DashBarChart:
                     )
                     .reset_index()
                 )
+                
+                # Filtro en Base a la columna "Filtro_Registro_Cliente"
+                df_combinado_por_tipo_y_filtro_cliente = (
+                    df_combinado_filtrado.groupby(["Tipo", "Filtro_Registro_Cliente"])
+                    .size()
+                    .unstack(fill_value=0)
+                )
+
+                df_combinado_por_tipo_filtrado = df_combinado_por_tipo_filtrado.join(
+                    df_combinado_por_tipo_y_filtro_cliente, on="Tipo"
+                )
 
                 df_combinado_por_tipo_filtrado["Porcentaje Registros [%]"] = (
                     df_combinado_por_tipo_filtrado["Cantidad Registros"]
@@ -1236,6 +1260,19 @@ class DashBarChart:
                     .sum()
                     * 100
                 )
+
+                # Ordenar Columnas
+                df_combinado_por_tipo_filtrado = df_combinado_por_tipo_filtrado[
+                    [
+                        "Tipo",
+                        "Cantidad Registros",
+                        "Clientes Filtrados",
+                        "Clientes No Filtrados",
+                        "Diferencia Energía [kWh]",
+                        "Porcentaje Registros [%]",
+                        "Porcentaje Energía Dif [%]",
+                    ]
+                ]
 
                 #  thousands as dots
                 columnas_nuevo_formato = [
