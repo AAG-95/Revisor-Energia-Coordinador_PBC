@@ -252,7 +252,7 @@ body {
     width: 90%;
     margin: 0 auto;
     border-radius: 15px;
-    overflow: hidden;
+    overflow: auto;
     border: 1px solid black;
     margin-bottom: 10px
 }
