@@ -260,7 +260,7 @@ body {
 
 .tabla_clientes_ind {
     justify-content: center;
-    width: 90%;
+    width: auto;
     margin: 0 auto;
     border-radius: 15px;
     overflow: hidden;

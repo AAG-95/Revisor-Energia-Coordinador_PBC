@@ -293,7 +293,7 @@ class ComparadorRecaudacionEnergia:
         self.df_homologa_clientes_barras = self.df_homologa_clientes_barras.dropna(
             subset=self.df_homologa_clientes_barras.columns[1:], how="all"
         )
-        print(self.df_homologa_clientes_barras.columns)
+        
         # Mantain column Barra, Clave, Mes Inicial, Mes Final, Meses Particulares
         self.df_homologa_clientes_barras = self.df_homologa_clientes_barras[
             [
@@ -412,7 +412,7 @@ class ComparadorRecaudacionEnergia:
         return self.df_recaudacion
 
     def combinar_datos(self):
-        df_combinado_energia = pd.merge(
+        self.df_combinado_energia = pd.merge(
             self.df_energia,
             self.df_recaudacion[
                 [
@@ -428,30 +428,30 @@ class ComparadorRecaudacionEnergia:
             how="left",
         ).reset_index(drop=True)
 
-        df_combinado_energia.rename(
+        self.df_combinado_energia.rename(
             columns={"Energía [kWh]": "Energía Declarada [kWh]"}, inplace=True
         )
-        df_combinado_energia["Energía Balance [kWh]"] = (
-            df_combinado_energia["Energía Balance [kWh]"]
+        self.df_combinado_energia["Energía Balance [kWh]"] = (
+            self.df_combinado_energia["Energía Balance [kWh]"]
             .astype(str)
             .str.replace(",", ".")
             .astype(float)
         )
-        df_combinado_energia["Energía Balance [kWh]"] = df_combinado_energia[
+        self.df_combinado_energia["Energía Balance [kWh]"] = self.df_combinado_energia[
             "Energía Balance [kWh]"
         ].fillna(0)
-        df_combinado_energia["Energía Declarada [kWh]"] = df_combinado_energia[
+        self.df_combinado_energia["Energía Declarada [kWh]"] = self.df_combinado_energia[
             "Energía Declarada [kWh]"
         ].fillna(0)
-        df_combinado_energia["Diferencia Energía [kWh]"] = (
-            df_combinado_energia["Energía Balance [kWh]"]
-            - df_combinado_energia["Energía Declarada [kWh]"]
+        self.df_combinado_energia["Diferencia Energía [kWh]"] = (
+            self.df_combinado_energia["Energía Balance [kWh]"]
+            - self.df_combinado_energia["Energía Declarada [kWh]"]
         )
-        df_combinado_energia["% Diferencia Energía"] = (
-            df_combinado_energia["Diferencia Energía [kWh]"]
-            / df_combinado_energia["Energía Balance [kWh]"]
+        self.df_combinado_energia["% Diferencia Energía"] = (
+            self.df_combinado_energia["Diferencia Energía [kWh]"]
+            / self.df_combinado_energia["Energía Balance [kWh]"]
         )
-        df_combinado_energia["Tipo"] = df_combinado_energia.apply(
+        self.df_combinado_energia["Tipo"] = self.df_combinado_energia.apply(
             lambda x: (
                     "Recaudador No Informado"
                     if (np.array(x["Recaudador No Informado"]) == 1).any()
@@ -485,16 +485,16 @@ class ComparadorRecaudacionEnergia:
             axis=1,
         )
 
-        df_combinado_energia[["Barra", "Clave", "Mes Consumo"]] = df_combinado_energia[
+        self.df_combinado_energia[["Barra", "Clave", "Mes Consumo"]] = self.df_combinado_energia[
             "Barra-Clave-Mes"
         ].str.split("-_-", expand=True)
 
         # rename Suministrador_final to Suministrador
-        df_combinado_energia = df_combinado_energia.rename(
+        self.df_combinado_energia = self.df_combinado_energia.rename(
             columns={"Suministrador_final": "Suministrador"}
         )
 
-        df_combinado_energia = df_combinado_energia[
+        self.df_combinado_energia = self.df_combinado_energia[
             [
                 "Barra",
                 "Nombre",
@@ -513,23 +513,32 @@ class ComparadorRecaudacionEnergia:
             ]
         ]
 
-        df_combinado_energia["Recaudador"] = np.where(
-            df_combinado_energia["Recaudador"].isna()
-            | (df_combinado_energia["Recaudador"] == ""),
-            df_combinado_energia["Suministrador"],
-            df_combinado_energia["Recaudador"],
+        self.df_combinado_energia["Recaudador"] = np.where(
+            self.df_combinado_energia["Recaudador"].isna()
+            | (self.df_combinado_energia["Recaudador"] == ""),
+            self.df_combinado_energia["Suministrador"],
+            self.df_combinado_energia["Recaudador"],
         )
 
-        df_combinado_energia = df_combinado_energia.reset_index(drop=True)
+        self.df_combinado_energia = self.df_combinado_energia.reset_index(drop=True)
 
-        df_combinado_energia.to_csv(
+    def contador_tipos_historicos_clientes(self):
+        # If Tipo y Clave are the same, then count based in column Mes Consumo
+        self.df_combinado_energia["Registro_Historico_por_Cliente_y_Tipo"] = self.df_combinado_energia.groupby(
+            ["Clave", "Tipo"]
+        )["Mes Consumo"].transform("count")
+
+    def guardar_datos(self):
+
+        self.df_combinado_energia.to_csv(
             self.carpeta_salida + "df_revision_energia_libres.csv",
             sep=";",
             encoding="UTF-8",
             index=False,
         ) 
 
-        return df_combinado_energia
+        return self.df_combinado_energia
+
 
     def run(self):
         self.cargar_datos_energia()
@@ -537,3 +546,5 @@ class ComparadorRecaudacionEnergia:
         self.cargar_datos_revision_clientes()
         self.filtro_clientes()
         self.combinar_datos()
+        self.contador_tipos_historicos_clientes()
+        self.guardar_datos()
