@@ -17,7 +17,7 @@ seleccion_procesos = gui.SeleccionProcesos()
 
 # Start the GUI and get the useEne2024r's input
 codigos_a_correr = seleccion_procesos.iniciar()
-
+ 
 if (
     codigos_a_correr["revisor_recaudacion_mensual"]
     or codigos_a_correr["revisor_recaudacion_historico"]
