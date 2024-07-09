@@ -697,43 +697,104 @@ class ComparadorRecaudacionEnergia:
 
         # Create a mask for rows where "Tipo" is either "Con Diferencias" or "No informado"
         # Define the filter
-        filtro_tipo = self.df_combinado_energia["Tipo"].isin(["Clave no informada en RCUT", "Clave no informada en RCUT"])
+        filtro_tipo = self.df_combinado_energia["Tipo"].isin(
+            ["Clave no informada en RCUT", "Clave no informada en RCUT"]
+        )
 
         # Group by "Clave" and "Tipo" and count "Mes Consumo" only for filtered rows
-        counts = self.df_combinado_energia.loc[filtro_tipo].groupby(["Clave", "Tipo"])["Mes Consumo"].transform("count")
+        counts = (
+            self.df_combinado_energia.loc[filtro_tipo]
+            .groupby(["Clave", "Tipo"])["Mes Consumo"]
+            .transform("count")
+        )
 
         # Initialize the new column with 0
         self.df_combinado_energia["Registro_Historico_No_Inf_y_Dif"] = 0
 
         # Assign the counts to the filtered rows
-        self.df_combinado_energia.loc[filtro_tipo, "Registro_Historico_No_Inf_y_Dif"] = counts
-        
+        self.df_combinado_energia.loc[
+            filtro_tipo, "Registro_Historico_No_Inf_y_Dif"
+        ] = counts
+
         # Example list of date strings
         fechas = self.df_combinado_energia["Mes Consumo"].unique()
 
         # Convert to datetime
-        fecha_max = pd.to_datetime(fechas)
+        listado_fechas = pd.to_datetime(fechas)
 
         # Find the maximum date
-        max_date = fecha_max.max()
+        mes_actual = listado_fechas.max()
 
         # Format the date as 'd m y'
-        formatted_max_date = max_date.strftime('%m-%d-%Y')
+        mes_actual = mes_actual.strftime("%m-%d-%Y")
 
-        print(formatted_max_date)
+        print(mes_actual)
 
         # If column Clave in any Mes has value 1 in column Filter Registro Cliente, then new column is 1
-        self.df_combinado_energia["Registro_Historico_por_Cliente"] = self.df_combinado_energia.groupby(["Clave"])[
-            "Filtro_Registro_Cliente"
-        ].transform("max")  
-
-        # If column Registro_Historico_por_Cliente has value 1 in and Registro_Historico_por Cliente is more than 2, then Filter Registro Cliente is also 1 in those column
-        self.df_combinado_energia["Registro_Historico_por_Cliente"] = np.where(
-            (self.df_combinado_energia["Registro_Historico_por_Cliente"] == 1) & (self.df_combinado_energia["Registro_Historico_por_Cliente_y_Tipo"] >= 2),
-            1,
-            self.df_combinado_energia["Registro_Historico_por_Cliente"],
+        self.df_combinado_energia["Registro_Historico_por_Cliente"] = (
+            self.df_combinado_energia.groupby(["Clave"])[
+                "Filtro_Registro_Cliente"
+            ].transform("max")
         )
-        return self.df_combinado_energia    
+
+        conditions = [
+            (
+                self.df_combinado_energia["Filtro_Registro_Cliente"]
+                == "Clientes Filtrados"
+            )
+            & (self.df_combinado_energia["Registro_Historico_por_Cliente_y_Tipo"] == 0),
+            (
+                self.df_combinado_energia["Filtro_Registro_Cliente"]
+                == "Clientes Filtrados"
+            )
+            & (self.df_combinado_energia["Registro_Historico_por_Cliente_y_Tipo"] < 2),
+            (
+                self.df_combinado_energia["Filtro_Registro_Cliente"]
+                == "Clientes Filtrados"
+            )
+            & (self.df_combinado_energia["Registro_Historico_por_Cliente_y_Tipo"] >= 2)
+            & (
+                self.df_combinado_energia["Registro_Historico_por_Cliente_y_Tipo"] <= 10
+            ),
+            (
+                self.df_combinado_energia["Filtro_Registro_Cliente"]
+                == "Clientes Filtrados"
+            )
+            & (self.df_combinado_energia["Registro_Historico_por_Cliente_y_Tipo"] > 10),
+        ]
+
+        # Choices corresponding to each condition
+        choices = [
+            "Clave sin Errores de Recaudación ",  # For the first condition as in the original code
+            "Clave con Errores de Recaudación Bajos",  # For values below 2
+            "Clave con Errores de Recaudación Medios",  # For values over 2 to 10
+            "Clave con Errores de Recaudación Altos",  # For values more than 10
+        ]
+
+        # Apply conditions and choices
+        self.df_combinado_energia["Registro_Historico_por_Cliente"] = np.select(
+            conditions,
+            choices,
+            default=self.df_combinado_energia["Registro_Historico_por_Cliente"],
+        )
+
+        # If Registro_Historico_por_cliente != Clientes No Filtrados, Filtro Registro Cliente = Clientes Filtrados
+
+        self.df_combinado_energia["Filtro_Registro_Cliente"] = np.where(
+            self.df_combinado_energia["Registro_Historico_por_Cliente"]
+            != "Clientes No Filtrados",
+            "Clientes Filtrados",
+            self.df_combinado_energia["Filtro_Registro_Cliente"],
+        )
+
+        # Count the number of historical records per client and month
+        self.df_combinado_energia["Registro_Historico_por_Clave_Mes"] = (
+            self.df_combinado_energia.groupby(["Clave"])[
+                "Mes Consumo"
+            ].transform("count")
+        )
+    
+        return self.df_combinado_energia
 
     def guardar_datos(self):
 
