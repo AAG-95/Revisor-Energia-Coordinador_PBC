@@ -41,6 +41,7 @@ class CreadorListaClientesBalance:
             "REVISION_RES_DX_NORTE_",
             "REVISION_RES_SUR_DX_",
             "REVISION_RES_SUR_",
+            "REVISION_RES_NORTE_DX_",
             "REVISION_RES_NORTE_DX",
             "REVISION_RES_NORTE_",
         ]

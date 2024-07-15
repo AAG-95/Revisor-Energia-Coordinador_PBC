@@ -177,13 +177,13 @@ class DashBarChart:
             .reset_index()
         )
 
-        # Aggregation by Tipo and Filtro_Registro_Cliente
+        # Aggregation by Tipo and Filtro_Registro_Clave
         df_combinado_filtro_clientes = (
-            df_combinado_energia.groupby(["Tipo", "Filtro_Registro_Cliente"])
+            df_combinado_energia.groupby(["Tipo", "Filtro_Registro_Clave"])
             .size()  # This counts the number of occurrences
             .unstack(
                 fill_value=0
-            )  # Unstack to make Filtro_Registro_Cliente values into columns, filling missing values with 0
+            )  # Unstack to make Filtro_Registro_Clave values into columns, filling missing values with 0
         )
 
         # Join the two DataFrames
@@ -198,7 +198,7 @@ class DashBarChart:
         )
 
         df_combinado_por_tipo_y_filtro_energia = (
-            df_combinado_energia.groupby(["Tipo", "Filtro_Registro_Cliente"])
+            df_combinado_energia.groupby(["Tipo", "Filtro_Registro_Clave"])
             .agg({"Cantidad Registros": "count", "Diferencia Energía [kWh]": "sum"})
             .reset_index()
         )
@@ -1236,9 +1236,9 @@ class DashBarChart:
                     .reset_index()
                 )
                 
-                # Filtro en Base a la columna "Filtro_Registro_Cliente"
+                # Filtro en Base a la columna "Filtro_Registro_Clave"
                 df_combinado_por_tipo_y_filtro_cliente = (
-                    df_combinado_filtrado.groupby(["Tipo", "Filtro_Registro_Cliente"])
+                    df_combinado_filtrado.groupby(["Tipo", "Filtro_Registro_Clave"])
                     .size()
                     .unstack(fill_value=0)
                 )
