@@ -703,12 +703,16 @@ class ComparadorRecaudacionEnergia:
         # Create a mask for rows where "Tipo" is either "Con Diferencias" or "No informado"
         # Define the filter
         # Filter rows where "Tipo" matches specific values
+        # Filter rows based on the "Tipo" condition
         filtro_tipo = self.df_combinado_energia["Tipo"].isin(["Clave no informada en RCUT", "Energía con Diferencias"])
-        # Count "Mes Consumo" for each "Clave" and "Tipo" within the filtered rows
-        self.df_combinado_energia["Registro_Historico_No_Inf_y_Dif_por_Clave"] = 0  # Initialize column with 0
+
+        # Initialize the "Registro_Historico_No_Inf_y_Dif_por_Clave" column with 0
+        self.df_combinado_energia["Registro_Historico_No_Inf_y_Dif_por_Clave"] = 0
+
+        # For rows matching the filter, sum the occurrences for each "Clave" across both "Tipo" categories
         self.df_combinado_energia.loc[filtro_tipo, "Registro_Historico_No_Inf_y_Dif_por_Clave"] = (
             self.df_combinado_energia[filtro_tipo]
-            .groupby(["Clave", "Tipo"])["Mes Consumo"]
+            .groupby("Clave")["Mes Consumo"]
             .transform("count")
         )
 
@@ -743,7 +747,7 @@ class ComparadorRecaudacionEnergia:
         self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] = self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"].astype(str)
         
         # If Registro_Historico_por_Clave != Clientes No Filtrados, Filtro Registro Clave = Clientes Filtrados
-        casos_por_analizar = ["Clave sin Error de Recaudación", "Clave con Errores de Recaudación Bajos", "Clientes No Filtrados"]
+        casos_por_analizar = ["Clave sin Error de Recaudación", "Clientes No Filtrados"]
 
         self.df_combinado_energia["Filtro_Registro_Clave"] = np.where(
             (~self.df_combinado_energia["Nivel_de_Error_Historico_por_Clave"].isin(casos_por_analizar)) &
