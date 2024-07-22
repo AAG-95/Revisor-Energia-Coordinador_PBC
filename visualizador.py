@@ -1174,6 +1174,7 @@ class DashBarChart:
                     "Energía Balance [kWh]",
                     "Energía Declarada [kWh]",
                     "Diferencia Energía [kWh]",
+                    "Porcentaje_No_Inf_y_Dif_por_Clave"
                 ]  # replace with your column names
 
                 for column in columnas_a_modificar:

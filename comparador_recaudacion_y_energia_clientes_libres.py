@@ -703,10 +703,6 @@ class ComparadorRecaudacionEnergia:
             .transform("count")
         )
 
-        # If column Clave in any Mes has value 1 in column Filter Registro Clave, then new column is 1
-
-        
-
         # Count the number of historical records per Clave and month
         self.df_combinado_energia["Registro_Historico_de_Mes_por_Clave"] = (
             self.df_combinado_energia.groupby(["Clave"])[
@@ -717,56 +713,40 @@ class ComparadorRecaudacionEnergia:
         self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] = (
         self.df_combinado_energia["Registro_Historico_No_Inf_y_Dif_por_Clave"] / self.df_combinado_energia["Registro_Historico_de_Mes_por_Clave"]
     ) * 100
-
+                                
         conditions = [
-            (
-                self.df_combinado_energia["Registro_Historico_de_Filtro_por_Clave"]
-                == "Cliente Registrado Históricamente"
-            )
-            & (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] == 0),
-            (
-                self.df_combinado_energia["Registro_Historico_de_Filtro_por_Clave"]
-                == "Cliente Registrado Históricamente"
-            )
-            & (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] < 5),
-            (
-                self.df_combinado_energia["Registro_Historico_de_Filtro_por_Clave"]
-                == "Cliente Registrado Históricamente"
-            )
-            & (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] >= 5)
-            & (
-                self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] <= 20
-            ),
-            (
-                self.df_combinado_energia["Registro_Historico_de_Filtro_por_Clave"]
-                == "Cliente Registrado Históricamente"
-            )
-            & (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] > 20),
-        ]
+    (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] == 0),
+    (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] < 5),
+    (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] >= 5) & (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] <= 20),
+    (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] > 20),
+]
 
-        # Choices corresponding to each condition
+    # Choices corresponding to each condition
         choices = [
-            "Clave sin Errores de Recaudación ",  # For the first condition as in the original code
-            "Clave con Errores de Recaudación Bajos",  # For values below 2
-            "Clave con Errores de Recaudación Medios",  # For values over 2 to 10
-            "Clave con Errores de Recaudación Altos",  # For values more than 10
-        ]
+        "Clave sin Errores de Recaudación",  # For the first condition: 0%
+        "Clave con Errores de Recaudación Bajos",  # For values < 5%
+        "Clave con Errores de Recaudación Medios",  # For values >= 5% and <= 20%
+        "Clave con Errores de Recaudación Altos",  # For values > 20%
+    ]
 
-        # Apply conditions and choices
+    # Apply conditions and choices
         self.df_combinado_energia["Nivel_de_Error_Historico_por_Clave"] = np.select(
-            conditions,
-            choices,
-            default=self.df_combinado_energia["Filtro_Registro_Clave"],
-        )
+        conditions,
+        choices,
+        default="No especificado"  # It's good practice to have a default value
+    )
 
+        self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] = self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"].astype(str)
+        
         # If Registro_Historico_por_Clave != Clientes No Filtrados, Filtro Registro Clave = Clientes Filtrados
+        casos_por_analizar = ["Clave sin Error de Recaudación", "Clave con Errores de Recaudación Bajos", "Clientes No Filtrados"]
+
         self.df_combinado_energia["Filtro_Registro_Clave"] = np.where(
-            self.df_combinado_energia["Nivel_de_Error_Historico_por_Clave"]
-            != "Clientes No Filtrados",
+            (~self.df_combinado_energia["Nivel_de_Error_Historico_por_Clave"].isin(casos_por_analizar)) &
+            (self.df_combinado_energia["Registro_Historico_de_Filtro_por_Clave"] == "Cliente Registrado Históricamente"),
             "Clientes Filtrados",
             self.df_combinado_energia["Filtro_Registro_Clave"],
         )
-
         
         return self.df_combinado_energia
 
