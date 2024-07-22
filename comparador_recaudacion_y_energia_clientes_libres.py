@@ -680,9 +680,18 @@ class ComparadorRecaudacionEnergia:
         self.df_combinado_energia = self.df_combinado_energia.reset_index(drop=True)
 
     def contador_tipos_historicos_claves(self):
+    
+
+        # Count the number of historical records per Clave and month
 
         self.df_combinado_energia["Registro_Historico_de_Filtro_por_Clave"] = self.df_combinado_energia.groupby("Clave")["Filtro_Registro_Clave"].transform(lambda x: "Cliente Registrado Históricamente" if "Clientes Filtrados" in x.values else "Cliente No Registrado Históricamente")
-
+        
+        self.df_combinado_energia["Registro_Historico_de_Mes_por_Clave"] = (
+            self.df_combinado_energia.groupby(["Clave"])[
+                "Mes Consumo"
+            ].transform("count")
+        )
+        
         # If Tipo y Clave are the same, then count based in column Mes Consumo
         self.df_combinado_energia["Registro_Historico_por_Clave_y_Tipo"] = (
             self.df_combinado_energia.groupby(["Clave", "Tipo"])[
@@ -703,12 +712,7 @@ class ComparadorRecaudacionEnergia:
             .transform("count")
         )
 
-        # Count the number of historical records per Clave and month
-        self.df_combinado_energia["Registro_Historico_de_Mes_por_Clave"] = (
-            self.df_combinado_energia.groupby(["Clave"])[
-                "Mes Consumo"
-            ].transform("count")
-        )
+  
 
         self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] = (
         self.df_combinado_energia["Registro_Historico_No_Inf_y_Dif_por_Clave"] / self.df_combinado_energia["Registro_Historico_de_Mes_por_Clave"]
@@ -733,7 +737,7 @@ class ComparadorRecaudacionEnergia:
         self.df_combinado_energia["Nivel_de_Error_Historico_por_Clave"] = np.select(
         conditions,
         choices,
-        default="No especificado"  # It's good practice to have a default value
+        default="Clientes No Filtrados"  # It's good practice to have a default value
     )
 
         self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] = self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"].astype(str)

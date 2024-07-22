@@ -52,7 +52,7 @@ if (
         pass
 
     if codigos_a_correr["revisor_clientes_balance_mensual"]:
-        print("Entrando a creador_listado_clientes_energia.py...")
+        print("Entrando   a creador_listado_clientes_energia.py...")
         clc.CreadorListaClientesBalance(lista_meses).run()
         print("Saliendo de creador_listado_clientes_energia.py...")
         pass
