@@ -165,14 +165,13 @@ class ProcesadorRecaudacionesHistoricas:
                 encoding="UTF-8",
                 sep=";",
                 header=0,
-            )
-
+            ) 
+            # empty dataframe
+           
             self.dataframe_revisor_clientes_R.append(df_revisor_clientes_R)
 
             # Parse the date string in 'YYYY-MM-DD' format
-            mes_rep = datetime.strptime(
-                df_clientes_L["mes_repartición"].unique()[0], "%Y-%m-%d"
-            )
+            mes_rep = datetime.strptime(df_clientes_L["mes_repartición"].unique()[0], "%d-%m-%Y")
 
             # Format the date as 'DD-MM-YYYY'
             mes_rep = mes_rep.strftime("%d-%m-%Y")
@@ -185,7 +184,7 @@ class ProcesadorRecaudacionesHistoricas:
             "BDD Clientes Regulados Históricos.csv",
             "BDD Observaciones Históricas.csv",
             "BDD Revisor Clientes L Históricos.csv",
-            "BDD Revisor Clientes R Históricos.csv",
+            #"BDD Revisor Clientes R Históricos.csv",
         ]
 
         self.lista_df_historicos = [None for i in range(5)]
@@ -226,7 +225,7 @@ class ProcesadorRecaudacionesHistoricas:
             self.dataframe_clientes_regulados,
             self.dataframe_observaciones,
             self.dataframe_revisor_clientes_L,
-            self.dataframe_revisor_clientes_R,
+            #self.dataframe_revisor_clientes_R,
         ]
 
         # Verificar si el mes de cada df de mes ya se encuentra en el histórico, si no, se incorpora
@@ -242,7 +241,7 @@ class ProcesadorRecaudacionesHistoricas:
                 if len(meses_unicos) > 0:
                     # Parse the date string in 'YYYY-MM-DD' format
                     mes_df = datetime.strptime(
-                        str(i["mes_repartición"].unique()[0]), "%Y-%m-%d"
+                        str(i["mes_repartición"].unique()[0]), "%d-%m-%Y"
                     )
 
                     # Format the date as 'DD-MM-YYYY'

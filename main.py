@@ -85,7 +85,7 @@ if codigos_a_correr["comparador_sistemas"]:
     pass
 
 if codigos_a_correr["comparador_clientes_ind"]:
-    print("Entrando a comparador_cliente_individualizado.py...")
+    print("Entrando a comparador_cliente_   individualizado.py...")
     cci.ComparadorClienteIndividualizado().run()
     print("Saliendo de comparador_cliente_individualizado.py...")
     pass
