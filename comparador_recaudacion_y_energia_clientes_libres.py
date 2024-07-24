@@ -100,6 +100,9 @@ class ComparadorRecaudacionEnergia:
                     "Recaudador": lambda x: list(x)[-1],
                     "mes_repartición": lambda x: list(x),
                     "Recaudador No Informado": lambda x: list(x),
+                    "Cliente Individualizado": lambda x: list(x)[0],
+                    "Zonal": lambda x: list(x)[0],
+                    "Nivel Tensión Zonal": lambda x: list(x)[0]
                 }
             )
             .reset_index()
@@ -580,6 +583,9 @@ class ComparadorRecaudacionEnergia:
                     "Energía [kWh]",
                     "mes_repartición",
                     "Recaudador No Informado",
+                    "Cliente Individualizado",
+                    "Zonal",
+                    "Nivel Tensión Zonal"
                 ]
             ],
             on="Barra-Clave-Mes",
