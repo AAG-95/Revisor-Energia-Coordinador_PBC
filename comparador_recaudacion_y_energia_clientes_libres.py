@@ -14,6 +14,9 @@ class ComparadorRecaudacionEnergia:
         # Carpeta de revisión listado de cliente con diferencias de energía
         self.carpeta_rev_listado_clientes = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\\02 Repartición\\Revisiones\\Revisión Recaudación\\"
 
+        self.carpeta_cargos = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\\02 Repartición\\Revisiones\\Revisión Recaudación\\"
+ 
+
     def cargar_datos_energia(self):
         self.df_energia = pd.read_csv(
             self.carpeta_energia + "Retiros_Históricos_Clientes_L.csv",
@@ -107,6 +110,15 @@ class ComparadorRecaudacionEnergia:
             )
             .reset_index()
         )
+
+        #Replace column "Cliente Individualizado" with 0 if "Cliente Individualizado" is not 0 or 1 
+        self.df_recaudacion["Cliente Individualizado"] = self.df_recaudacion["Cliente Individualizado"].apply(lambda x: 0 if x not in [0, 1] else x)
+        
+        lista_zonal_correctos = [np.nan , "Sistema A", "Sistema B", "Sistema C", "Sistema D", "Sistema E", "Sistema F"]
+
+        self.df_recaudacion["Zonal"] = self.df_recaudación["Zonal"].apply(lambda x: "na" not in lista_zonal_correctos)
+        #replace numpy nan with 
+
 
         """ self.df_recaudacion["Recaudador"] = self.df_recaudacion["Recaudador"].apply(lambda x: pd.Series(x).mode()[0] if pd.Series(x).mode().size else None) """
         return self.df_recaudacion
@@ -553,6 +565,9 @@ class ComparadorRecaudacionEnergia:
                     "Recaudador": lambda x: list(x)[-1],
                     "mes_repartición": lambda x: list(x),
                     "Recaudador No Informado": lambda x: x.iloc[0],
+                    "Cliente Individualizado": lambda x: x.iloc[0],
+                    "Zonal": lambda x: x.iloc[0],
+                    "Nivel Tensión Zonal": lambda x: x.iloc[0]
                 }
             )
             .reset_index()
@@ -664,6 +679,9 @@ class ComparadorRecaudacionEnergia:
                 "Clave",
                 "Suministrador",
                 "Recaudador",
+                "Cliente Individualizado",
+                "Zonal",
+                "Nivel Tensión Zonal",
                 "Mes Consumo",
                 "mes_repartición",
                 "Recaudador No Informado",
