@@ -14,10 +14,9 @@ class ComparadorRecaudacionEnergia:
         # Carpeta de revisión listado de cliente con diferencias de energía
         self.carpeta_rev_listado_clientes = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\\02 Repartición\\Revisiones\\Revisión Recaudación\\"
 
-        self.carpeta_cargos = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\\02 Repartición\\Revisiones\\Revisión Recaudación\\"
-
         self.carpeta_sistemas = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\\02 Repartición\\Revisiones\\Revisión Recaudación\\"
 
+        self.carpeta_cargos = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\\01 Fijaciones\\00 Formatos de declaración CUT\\Cargos Actualizados\\"
 
     def cargar_datos_energia(self):
         self.df_energia = pd.read_csv(
@@ -107,20 +106,31 @@ class ComparadorRecaudacionEnergia:
                     "Recaudador No Informado": lambda x: list(x),
                     "Cliente Individualizado": lambda x: list(x)[0],
                     "Zonal": lambda x: list(x)[0],
-                    "Nivel Tensión Zonal": lambda x: list(x)[0]
+                    "Nivel Tensión Zonal": lambda x: list(x)[0],
                 }
             )
             .reset_index()
         )
 
-        #Replace column "Cliente Individualizado" with 0 if "Cliente Individualizado" is not 0 or 1 
-        self.df_recaudacion["Cliente Individualizado"] = self.df_recaudacion["Cliente Individualizado"].apply(lambda x: 0 if x not in [0, 1] else x)
-        
-        lista_zonal_correctos = [np.nan , "Sistema A", "Sistema B", "Sistema C", "Sistema D", "Sistema E", "Sistema F"]
+        # Replace column "Cliente Individualizado" with 0 if "Cliente Individualizado" is not 0 or 1
+        self.df_recaudacion["Cliente Individualizado"] = self.df_recaudacion[
+            "Cliente Individualizado"
+        ].apply(lambda x: 0 if x not in [0, 1] else x)
 
-        self.df_recaudacion["Zonal"] = self.df_recaudación["Zonal"].apply(lambda x: "na" not in lista_zonal_correctos)
-        #replace numpy nan with 
+        lista_zonal_correctos = [
+            np.nan,
+            "Sistema A",
+            "Sistema B",
+            "Sistema C",
+            "Sistema D",
+            "Sistema E",
+            "Sistema F",
+        ]
 
+        self.df_recaudacion["Zonal"] = self.df_recaudación["Zonal"].apply(
+            lambda x: "na" not in lista_zonal_correctos
+        )
+        # replace numpy nan with
 
         """ self.df_recaudacion["Recaudador"] = self.df_recaudacion["Recaudador"].apply(lambda x: pd.Series(x).mode()[0] if pd.Series(x).mode().size else None) """
         return self.df_recaudacion
@@ -569,7 +579,7 @@ class ComparadorRecaudacionEnergia:
                     "Recaudador No Informado": lambda x: x.iloc[0],
                     "Cliente Individualizado": lambda x: x.iloc[0],
                     "Zonal": lambda x: x.iloc[0],
-                    "Nivel Tensión Zonal": lambda x: x.iloc[0]
+                    "Nivel Tensión Zonal": lambda x: x.iloc[0],
                 }
             )
             .reset_index()
@@ -602,7 +612,7 @@ class ComparadorRecaudacionEnergia:
                     "Recaudador No Informado",
                     "Cliente Individualizado",
                     "Zonal",
-                    "Nivel Tensión Zonal"
+                    "Nivel Tensión Zonal",
                 ]
             ],
             on="Barra-Clave-Mes",
@@ -706,18 +716,27 @@ class ComparadorRecaudacionEnergia:
         self.df_combinado_energia = self.df_combinado_energia.reset_index(drop=True)
 
     def contador_tipos_historicos_claves(self):
-    
 
         # Count the number of historical records per Clave and month
 
-        self.df_combinado_energia["Registro_Historico_de_Filtro_por_Clave"] = self.df_combinado_energia.groupby("Clave")["Filtro_Registro_Clave"].transform(lambda x: "Cliente Registrado Históricamente" if "Clientes Filtrados" in x.values else "Cliente No Registrado Históricamente")
-        
-        self.df_combinado_energia["Registro_Historico_de_Mes_por_Clave"] = (
-            self.df_combinado_energia.groupby(["Clave"])[
-                "Mes Consumo"
-            ].transform("count")
+        self.df_combinado_energia[
+            "Registro_Historico_de_Filtro_por_Clave"
+        ] = self.df_combinado_energia.groupby("Clave")[
+            "Filtro_Registro_Clave"
+        ].transform(
+            lambda x: (
+                "Cliente Registrado Históricamente"
+                if "Clientes Filtrados" in x.values
+                else "Cliente No Registrado Históricamente"
+            )
         )
-        
+
+        self.df_combinado_energia["Registro_Historico_de_Mes_por_Clave"] = (
+            self.df_combinado_energia.groupby(["Clave"])["Mes Consumo"].transform(
+                "count"
+            )
+        )
+
         # If Tipo y Clave are the same, then count based in column Mes Consumo
         self.df_combinado_energia["Registro_Historico_por_Clave_y_Tipo"] = (
             self.df_combinado_energia.groupby(["Clave", "Tipo"])[
@@ -725,64 +744,85 @@ class ComparadorRecaudacionEnergia:
             ].transform("count")
         )
 
-
         # Create a mask for rows where "Tipo" is either "Con Diferencias" or "No informado"
         # Define the filter
         # Filter rows where "Tipo" matches specific values
         # Filter rows based on the "Tipo" condition
-        filtro_tipo = self.df_combinado_energia["Tipo"].isin(["Clave no informada en RCUT", "Energía con Diferencias"])
+        filtro_tipo = self.df_combinado_energia["Tipo"].isin(
+            ["Clave no informada en RCUT", "Energía con Diferencias"]
+        )
 
         # Initialize the "Registro_Historico_No_Inf_y_Dif_por_Clave" column with 0
         self.df_combinado_energia["Registro_Historico_No_Inf_y_Dif_por_Clave"] = 0
 
         # For rows matching the filter, sum the occurrences for each "Clave" across both "Tipo" categories
-        self.df_combinado_energia.loc[filtro_tipo, "Registro_Historico_No_Inf_y_Dif_por_Clave"] = (
+        self.df_combinado_energia.loc[
+            filtro_tipo, "Registro_Historico_No_Inf_y_Dif_por_Clave"
+        ] = (
             self.df_combinado_energia[filtro_tipo]
             .groupby("Clave")["Mes Consumo"]
             .transform("count")
         )
 
-  
+        self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] = (
+            self.df_combinado_energia["Registro_Historico_No_Inf_y_Dif_por_Clave"]
+            / self.df_combinado_energia["Registro_Historico_de_Mes_por_Clave"]
+        ) * 100
+
+        conditions = [
+            (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] == 0),
+            (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] < 5),
+            (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] >= 5)
+            & (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] <= 20),
+            (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] > 20),
+        ]
+
+        # Choices corresponding to each condition
+        choices = [
+            "Clave sin Errores de Recaudación",  # For the first condition: 0%
+            "Clave con Errores de Recaudación Bajos",  # For values < 5%
+            "Clave con Errores de Recaudación Medios",  # For values >= 5% and <= 20%
+            "Clave con Errores de Recaudación Altos",  # For values > 20%
+        ]
+
+        # Apply conditions and choices
+        self.df_combinado_energia["Nivel_de_Error_Historico_por_Clave"] = np.select(
+            conditions,
+            choices,
+            default="Clientes No Filtrados",  # It's good practice to have a default value
+        )
 
         self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] = (
-        self.df_combinado_energia["Registro_Historico_No_Inf_y_Dif_por_Clave"] / self.df_combinado_energia["Registro_Historico_de_Mes_por_Clave"]
-    ) * 100
-                                
-        conditions = [
-    (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] == 0),
-    (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] < 5),
-    (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] >= 5) & (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] <= 20),
-    (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] > 20),
-]
+            self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"].astype(str)
+        )
 
-    # Choices corresponding to each condition
-        choices = [
-        "Clave sin Errores de Recaudación",  # For the first condition: 0%
-        "Clave con Errores de Recaudación Bajos",  # For values < 5%
-        "Clave con Errores de Recaudación Medios",  # For values >= 5% and <= 20%
-        "Clave con Errores de Recaudación Altos",  # For values > 20%
-    ]
-
-    # Apply conditions and choices
-        self.df_combinado_energia["Nivel_de_Error_Historico_por_Clave"] = np.select(
-        conditions,
-        choices,
-        default="Clientes No Filtrados"  # It's good practice to have a default value
-    )
-
-        self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] = self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"].astype(str)
-        
         # If Registro_Historico_por_Clave != Clientes No Filtrados, Filtro Registro Clave = Clientes Filtrados
         casos_por_analizar = ["Clave sin Error de Recaudación", "Clientes No Filtrados"]
 
         self.df_combinado_energia["Filtro_Registro_Clave"] = np.where(
-            (~self.df_combinado_energia["Nivel_de_Error_Historico_por_Clave"].isin(casos_por_analizar)) &
-            (self.df_combinado_energia["Registro_Historico_de_Filtro_por_Clave"] == "Cliente Registrado Históricamente"),
+            (
+                ~self.df_combinado_energia["Nivel_de_Error_Historico_por_Clave"].isin(
+                    casos_por_analizar
+                )
+            )
+            & (
+                self.df_combinado_energia["Registro_Historico_de_Filtro_por_Clave"]
+                == "Cliente Registrado Históricamente"
+            ),
             "Clientes Filtrados",
             self.df_combinado_energia["Filtro_Registro_Clave"],
         )
-        
+
         return self.df_combinado_energia
+
+    def sistemas_nt_barras(self):
+        df_sistemas_nt = pd.read_excel(
+            self.carpeta_sistemas + "Revisores RCUT.xlsm",
+            sheet_name="Sistemas Zonales vigentes Clien",
+            engine="openpyxl", header  = None
+        )
+        df_sistemas_nt = func.ObtencionDatos().obtencion_tablas_clientes(df_sistemas_nt, 5, 7, 13)
+        print("d")
 
     def guardar_datos(self):
 
@@ -792,14 +832,23 @@ class ComparadorRecaudacionEnergia:
             encoding="UTF-8",
             index=False,
         )
-
         return self.df_combinado_energia
 
     def run(self):
+        """print("Cargando datos energía...")
         self.cargar_datos_energia()
+        print("Cargando datos recaudación...")
         self.cargar_datos_recaudacion()
+        print("Cargando datos revisión clientes...")
         self.cargar_datos_revision_clientes()
+        print("Filtrando clientes...")
         self.filtro_clientes()
+        print("Combinando datos...")
         self.combinar_datos()
-        self.contador_tipos_historicos_claves()
+        print("Contando tipos históricos de claves...")
+        self.contador_tipos_historicos_claves()"""
+        print("Sistema y nivel de tensión según Barra, para clientes faltantes...")
+        self.sistemas_nt_barras()
+        """ print("Guardando datos...")
         self.guardar_datos()
+ """
