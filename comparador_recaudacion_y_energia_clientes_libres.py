@@ -15,7 +15,9 @@ class ComparadorRecaudacionEnergia:
         self.carpeta_rev_listado_clientes = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\\02 Repartición\\Revisiones\\Revisión Recaudación\\"
 
         self.carpeta_cargos = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\\02 Repartición\\Revisiones\\Revisión Recaudación\\"
- 
+
+        self.carpeta_sistemas = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\\02 Repartición\\Revisiones\\Revisión Recaudación\\"
+
 
     def cargar_datos_energia(self):
         self.df_energia = pd.read_csv(
