@@ -821,7 +821,7 @@ class ComparadorRecaudacionEnergia:
             sheet_name="Sistemas Zonales vigentes Clien",
             engine="openpyxl", header  = None
         )
-        df_sistemas_nt = func.ObtencionDatos().obtencion_tablas_clientes(df_sistemas_nt, 5, 7, 13)
+        df_sistemas_nt = func.ObtencionDatos().obtencion_tablas_clientes(df_sistemas_nt, 5, 6, 13)
         print("d")
 
     def guardar_datos(self):
