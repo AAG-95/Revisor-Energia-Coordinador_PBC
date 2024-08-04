@@ -651,7 +651,7 @@ class ComparadorRecaudacionEnergia:
         self.df_combinado_energia["Energía Declarada [kWh]"] = (
             self.df_combinado_energia["Energía Declarada [kWh]"].fillna(0)
         )
-        self.df_combinado_energia["Diferencia Energía [kWh]"] = (
+        self.df_combinado_energia["Diferencia Energía [kWh]"] = -(
             self.df_combinado_energia["Energía Balance [kWh]"]
             - self.df_combinado_energia["Energía Declarada [kWh]"]
         )
@@ -962,11 +962,39 @@ class ComparadorRecaudacionEnergia:
             axis=1,
         ) """
 
-        merged_df = self.df_combinado_energia.merge(
+        self.df_combinado_energia = self.df_combinado_energia.merge(
             self.df_cargos_sistemas_nt,
             left_on=["Zonal", "Nivel Tensión Zonal", "Mes Consumo Formato Datetime"],
             right_on=["Segmento", "Nivel Tensión [kV]", "Mes de Consumo"],
             how="left",
+        )
+
+        # New Column Recaudación[$] = Diferencia Energía [kWh] * Cargo Acumulado Individualizados  if Cliente Individualizado = 1 else Diferencia Energía [kWh] * Cargo Acumulado No Individualizados
+        self.df_combinado_energia["Recaudación [$]"] = np.where(
+            self.df_combinado_energia["Cliente Individualizado"] == 1,
+            self.df_combinado_energia["Diferencia Energía [kWh]"]
+            * self.df_combinado_energia["Cargo Acumulado Individualizado"],
+            self.df_combinado_energia["Diferencia Energía [kWh]"]
+            * self.df_combinado_energia["Cargo Acumulado No Individualizado"],
+        ).round(4)
+        
+        self.df_combinado_energia["Cargo Acumulado"] = np.where(
+            self.df_combinado_energia["Cliente Individualizado"] == 1,
+            self.df_combinado_energia["Cargo Acumulado Individualizado"],
+            
+             self.df_combinado_energia["Cargo Acumulado No Individualizado"],
+        )
+
+        # Drop columns Cargo Acumulado Individualizados and Cargo Acumulado No Individualizados Segmento Nivel Tensión [kV] Mes de Consumo Formato Datetime and Mes de Consumo
+        self.df_combinado_energia = self.df_combinado_energia.drop(
+            columns=[
+                "Cargo Acumulado Individualizado",
+                "Cargo Acumulado No Individualizado",
+                "Segmento",
+                "Nivel Tensión [kV]",
+                "Mes de Consumo",
+                "Mes Consumo Formato Datetime",
+            ]
         )
 
         print("Cargando datos energía...")

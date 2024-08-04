@@ -173,7 +173,7 @@ class DashBarChart:
         # Original aggregation
         df_combinado_por_tipo_energia = (
             df_combinado_energia.groupby(["Tipo"])
-            .agg({"Cantidad Registros": "first", "Diferencia Energía [kWh]": "sum"})
+            .agg({"Cantidad Registros": "first", "Diferencia Energía [kWh]": "sum", "Recaudación [$]": "sum"})
             .reset_index()
         )
 
@@ -197,7 +197,7 @@ class DashBarChart:
             * 100
         )
 
-        df_combinado_por_tipo_y_filtro_energia = (
+        """ df_combinado_por_tipo_y_filtro_energia = (
             df_combinado_energia.groupby(["Tipo", "Filtro_Registro_Clave"])
             .agg({"Cantidad Registros": "count", "Diferencia Energía [kWh]": "sum"})
             .reset_index()
@@ -207,7 +207,7 @@ class DashBarChart:
             df_combinado_por_tipo_y_filtro_energia["Diferencia Energía [kWh]"]
             / df_combinado_por_tipo_y_filtro_energia["Diferencia Energía [kWh]"].sum()
             * 100
-        )
+        ) """
 
         df_combinado_por_tipo_energia["Porcentaje Energía Dif [%]"] = (
             abs(df_combinado_por_tipo_energia["Diferencia Energía [kWh]"])
@@ -224,7 +224,8 @@ class DashBarChart:
                 "Clientes No Filtrados",
                 "Diferencia Energía [kWh]",
                 "Porcentaje Registros [%]",
-                "Porcentaje Energía Dif [%]"
+                "Porcentaje Energía Dif [%]",
+                "Recaudación [$]"
             ]
         ]
 
@@ -258,7 +259,7 @@ class DashBarChart:
             data=df_combinado_por_tipo_energia.to_dict("records"),
         )
 
-        # Tabla Revision Filtro
+        """ # Tabla Revision Filtro
         tabla_revision_energia_filtro = dash_table.DataTable(
             id="tabla_revision_energia_filtro",
             columns=[
@@ -266,7 +267,7 @@ class DashBarChart:
                 for i in df_combinado_por_tipo_y_filtro_energia.columns
             ],
             data=df_combinado_por_tipo_y_filtro_energia.to_dict("records"),
-        )
+        ) """
 
         # Tabla Revision detallada
         tabla_revision_energia = dash_table.DataTable(
@@ -1231,6 +1232,7 @@ class DashBarChart:
                     .agg(
                         {
                             "Diferencia Energía [kWh]": "sum",
+                            "Recaudación [$]": "sum",
                             "Cantidad Registros": "first",
                         }
                     )
@@ -1272,6 +1274,7 @@ class DashBarChart:
                         "Diferencia Energía [kWh]",
                         "Porcentaje Registros [%]",
                         "Porcentaje Energía Dif [%]",
+                        "Recaudación [$]"
                     ]
                 ]
 
@@ -1280,6 +1283,7 @@ class DashBarChart:
                     "Porcentaje Registros [%]",
                     "Porcentaje Energía Dif [%]",
                     "Diferencia Energía [kWh]",
+                    "Recaudación [$]"
                 ]
 
                 for column in columnas_nuevo_formato:
