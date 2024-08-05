@@ -102,10 +102,14 @@ class ComparadorSistemas:
                 "Suministrador",
                 "Recaudador",
                 "mes_repartición",
+                "Cliente Individualizado",
+                "Recaudador No Informado",
                 "Zonal",
                 "Nivel Tensión Zonal",
+                "Energía [kWh]"
             ]
         ]
+
 
         # Mayusculas
         self.df_recaudacion["Zonal"] = self.df_recaudacion["Zonal"].str.upper()
@@ -119,6 +123,7 @@ class ComparadorSistemas:
                 x if x in self.sistemas_zonales_permitidos else "Nacional/Dedicado"
             )
         )
+
         self.df_recaudacion["Nivel Tensión Zonal"] = self.df_recaudacion[
             "Nivel Tensión Zonal"
         ].apply(
@@ -126,18 +131,26 @@ class ComparadorSistemas:
                 x if x in self.niveles_de_tension_permitidos else "Nacional/Dedicado"
             )
         )
+        
+        #? Otros ajustes
 
+        # Replace column "Cliente Individualizado" with 0 if "Cliente Individualizado" is not 0 or 1
+        self.df_recaudacion["Cliente Individualizado"] = self.df_recaudacion[
+            "Cliente Individualizado"
+        ].apply(lambda x: 0 if x not in [0, 1] else x)
+
+    
         return self.df_recaudacion
 
     def combinar_datos(self):
-        df_combinado_sistemas = pd.merge(
+        self.df_combinado_sistemas = pd.merge(
             self.df_sistemas,
             self.df_recaudacion,
             on="Barra",
             how="left",
         ).reset_index(drop=True)
 
-        df_combinado_sistemas["Tipo"] = df_combinado_sistemas.apply(
+        self.df_combinado_sistemas["Tipo"] = self.df_combinado_sistemas.apply(
             lambda x: (
                 "Sistema y Nivel de Tensión Incorrecto"
                 if x["Zonal (RE244 2019)"] != x["Zonal"] and x["Nivel Tensión Zonal (según Barra)"] != x["Nivel Tensión Zonal"] 
@@ -158,15 +171,18 @@ class ComparadorSistemas:
         )
 
         # Drop Nan row when Clave column is nan
-        df_combinado_sistemas = df_combinado_sistemas.dropna(subset=["Clave"]).reset_index(drop=True)
+        self.df_combinado_sistemas = self.df_combinado_sistemas.dropna(subset=["Clave"]).reset_index(drop=True)
 
 
         """# Drop "Correcto" en columna Tipo
         df_combinado_sistemas = df_combinado_sistemas[df_combinado_sistemas["Tipo"] != "Correcto"]"""        
-        df_combinado_sistemas.to_csv(self.carpeta_salida + "df_revision_sistemas.csv", sep=";", encoding="UTF-8", index=False)
-        return df_combinado_sistemas
+        
+    def guardar_datos(self):
+        self.df_combinado_sistemas.to_csv(self.carpeta_salida + "df_revision_sistemas.csv", sep=";", encoding="UTF-8", index=False)
+        return self.df_combinado_sistemas
 
     def run(self):
         self.cargar_datos_sistemas()
         self.cargar_datos_recaudacion()
         self.combinar_datos()
+        self.guardar_datos()
