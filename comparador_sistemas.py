@@ -182,7 +182,7 @@ class ComparadorSistemas:
 
         self.df_combinado_sistemas["Zonal"] = (
             self.df_combinado_sistemas.apply(
-                lambda x: "na" if x["Nivel Tensión Zonal"] == "-" else x["Zonal"], 
+            lambda x: "na" if x["Nivel Tensión Zonal"] == "-" else x["Zonal"], 
                 axis=1
         )
         )
