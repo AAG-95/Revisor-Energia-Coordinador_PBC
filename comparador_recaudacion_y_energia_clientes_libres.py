@@ -143,8 +143,6 @@ class ComparadorRecaudacionEnergia:
             "Cliente Individualizado"
         ].apply(lambda x: 0 if x not in [0, 1] else x)
 
-        
-
         return self.df_recaudacion
 
     def cargar_datos_revision_clientes(self):
@@ -841,6 +839,7 @@ class ComparadorRecaudacionEnergia:
         self.df_sistemas_nt = self.df_sistemas_nt[
             ["Barra", "Zonal Definitivo", "Nivel Tensión Definitivo"]
         ]
+        
         # Replace in Zonal Definitivo word SISTEMA for Sistema
         self.df_sistemas_nt["Zonal Definitivo"] = (
             self.df_sistemas_nt["Zonal Definitivo"]
@@ -880,35 +879,34 @@ class ComparadorRecaudacionEnergia:
         )
 
     def cargos_sistemas_nt(self):
-
+        
+        # Fecha de Cargos Auxiliar
         self.df_combinado_energia["Mes Consumo Formato Datetime"] = pd.to_datetime(
             self.df_combinado_energia["Mes Consumo"], format="%d-%m-%Y"
         )
 
-        # quiero un a columna que tome la suma de als columnas Diferencia
-
+        #! Cargos Sistemas NT
         self.df_cargos_sistemas_nt = pd.read_excel(
             self.carpeta_cargos + "Cargos.xlsx", sheet_name="Cargos", engine="openpyxl"
-        )
+        ) # Read the excel file
 
-        # delete empty rows
         self.df_cargos_sistemas_nt = self.df_cargos_sistemas_nt.dropna(
             subset=["Segmento", "Nivel Tensión [kV]"], how="all"
-        )
+        ) # Drop rows where all columns (excluding the first column) are NaN
 
         self.df_combinado_energia["Cliente Individualizado"] = (
             self.df_combinado_energia["Cliente Individualizado"].replace(np.nan, 0)
-        )
+        ) # Replace NaN with 0 in column Cliente Individualizado
 
-        # replace Zonal numpy nan with na also in Segmento
         self.df_combinado_energia["Zonal"] = self.df_combinado_energia["Zonal"].replace(
             np.nan, "na"
-        )
+        ) # Replace NaN with na in column Zonal
+
+        # Replaces and type conversion
         self.df_cargos_sistemas_nt["Segmento"] = self.df_cargos_sistemas_nt[
             "Segmento"
         ].replace(np.nan, "na")
 
-        # replace nivel tensión zonal numpy nan with - also in nivel tensión [kV]
         self.df_combinado_energia["Nivel Tensión Zonal"] = self.df_combinado_energia[
             "Nivel Tensión Zonal"
         ].replace(np.nan, "-")
@@ -923,43 +921,7 @@ class ComparadorRecaudacionEnergia:
             "Nivel Tensión [kV]"
         ].astype(str)
 
-        # New column that adds column "Cargo Acumulado No Individualizados" from self.df_cargos_sistemas_nt based in column Segmento y Nivel Tensión [kV] from self.df_corgos_sistemas_nt amd column Zonal and Nivel Tensión Zonal from self.df_combinado_energia
-        print(self.df_combinado_energia[["Zonal", "Nivel Tensión Zonal"]].head())
-        print(self.df_cargos_sistemas_nt[["Segmento", "Nivel Tensión [kV]"]].head())
-
-        # Get unique values from 'Zonal' and 'Nivel Tensión Zonal' in self.df_combinado_energia
-        unique_zonal = self.df_combinado_energia["Zonal"].unique()
-        unique_nivel_tension_zonal = self.df_combinado_energia[
-            "Nivel Tensión Zonal"
-        ].unique()
-
-        # Print unique values
-        print("Unique values in 'Zonal':", unique_zonal)
-        print("Unique values in 'Nivel Tensión Zonal':", unique_nivel_tension_zonal)
-
-        # Get unique values from 'Segmento' and 'Nivel Tensión [kV]' in self.df_cargos_sistemas_nt
-        unique_segmento = self.df_cargos_sistemas_nt["Segmento"].unique()
-        unique_nivel_tension_kv = self.df_cargos_sistemas_nt[
-            "Nivel Tensión [kV]"
-        ].unique()
-
-        # Print unique values
-        print("Unique values in 'Segmento':", unique_segmento)
-        print("Unique values in 'Nivel Tensión [kV]':", unique_nivel_tension_kv)
-
-        """ self.df_combinado_energia["Cargo Acumulado No Individualizados"] = self.df_combinado_energia.apply(
-            lambda x: (
-                self.df_cargos_sistemas_nt.loc[
-                    (self.df_cargos_sistemas_nt["Segmento"] == x["Zonal"])
-                    & (self.df_cargos_sistemas_nt["Nivel Tensión [kV]"] == x["Nivel Tensión Zonal"]),
-                    "Cargo Acumulado No Individualizado",
-                ].values[0]
-                if x["Cliente Individualizado"] == 0
-                else 0
-            ),
-            axis=1,
-        ) """
-
+        # Merge df_combinado_energia with df_cargos_sistemas_nt based in columns Zonal, Nivel Tensión Zonal and Mes Consumo Formato Datetime    
         self.df_combinado_energia = self.df_combinado_energia.merge(
             self.df_cargos_sistemas_nt,
             left_on=["Zonal", "Nivel Tensión Zonal", "Mes Consumo Formato Datetime"],
@@ -976,6 +938,7 @@ class ComparadorRecaudacionEnergia:
             * self.df_combinado_energia["Cargo Acumulado No Individualizado"],
         ).round(4)
 
+        # New Column Cargo Acumulado = Cargo Acumulado Individualizados if Cliente Individualizado = 1 else Cargo Acumulado No Individualizados
         self.df_combinado_energia["Cargo Acumulado"] = np.where(
             self.df_combinado_energia["Cliente Individualizado"] == 1,
             self.df_combinado_energia["Cargo Acumulado Individualizado"],

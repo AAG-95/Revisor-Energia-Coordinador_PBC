@@ -2,6 +2,7 @@ import pandas as pd
 import funciones as fc
 import numpy as np
 
+
 class ComparadorSistemas:
     def __init__(self):
         # Carpeta de salida
@@ -11,13 +12,15 @@ class ComparadorSistemas:
         # Carpeta de energía
         self.carpeta_sistemas = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\\02 Repartición\\Revisiones\\Revisión Recaudación\\"
 
+        self.carpeta_cargos = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\\01 Fijaciones\\00 Formatos de declaración CUT\\Cargos Actualizados\\"
+
         self.sistemas_zonales_permitidos = [
-            "SISTEMA A",
-            "SISTEMA B",
-            "SISTEMA C",
-            "SISTEMA D",
-            "SISTEMA E",
-            "SISTEMA F",
+            "Sistema A",
+            "Sistema B",
+            "Sistema C",
+            "Sistema D",
+            "Sistema E",
+            "Sistema F",
         ]
 
         self.niveles_de_tension_permitidos = [
@@ -26,9 +29,8 @@ class ComparadorSistemas:
             "110",
             "220",
             "154",
-            "TX < 25",
             "44",
-            "Tx < 66",
+            "33",
         ]
 
     def cargar_datos_sistemas(self):
@@ -41,37 +43,31 @@ class ComparadorSistemas:
 
         self.df_sistemas = fc.ObtencionDatos().obtencion_Tablas(self.df_sistemas, 5, 6)
 
-        # Mantain Barra, Zonal (RE244 2019) and Sistema (RE244 2019) and Nivel Tensión Zonal (según Barra)
+        # Mantain Barra, Zonal Definitivo and Sistema (RE244 2019) and Nivel Tensión Definitivo
         self.df_sistemas = self.df_sistemas[
             [
                 "Barra",
-                "Zonal (RE244 2019)",
-                "Sistema (RE244 2019)",
-                "Nivel Tensión Zonal (según Barra)",
+                "Zonal Definitivo",
+                "Nivel Tensión Definitivo",
             ]
         ]
 
         # Mayusculas
-        self.df_sistemas["Zonal (RE244 2019)"] = self.df_sistemas[
-            "Zonal (RE244 2019)"
-        ].str.upper()
-        self.df_sistemas["Nivel Tensión Zonal (según Barra)"] = self.df_sistemas[
-            "Nivel Tensión Zonal (según Barra)"
+        self.df_sistemas["Zonal Definitivo"] = self.df_sistemas[
+            "Zonal Definitivo"
         ].str.upper()
 
-        # Si valor de nivel de tensión no está en la lista de zonal ni niveles de tensión permitidos, se reemplaza por "Nacional/Dedicado"
-        self.df_sistemas["Zonal (RE244 2019)"] = self.df_sistemas["Zonal (RE244 2019)"].apply(
-            lambda x: (
-                x if x in self.sistemas_zonales_permitidos else "Nacional/Dedicado"
-            )
-        )
-        self.df_sistemas["Nivel Tensión Zonal (según Barra)"] = self.df_sistemas[
-            "Nivel Tensión Zonal (según Barra)"
-        ].apply(
-            lambda x: (
-                x if x in self.niveles_de_tension_permitidos else "Nacional/Dedicado"
-            )
-        )
+        self.df_sistemas["Nivel Tensión Definitivo"] = self.df_sistemas[
+            "Nivel Tensión Definitivo"
+        ].str.upper()
+
+        # Si valor de nivel de tensión no está en la lista de zonal ni niveles de tensión permitidos, se reemplaza por "na"
+        self.df_sistemas["Zonal Definitivo"] = self.df_sistemas[
+            "Zonal Definitivo"
+        ].apply(lambda x: (x if x in self.sistemas_zonales_permitidos else "na"))
+        self.df_sistemas["Nivel Tensión Definitivo"] = self.df_sistemas[
+            "Nivel Tensión Definitivo"
+        ].apply(lambda x: (x if x in self.niveles_de_tension_permitidos else "-"))
 
         return self.df_sistemas
 
@@ -106,46 +102,38 @@ class ComparadorSistemas:
                 "Recaudador No Informado",
                 "Zonal",
                 "Nivel Tensión Zonal",
-                "Energía [kWh]"
+                "Energía [kWh]",
             ]
         ]
 
-
         # Mayusculas
-        self.df_recaudacion["Zonal"] = self.df_recaudacion["Zonal"].str.upper()
+        """ self.df_recaudacion["Zonal"] = self.df_recaudacion["Zonal"].str.upper()
         self.df_recaudacion["Nivel Tensión Zonal"] = self.df_recaudacion[
             "Nivel Tensión Zonal"
-        ].str.upper()
+        ].str.upper() """
 
-        # Si valor de nivel de tensión no está en la lista de zonal ni niveles de tensión permitidos, se reemplaza por "Nacional/Dedicado"
+        # Si valor de nivel de tensión no está en la lista de zonal ni niveles de tensión permitidos, se reemplaza por "na"
         self.df_recaudacion["Zonal"] = self.df_recaudacion["Zonal"].apply(
-            lambda x: (
-                x if x in self.sistemas_zonales_permitidos else "Nacional/Dedicado"
-            )
+            lambda x: (x if x in self.sistemas_zonales_permitidos else "na")
         )
 
         self.df_recaudacion["Nivel Tensión Zonal"] = self.df_recaudacion[
             "Nivel Tensión Zonal"
-        ].apply(
-            lambda x: (
-                x if x in self.niveles_de_tension_permitidos else "Nacional/Dedicado"
-            )
-        )
-        
-        #? Otros ajustes
+        ].apply(lambda x: (x if x in self.niveles_de_tension_permitidos else "-"))
+
+        # ? Otros ajustes
 
         # Replace column "Cliente Individualizado" with 0 if "Cliente Individualizado" is not 0 or 1
         self.df_recaudacion["Cliente Individualizado"] = self.df_recaudacion[
             "Cliente Individualizado"
         ].apply(lambda x: 0 if x not in [0, 1] else x)
 
-    
         return self.df_recaudacion
 
     def combinar_datos(self):
         self.df_combinado_sistemas = pd.merge(
-            self.df_sistemas,
             self.df_recaudacion,
+            self.df_sistemas,
             on="Barra",
             how="left",
         ).reset_index(drop=True)
@@ -153,36 +141,204 @@ class ComparadorSistemas:
         self.df_combinado_sistemas["Tipo"] = self.df_combinado_sistemas.apply(
             lambda x: (
                 "Sistema y Nivel de Tensión Incorrecto"
-                if x["Zonal (RE244 2019)"] != x["Zonal"] and x["Nivel Tensión Zonal (según Barra)"] != x["Nivel Tensión Zonal"] 
+                if x["Zonal Definitivo"] != x["Zonal"]
+                and x["Nivel Tensión Definitivo"] != x["Nivel Tensión Zonal"]
                 else (
                     "Sistema Incorrecto"
-                    if x["Zonal (RE244 2019)"] != x["Zonal"]
+                    if x["Zonal Definitivo"] != x["Zonal"]
                     else (
                         "Nivel de Tensión Incorrecto"
-                        if x["Nivel Tensión Zonal (según Barra)"] != x["Nivel Tensión Zonal"]
-                    else (
-                        "Nivel de Tensión Incorrecto"
-                        if x["Nivel Tensión Zonal (según Barra)"] != x["Nivel Tensión Zonal"]
-                        else " Sistema y Nivel de Tensión Correcto"
+                        if x["Nivel Tensión Definitivo"] != x["Nivel Tensión Zonal"]
+                        else (
+                            "Nivel de Tensión Incorrecto"
+                            if x["Nivel Tensión Definitivo"] != x["Nivel Tensión Zonal"]
+                            else " Sistema y Nivel de Tensión Correcto"
+                        )
                     )
-                ) )
+                )
             ),
             axis=1,
         )
 
-        # Drop Nan row when Clave column is nan
-        self.df_combinado_sistemas = self.df_combinado_sistemas.dropna(subset=["Clave"]).reset_index(drop=True)
+        # Drop Nan x when Clave column is nan
+        self.df_combinado_sistemas = self.df_combinado_sistemas.dropna(
+            subset=["Clave"]
+        ).reset_index(drop=True)
 
+        # Prepare data for cargos_sistemas_nt
+        # replace - with na in Zonal
+        self.df_combinado_sistemas["Zonal"] = self.df_combinado_sistemas[
+            "Zonal"
+        ].replace("-", "na")
 
+        # If column Zonal has na then zonal is -[
+        # If column Zonal has na then replace in Nivel Tensión Zonal with -
+        self.df_combinado_sistemas["Nivel Tensión Zonal"] = (
+            self.df_combinado_sistemas.apply(
+                lambda x: "-" if x["Zonal"] == "na" else x["Nivel Tensión Zonal"],
+                axis=1,
+            )
+        )
+
+        self.df_combinado_sistemas["Zonal"] = (
+            self.df_combinado_sistemas.apply(
+                lambda x: "na" if x["Nivel Tensión Zonal"] == "-" else x["Zonal"], 
+                axis=1
+        )
+        )
         """# Drop "Correcto" en columna Tipo
-        df_combinado_sistemas = df_combinado_sistemas[df_combinado_sistemas["Tipo"] != "Correcto"]"""        
+        df_combinado_sistemas = df_combinado_sistemas[df_combinado_sistemas["Tipo"] != "Correcto"]"""
+
+    def cargos_sistemas_nt(self):
+
+        # Fecha de Cargos Auxiliar
+        self.df_combinado_sistemas["Mes Consumo Formato Datetime"] = pd.to_datetime(
+            self.df_combinado_sistemas["Mes Consumo"], format="%d-%m-%Y"
+        )
+
+        #! Cargos Sistemas NT
+        self.df_cargos_sistemas_nt = pd.read_excel(
+            self.carpeta_cargos + "Cargos.xlsx", sheet_name="Cargos", engine="openpyxl"
+        )  # Read the excel file
+
+        self.df_cargos_sistemas_nt = self.df_cargos_sistemas_nt.dropna(
+            subset=["Segmento", "Nivel Tensión [kV]"], how="all"
+        )  # Drop xs where all columns (excluding the first column) are NaN
+
+        self.df_combinado_sistemas[
+            "Cliente Individualizado"
+        ] = self.df_combinado_sistemas["Cliente Individualizado"].replace(
+            np.nan, 0
+        )  # Replace NaN with 0 in column Cliente Individualizado
+
+        self.df_combinado_sistemas["Zonal"] = self.df_combinado_sistemas[
+            "Zonal"
+        ].replace(
+            np.nan, "na"
+        )  # Replace NaN with na in column Zonal
+
+        # Replaces and type conversion
+        self.df_cargos_sistemas_nt["Segmento"] = self.df_cargos_sistemas_nt[
+            "Segmento"
+        ].replace(np.nan, "na")
+
+        self.df_combinado_sistemas["Nivel Tensión Zonal"] = self.df_combinado_sistemas[
+            "Nivel Tensión Zonal"
+        ].replace(np.nan, "-")
+        self.df_cargos_sistemas_nt["Nivel Tensión [kV]"] = self.df_cargos_sistemas_nt[
+            "Nivel Tensión [kV]"
+        ].replace(np.nan, "-")
+
+        self.df_combinado_sistemas["Nivel Tensión Zonal"] = self.df_combinado_sistemas[
+            "Nivel Tensión Zonal"
+        ].astype(str)
+        self.df_cargos_sistemas_nt["Nivel Tensión [kV]"] = self.df_cargos_sistemas_nt[
+            "Nivel Tensión [kV]"
+        ].astype(str)
+
+
+        # Column energia to float
+        self.df_combinado_sistemas["Energía [kWh]"] = self.df_combinado_sistemas["Energía [kWh]"].str.replace(',', '.').astype(float)
+
+        # ? Cargos Sistema y NT Reportado
+
+        # Merge df_combinado_energia with df_cargos_sistemas_nt based in columns Zonal, Nivel Tensión Zonal and Mes Consumo Formato Datetime
+        self.df_combinado_sistemas = self.df_combinado_sistemas.merge(
+            self.df_cargos_sistemas_nt,
+            left_on=["Zonal", "Nivel Tensión Zonal", "Mes Consumo Formato Datetime"],
+            right_on=["Segmento", "Nivel Tensión [kV]", "Mes de Consumo"],
+            how="left",
+        )
         
+
+        # New Column Recaudación[$] = Diferencia Energía [kWh] * Cargo Acumulado Individualizados  if Cliente Individualizado = 1 else Diferencia Energía [kWh] * Cargo Acumulado No Individualizados
+        self.df_combinado_sistemas["Recaudación Sistema y NT Informado [$]"] = np.where(
+            self.df_combinado_sistemas["Cliente Individualizado"] == 1,
+            self.df_combinado_sistemas["Energía [kWh]"]
+            * self.df_combinado_sistemas["Cargo Acumulado Individualizado"],
+            self.df_combinado_sistemas["Energía [kWh]"]
+            * self.df_combinado_sistemas["Cargo Acumulado No Individualizado"],
+        ).round(4)
+
+        # New Column Cargo Acumulado = Cargo Acumulado Individualizados if Cliente Individualizado = 1 else Cargo Acumulado No Individualizados
+        self.df_combinado_sistemas["Cargo Acumulado Sistema y NT Informado"] = np.where(
+            self.df_combinado_sistemas["Cliente Individualizado"] == 1,
+            self.df_combinado_sistemas["Cargo Acumulado Individualizado"],
+            self.df_combinado_sistemas["Cargo Acumulado No Individualizado"],
+        )
+
+        # Drop columns Cargo Acumulado Individualizados and Cargo Acumulado No Individualizados Segmento Nivel Tensión [kV] Mes de Consumo Formato Datetime and Mes de Consumo
+        self.df_combinado_sistemas = self.df_combinado_sistemas.drop(
+            columns=[
+                "Cargo Acumulado Individualizado",
+                "Cargo Acumulado No Individualizado",
+                "Segmento",
+                "Nivel Tensión [kV]",
+                "Mes de Consumo",
+                
+            ]
+        )
+
+        # ? Cargos Sistema y NT Reportado
+
+
+        # "Mes Consumo Formato Datetime",
+
+        # Merge df_combinado_energia with df_cargos_sistemas_nt based in columns Zonal, Nivel Tensión Zonal and Mes Consumo Formato Datetime
+        self.df_combinado_sistemas = self.df_combinado_sistemas.merge(
+            self.df_cargos_sistemas_nt,
+            left_on=["Zonal Definitivo", "Nivel Tensión Definitivo", "Mes Consumo Formato Datetime"],
+            right_on=["Segmento", "Nivel Tensión [kV]", "Mes de Consumo"],
+            how="left",
+        )
+
+        # New Column Recaudación[$] = Diferencia Energía [kWh] * Cargo Acumulado Individualizados  if Cliente Individualizado = 1 else Diferencia Energía [kWh] * Cargo Acumulado No Individualizados
+        self.df_combinado_sistemas["Recaudación Sistema y NT Según Barra [$]"] = np.where(
+            self.df_combinado_sistemas["Cliente Individualizado"] == 1,
+            self.df_combinado_sistemas["Energía [kWh]"]
+            * self.df_combinado_sistemas["Cargo Acumulado Individualizado"],
+            self.df_combinado_sistemas["Energía [kWh]"]
+            * self.df_combinado_sistemas["Cargo Acumulado No Individualizado"],
+        ).round(4)
+
+        # New Column Cargo Acumulado = Cargo Acumulado Individualizados if Cliente Individualizado = 1 else Cargo Acumulado No Individualizados
+        self.df_combinado_sistemas["Cargo Acumulado Sistema y NT Según Barra"] = np.where(
+            self.df_combinado_sistemas["Cliente Individualizado"] == 1,
+            self.df_combinado_sistemas["Cargo Acumulado Individualizado"],
+            self.df_combinado_sistemas["Cargo Acumulado No Individualizado"],
+        )
+
+        # Drop columns Cargo Acumulado Individualizados and Cargo Acumulado No Individualizados Segmento Nivel Tensión [kV] Mes de Consumo Formato Datetime and Mes de Consumo
+        self.df_combinado_sistemas = self.df_combinado_sistemas.drop(
+            columns=[
+                "Cargo Acumulado Individualizado",
+                "Cargo Acumulado No Individualizado",
+                "Segmento",
+                "Nivel Tensión [kV]",
+                "Mes de Consumo",
+                "Mes Consumo Formato Datetime"
+            ]
+        )
+
+        self.df_combinado_sistemas["Diferencia Recaudación Sistema y NT [$]"] = (
+            self.df_combinado_sistemas["Recaudación Sistema y NT Informado [$]"]
+            - self.df_combinado_sistemas["Recaudación Sistema y NT Según Barra [$]"]
+        )
+
+        print("Cargando datos energía...")
+
     def guardar_datos(self):
-        self.df_combinado_sistemas.to_csv(self.carpeta_salida + "df_revision_sistemas.csv", sep=";", encoding="UTF-8", index=False)
+        self.df_combinado_sistemas.to_csv(
+            self.carpeta_salida + "df_revision_sistemas.csv",
+            sep=";",
+            encoding="UTF-8",
+            index=False,
+        )
         return self.df_combinado_sistemas
 
     def run(self):
         self.cargar_datos_sistemas()
         self.cargar_datos_recaudacion()
         self.combinar_datos()
+        self.cargos_sistemas_nt()
         self.guardar_datos()
