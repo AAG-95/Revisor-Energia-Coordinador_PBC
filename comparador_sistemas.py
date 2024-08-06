@@ -53,14 +53,21 @@ class ComparadorSistemas:
         ]
 
         # Mayusculas
-        self.df_sistemas["Zonal Definitivo"] = self.df_sistemas[
+        """ self.df_sistemas["Zonal Definitivo"] = self.df_sistemas[
             "Zonal Definitivo"
         ].str.upper()
 
         self.df_sistemas["Nivel Tensión Definitivo"] = self.df_sistemas[
             "Nivel Tensión Definitivo"
-        ].str.upper()
+        ].str.upper() """
 
+        # Replace in Zonal Definitivo word SISTEMA for Sistema
+        self.df_sistemas["Zonal Definitivo"] = (
+            self.df_sistemas["Zonal Definitivo"]
+            .str.replace("SISTEMA", "Sistema")
+            .str.replace("Nacional", "na")
+            .str.replace("Dedicado", "na")
+        )
         # Si valor de nivel de tensión no está en la lista de zonal ni niveles de tensión permitidos, se reemplaza por "na"
         self.df_sistemas["Zonal Definitivo"] = self.df_sistemas[
             "Zonal Definitivo"
@@ -173,16 +180,16 @@ class ComparadorSistemas:
 
         # If column Zonal has na then zonal is -[
         # If column Zonal has na then replace in Nivel Tensión Zonal with -
-        self.df_combinado_sistemas["Nivel Tensión Zonal"] = (
+        self.df_combinado_sistemas["Nivel Tensión Definitivo"] = (
             self.df_combinado_sistemas.apply(
-                lambda x: "-" if x["Zonal"] == "na" else x["Nivel Tensión Zonal"],
+                lambda x: "-" if x["Zonal Definitivo"] == "na" else x["Nivel Tensión Definitivo"],
                 axis=1,
             )
         )
 
-        self.df_combinado_sistemas["Zonal"] = (
+        self.df_combinado_sistemas["Zonal Definitivo"] = (
             self.df_combinado_sistemas.apply(
-            lambda x: "na" if x["Nivel Tensión Zonal"] == "-" else x["Zonal"], 
+            lambda x: "na" if x["Nivel Tensión Definitivo"] == "-" else x["Zonal Definitivo"], 
                 axis=1
         )
         )
