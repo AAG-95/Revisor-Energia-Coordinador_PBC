@@ -834,7 +834,7 @@ class ComparadorRecaudacionEnergia:
         )
         self.df_sistemas_nt = func.ObtencionDatos().obtencion_tablas_clientes(
             self.df_sistemas_nt, 5, 6, 16
-        )
+    )
 
         self.df_sistemas_nt = self.df_sistemas_nt[
             ["Barra", "Zonal Definitivo", "Nivel Tensión Definitivo"]

@@ -1551,10 +1551,14 @@ class DashBarChart:
                     & df_combinado_sistemas["Tipo"].isin(selected_tipo)
                 ]
 
-                """ columnas_a_modificar = [
-                    "Energía Balance [kWh]",
-                    "Energía Declarada [kWh]",
-                    "Diferencia Energía [kWh]",
+                columnas_a_modificar = [
+                    "Energía [kWh]",
+                    "Diferencia Recaudación Sistema y NT [$]",
+                    "Recaudación Sistema y NT Según Barra [$]",
+                    "Recaudación Sistema y NT Informado [$]",
+                    "Cargo Acumulado Sistema y NT Informado",
+                    "Cargo Acumulado Sistema y NT Según Barra"
+
                 ]  # replace with your column names
 
                 for column in columnas_a_modificar:
@@ -1567,7 +1571,7 @@ class DashBarChart:
                         .replace(" ", ".")
                     )
 
-                df_combinado_filtrado.loc[
+                """ df_combinado_filtrado.loc[
                     :, "% Diferencia Energía"
                 ] = df_combinado_filtrado["% Diferencia Energía"].apply(
                     lambda x: "{:.2%}".format(x)

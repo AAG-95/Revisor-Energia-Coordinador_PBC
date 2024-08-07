@@ -334,6 +334,18 @@ class ComparadorSistemas:
 
         print("Cargando datos energía...")
 
+    def filtro_clientes():
+
+        # unite columns Barra - Mes ConsumO - Clave
+        self.df_combinado_sistemas["Barra-Mes-Clave"] = (
+            self.df_combinado_sistemas["Barra"]
+            + "-"
+            + self.df_combinado_sistemas["Mes Consumo"]
+            + "-"
+            + self.df_combinado_sistemas["Clave"]
+        )
+
+
     def guardar_datos(self):
         self.df_combinado_sistemas.to_csv(
             self.carpeta_salida + "df_revision_sistemas.csv",
@@ -348,4 +360,5 @@ class ComparadorSistemas:
         self.cargar_datos_recaudacion()
         self.combinar_datos()
         self.cargos_sistemas_nt()
+        self.filtro_clientes()
         self.guardar_datos()
