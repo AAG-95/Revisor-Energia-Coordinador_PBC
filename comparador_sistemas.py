@@ -334,7 +334,7 @@ class ComparadorSistemas:
 
         print("Cargando datos energía...")
 
-    def filtro_clientes():
+    def filtro_clientes(self):
 
         # unite columns Barra - Mes ConsumO - Clave
         self.df_combinado_sistemas["Barra-Mes-Clave"] = (
@@ -345,6 +345,11 @@ class ComparadorSistemas:
             + self.df_combinado_sistemas["Clave"]
         )
 
+        df_clientes_filtro= pd.read_excel(
+            self.carpeta_sistemas + "Revisores RCUT.xlsm", sheet_name = "Casos excepcionales Sistemas", header=None, engine="openpyxl")
+        
+        df_clientes_filtro = fc.ObtencionDatos().obtencion_tablas_clientes(df_clientes_filtro, 5, 2, 12)
+        df_clientes_filtro["Barra-Mes-Cliente"] = df_clientes_filtro["Barra"] + "-" + df_clientes_filtro["Mes"] + "-" + df_clientes_filtro["Cliente"]
 
     def guardar_datos(self):
         self.df_combinado_sistemas.to_csv(
