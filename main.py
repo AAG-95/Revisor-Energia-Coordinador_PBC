@@ -67,7 +67,7 @@ if (
         pass
 
 if codigos_a_correr["comparador_recaudacion_clientes_libres"]:                      
-    print("Entrando a comparador_recaudacion_y_energia_clientes_libres. bnpy...")
+    print("Entrando a comparador_recaudacion_y_energia_clientes_libres. bnpy...")                       
     cre.ComparadorRecaudacionEnergia().run()
     print("Saliendo de comparador_recaudacion_y_energia_clientes_libres.py...")
     pass
@@ -77,14 +77,14 @@ if codigos_a_correr["comparador_recaudacion_clientes_regulados"]:
     crr.ComparadorRecaudacionEnergia().run()
     print("Saliendo de comparador_recaudacion_y_energia_clientes_regulados.py...")
     pass
-
+                        
 if codigos_a_correr["comparador_sistemas"]:
     print("Entrando a comparador_sistemas.py...")
     csi.ComparadorSistemas().run()
     print("Saliendo de comparador_sistemas.py...")
     pass
 
-if codigos_a_correr["comparador_clientes_ind"]:
+if codigos_a_correr["comparador_clientes_ind"]:     
     print("Entrando a comparador_cliente_   individualizado.py...")
     cci.ComparadorClienteIndividualizado().run()
     print("Saliendo de comparador_cliente_individualizado.py...")

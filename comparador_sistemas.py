@@ -182,16 +182,24 @@ class ComparadorSistemas:
         # If column Zonal has na then replace in Nivel Tensión Zonal with -
         self.df_combinado_sistemas["Nivel Tensión Definitivo"] = (
             self.df_combinado_sistemas.apply(
-                lambda x: "-" if x["Zonal Definitivo"] == "na" else x["Nivel Tensión Definitivo"],
+                lambda x: (
+                    "-"
+                    if x["Zonal Definitivo"] == "na"
+                    else x["Nivel Tensión Definitivo"]
+                ),
                 axis=1,
             )
         )
 
         self.df_combinado_sistemas["Zonal Definitivo"] = (
             self.df_combinado_sistemas.apply(
-            lambda x: "na" if x["Nivel Tensión Definitivo"] == "-" else x["Zonal Definitivo"], 
-                axis=1
-        )
+                lambda x: (
+                    "na"
+                    if x["Nivel Tensión Definitivo"] == "-"
+                    else x["Zonal Definitivo"]
+                ),
+                axis=1,
+            )
         )
         """# Drop "Correcto" en columna Tipo
         df_combinado_sistemas = df_combinado_sistemas[df_combinado_sistemas["Tipo"] != "Correcto"]"""
@@ -243,9 +251,12 @@ class ComparadorSistemas:
             "Nivel Tensión [kV]"
         ].astype(str)
 
-
         # Column energia to float
-        self.df_combinado_sistemas["Energía [kWh]"] = self.df_combinado_sistemas["Energía [kWh]"].str.replace(',', '.').astype(float)
+        self.df_combinado_sistemas["Energía [kWh]"] = (
+            self.df_combinado_sistemas["Energía [kWh]"]
+            .str.replace(",", ".")
+            .astype(float)
+        )
 
         # ? Cargos Sistema y NT Reportado
 
@@ -256,7 +267,6 @@ class ComparadorSistemas:
             right_on=["Segmento", "Nivel Tensión [kV]", "Mes de Consumo"],
             how="left",
         )
-        
 
         # New Column Recaudación[$] = Diferencia Energía [kWh] * Cargo Acumulado Individualizados  if Cliente Individualizado = 1 else Diferencia Energía [kWh] * Cargo Acumulado No Individualizados
         self.df_combinado_sistemas["Recaudación Sistema y NT Informado [$]"] = np.where(
@@ -282,37 +292,43 @@ class ComparadorSistemas:
                 "Segmento",
                 "Nivel Tensión [kV]",
                 "Mes de Consumo",
-                
             ]
         )
 
         # ? Cargos Sistema y NT Reportado
-
 
         # "Mes Consumo Formato Datetime",
 
         # Merge df_combinado_energia with df_cargos_sistemas_nt based in columns Zonal, Nivel Tensión Zonal and Mes Consumo Formato Datetime
         self.df_combinado_sistemas = self.df_combinado_sistemas.merge(
             self.df_cargos_sistemas_nt,
-            left_on=["Zonal Definitivo", "Nivel Tensión Definitivo", "Mes Consumo Formato Datetime"],
+            left_on=[
+                "Zonal Definitivo",
+                "Nivel Tensión Definitivo",
+                "Mes Consumo Formato Datetime",
+            ],
             right_on=["Segmento", "Nivel Tensión [kV]", "Mes de Consumo"],
             how="left",
         )
 
         # New Column Recaudación[$] = Diferencia Energía [kWh] * Cargo Acumulado Individualizados  if Cliente Individualizado = 1 else Diferencia Energía [kWh] * Cargo Acumulado No Individualizados
-        self.df_combinado_sistemas["Recaudación Sistema y NT Según Barra [$]"] = np.where(
-            self.df_combinado_sistemas["Cliente Individualizado"] == 1,
-            self.df_combinado_sistemas["Energía [kWh]"]
-            * self.df_combinado_sistemas["Cargo Acumulado Individualizado"],
-            self.df_combinado_sistemas["Energía [kWh]"]
-            * self.df_combinado_sistemas["Cargo Acumulado No Individualizado"],
-        ).round(4)
+        self.df_combinado_sistemas["Recaudación Sistema y NT Según Barra [$]"] = (
+            np.where(
+                self.df_combinado_sistemas["Cliente Individualizado"] == 1,
+                self.df_combinado_sistemas["Energía [kWh]"]
+                * self.df_combinado_sistemas["Cargo Acumulado Individualizado"],
+                self.df_combinado_sistemas["Energía [kWh]"]
+                * self.df_combinado_sistemas["Cargo Acumulado No Individualizado"],
+            ).round(4)
+        )
 
         # New Column Cargo Acumulado = Cargo Acumulado Individualizados if Cliente Individualizado = 1 else Cargo Acumulado No Individualizados
-        self.df_combinado_sistemas["Cargo Acumulado Sistema y NT Según Barra"] = np.where(
-            self.df_combinado_sistemas["Cliente Individualizado"] == 1,
-            self.df_combinado_sistemas["Cargo Acumulado Individualizado"],
-            self.df_combinado_sistemas["Cargo Acumulado No Individualizado"],
+        self.df_combinado_sistemas["Cargo Acumulado Sistema y NT Según Barra"] = (
+            np.where(
+                self.df_combinado_sistemas["Cliente Individualizado"] == 1,
+                self.df_combinado_sistemas["Cargo Acumulado Individualizado"],
+                self.df_combinado_sistemas["Cargo Acumulado No Individualizado"],
+            )
         )
 
         # Drop columns Cargo Acumulado Individualizados and Cargo Acumulado No Individualizados Segmento Nivel Tensión [kV] Mes de Consumo Formato Datetime and Mes de Consumo
@@ -323,7 +339,7 @@ class ComparadorSistemas:
                 "Segmento",
                 "Nivel Tensión [kV]",
                 "Mes de Consumo",
-                "Mes Consumo Formato Datetime"
+                "Mes Consumo Formato Datetime",
             ]
         )
 
@@ -334,22 +350,105 @@ class ComparadorSistemas:
 
         print("Cargando datos energía...")
 
-    def filtro_clientes(self):
-
-        # unite columns Barra - Mes ConsumO - Clave
+    def cargar_datos_revision_sistemas(self):
+        """# unite columns Barra - Mes ConsumO - Clave
         self.df_combinado_sistemas["Barra-Mes-Clave"] = (
             self.df_combinado_sistemas["Barra"]
             + "-"
             + self.df_combinado_sistemas["Mes Consumo"]
             + "-"
             + self.df_combinado_sistemas["Clave"]
+        )"""
+
+        self.df_sistema_filtro = pd.read_excel(
+            self.carpeta_sistemas + "Revisores RCUT.xlsm",
+            sheet_name="Casos excepcionales Sistemas",
+            header=None,
+            engine="openpyxl",
         )
 
-        df_clientes_filtro= pd.read_excel(
-            self.carpeta_sistemas + "Revisores RCUT.xlsm", sheet_name = "Casos excepcionales Sistemas", header=None, engine="openpyxl")
-        
-        df_clientes_filtro = fc.ObtencionDatos().obtencion_tablas_clientes(df_clientes_filtro, 5, 2, 12)
-        df_clientes_filtro["Barra-Mes-Cliente"] = df_clientes_filtro["Barra"] + "-" + df_clientes_filtro["Mes"] + "-" + df_clientes_filtro["Cliente"]
+        self.df_sistema_filtro = fc.ObtencionDatos().obtencion_tablas_clientes(
+            self.df_sistema_filtro, 5, 2, 12
+        )
+
+        #! Clientes con diferencias de sistemas registrados
+        # Eliminate rows where all columns (excluding the first column) are NaN
+        self.df_sistema_filtro = self.df_sistema_filtro.dropna(
+             how="all"
+        )
+
+        # mantaing columns Barra, Mes Inicial, Mes Final, Meses Particulares
+        self.df_sistema_filtro = self.df_sistema_filtro[
+            ["Barra", "Clave", "Mes Inicial", "Mes Final", "Meses Particulares"]
+        ]
+
+        # Change date format of columns Mes Inicial and Mes Final like columnas_rango_fecha = ["Mes Inicial", "Mes Final"] self.df_diferencias_clientes[columnas_rango_fecha] =     self.df_diferencias_clientes[columnas_rango_fecha.replace("-", np.nan).apply(lambda x: pd.to_datetime(x).dt.strftime("%d-%m-%Y")))
+
+        columnas_rango_fecha = ["Mes Inicial", "Mes Final"]
+        self.df_sistema_filtro[columnas_rango_fecha] = (
+            self.df_sistema_filtro[columnas_rango_fecha]
+            .replace("-", np.nan)
+            .apply(lambda x: pd.to_datetime(x).dt.strftime("%d-%m-%Y"))
+        )
+
+        # Update 'Meses Particulares' column to change format only if value does not contain "," self.df_diferencias_clientes[ "Meses Particulares"] = self.df_diferencias_clientes["Meses Particulares"].apply(lambda x: (  pd.to_datetime(x, errors="coerce").strftime("%d-%m-%Y") if not pd.isna(x) and "," not in str(x) and pd.to_datetime(x, errors="coerce") is not pd.NaTelse x ))
+
+        self.df_sistema_filtro[
+            "Meses Particulares"
+        ] = self.df_sistema_filtro["Meses Particulares"].apply(
+            lambda x: (
+                pd.to_datetime(x, errors="coerce").strftime("%d-%m-%Y")
+                if not pd.isna(x)
+                and "," not in str(x)
+                and pd.to_datetime(x, errors="coerce") is not pd.NaT
+                else x
+            )
+        )
+
+        # Convert "Meses Particulares" to datetime and then format as "%d-%m-%Y"
+        self.df_sistema_filtro["Meses Particulares"] = (
+            self.df_sistema_filtro.apply(
+                lambda x: (
+                    ", ".join(
+                        pd.date_range(
+                            start=pd.to_datetime(x["Mes Inicial"], format="%d-%m-%Y"),
+                            end=pd.to_datetime(x["Mes Final"], format="%d-%m-%Y"),
+                            freq="MS",
+                        ).strftime("%d-%m-%Y")
+                    )
+                    if pd.notna(x["Mes Inicial"]) and pd.notna(x["Mes Final"])
+                    else x["Meses Particulares"]
+                ),
+                axis=1,
+            )
+        )
+
+        # Split "Meses Particulares" by ", " and then explode the column
+        self.df_sistemas_filtro = self.df_sistema_filtro.assign(
+            Mes_Consumo=self.df_sistema_filtro["Meses Particulares"].str.split(
+                ", "
+            )
+        ).explode("Mes_Consumo")
+
+
+        # Create column Barra-Clave-Mes
+        self.df_sistemas_filtro["Barra-Clave-Mes"] = (
+            self.df_sistemas_filtro["Barra"].astype(str)
+            + "-_-"
+            + self.df_sistemas_filtro["Clave"].astype(str)
+            + "-_-"
+            + self.df_sistemas_filtro["Mes_Consumo"].astype(str)
+        )
+
+        # Drop other columns
+        self.df_sistemas_filtro = self.df_sistemas_filtro[
+            [
+                "Barra-Clave-Mes",
+                
+            ]
+        ]
+        print("")
+
 
     def guardar_datos(self):
         self.df_combinado_sistemas.to_csv(
@@ -365,5 +464,5 @@ class ComparadorSistemas:
         self.cargar_datos_recaudacion()
         self.combinar_datos()
         self.cargos_sistemas_nt()
-        self.filtro_clientes()
+        self.cargar_datos_revision_sistemas()
         self.guardar_datos()
