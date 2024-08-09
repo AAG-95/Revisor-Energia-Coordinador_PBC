@@ -447,8 +447,28 @@ class ComparadorSistemas:
                 
             ]
         ]
+
         print("")
 
+    def filtro_sistemas(self):
+
+        self.df_combinado_sistemas["Barra-Clave-Mes"] = (
+            self.df_combinado_sistemas["Barra"].astype(str)
+            + "-_-"
+            + self.df_combinado_sistemas["Clave"].astype(str)
+            + "-_-"
+            + self.df_combinado_sistemas["Mes Consumo"].astype(str)
+        )
+
+        self.df_combinado_sistemas["Filtro_Registro_Clave"] = self.df_combinado_sistemas[
+            "Barra-Clave-Mes"
+        ].apply(
+            lambda x: (
+                "Clientes Filtrados"
+                if x in self.df_sistemas_filtro["Barra-Clave-Mes"].values
+                else "Clientes No Filtrados"
+            )
+        )
 
     def guardar_datos(self):
         self.df_combinado_sistemas.to_csv(
@@ -465,4 +485,5 @@ class ComparadorSistemas:
         self.combinar_datos()
         self.cargos_sistemas_nt()
         self.cargar_datos_revision_sistemas()
+        self.filtro_sistemas()
         self.guardar_datos()

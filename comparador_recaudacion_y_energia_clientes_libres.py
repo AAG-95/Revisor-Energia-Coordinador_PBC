@@ -498,7 +498,8 @@ class ComparadorRecaudacionEnergia:
                 else "Clientes No Filtrados"
             )
         )
-        # Replace Barra-Clave-Mes of df_recaudación wirh Barra-Clave Homologada-Mes of df_homologa_clientes when Barra Clave Mes match with Barra-Clave Orginal-Mes
+        #
+        #  Replace Barra-Clave-Mes of df_recaudación wirh Barra-Clave Homologada-Mes of df_homologa_clientes when Barra Clave Mes match with Barra-Clave Orginal-Mes
         self.df_recaudacion["Barra-Clave-Mes"] = self.df_recaudacion[
             "Barra-Clave-Mes"
         ].apply(
