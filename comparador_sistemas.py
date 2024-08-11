@@ -470,6 +470,41 @@ class ComparadorSistemas:
             )
         )
 
+        # drop Barra - Clave - Mes
+        self.df_combinado_sistemas = self.df_combinado_sistemas.drop(
+            columns=["Barra-Clave-Mes"]
+        )
+
+    def contador_tipos_historicos_sistemas(self):
+
+        self.df_combinado_sistemas["Registro_Historico_de_Mes_por_Clave"] = (self.df_combinado_sistemas.groupby(["Clave"])["Mes Consumo"].transform("count") )
+
+        self.df_combinado_sistemas["Registro_Historico_por_Clave_y_Tipo"] = (self.df_combinado_sistemas.groupby(["Clave", "Tipo"])["Mes Consumo"].transform("count") )
+
+        filtro_tipo = self.df_combinado_sistemas["Tipo"].isin(["Sistema y Nivel de Tensión Incorrecto", "Sistema Incorrecto", "Nivel de Tensión Incorrecto"])
+
+        self.df_combinado_sistemas["Registro_Historico_Sistemas_y_NT_Incorrectos"] = 0
+
+        self.df_combinado_sistemas.loc[filtro_tipo , "Registro_Historico_Sistemas_y_NT_Incorrectos"] = (self.df_combinado_sistemas[filtro_tipo].groupby(["Clave"])["Mes Consumo"].transform("count") )
+
+        self.df_combinado_sistemas["Porcentaje_Registro_Historico_Sistemas_y_NT_Incorrectos"] = (self.df_combinado_sistemas["Registro_Historico_Sistemas_y_NT_Incorrectos"] / self.df_combinado_sistemas["Registro_Historico_de_Mes_por_Clave"] * 100).round(2)
+
+        conditions = [
+            (self.df_combinado_sistemas["Porcentaje_Registro_Historico_Sistemas_y_NT_Incorrectos"] < 5),
+            (self.df_combinado_sistemas["Porcentaje_Registro_Historico_Sistemas_y_NT_Incorrectos"] >= 5)
+            & (self.df_combinado_sistemas["Porcentaje_Registro_Historico_Sistemas_y_NT_Incorrectos"] <= 20),
+            (self.df_combinado_sistemas["Porcentaje_Registro_Historico_Sistemas_y_NT_Incorrectos"]> 20),
+        ]
+
+        choices = [
+            "Claves sin Errores de Sistemas y Nivel de Tensión",
+            "Claves con Errores de Sistemas y Nivel de Tensión Bajos"
+            "Claves con Errores de Sistemas y Nivel de Tensión Medios",
+            "Claves con Errores de Sistemas y Nivel de Tensión Altos"
+        ]
+        
+        self.df_combinado_sistemas["Clasificación_Registro_Historico_Sistemas_y_NT_Incorrectos"] = np.select(conditions, choices, default="Error")
+
     def guardar_datos(self):
         self.df_combinado_sistemas.to_csv(
             self.carpeta_salida + "df_revision_sistemas.csv",
@@ -480,10 +515,17 @@ class ComparadorSistemas:
         return self.df_combinado_sistemas
 
     def run(self):
+        print("Cargando datos sistemas...")
         self.cargar_datos_sistemas()
+        print("Cargando datos recaudación...")
         self.cargar_datos_recaudacion()
+        print("Combinando datos...")
         self.combinar_datos()
+        print("Cargando datos reales sistemas y nivel de tensión...")
         self.cargos_sistemas_nt()
+        print("Cargando datos revision sistemas...")
         self.cargar_datos_revision_sistemas()
+        print("Filtrando datos...")
         self.filtro_sistemas()
+        print("Guardando datos...")
         self.guardar_datos()

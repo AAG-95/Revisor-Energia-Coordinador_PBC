@@ -240,6 +240,7 @@ class DashBarChart:
             "Porcentaje Energía Dif [%]",
         ]
 
+
         for column in columns_to_format:
             df_combinado_por_tipo_energia[column] = df_combinado_por_tipo_energia[
                 column
@@ -249,7 +250,6 @@ class DashBarChart:
                 .replace(".", ",")
                 .replace(" ", ".")
             )
-
         # Tablas Revisor de Energía por tipo
         tabla_revision_tipo_energia = dash_table.DataTable(
             id="tabla_revision_tipo_energia",
@@ -389,8 +389,6 @@ class DashBarChart:
             df_combinado_sistemas["Mes Consumo"], format="%d-%m-%Y"
         )
 
-        # df_combinado_sistemas["Mes Consumo"] type
-
         # Change column format to Ene-2023
         df_combinado_sistemas["Mes Consumo"] = df_combinado_sistemas[
             "Mes Consumo"
@@ -409,8 +407,6 @@ class DashBarChart:
         df_combinado_sistemas["mes_repartición"] = pd.to_datetime(
             df_combinado_sistemas["mes_repartición"], format="%d-%m-%Y"
         )
-
-        # df_combinado_sistemas["mes_repartición"] type
 
         # Change column format to Ene-2023
         df_combinado_sistemas["mes_repartición"] = df_combinado_sistemas[
@@ -1688,7 +1684,7 @@ class DashBarChart:
                     orientation="h",
                 )
                 return fig
-
+        #region MiSeccion 
         # ? Callbacks Revisor Clientes Regualdos
         @self.app.callback(
             [
@@ -1697,6 +1693,8 @@ class DashBarChart:
             ],
             [Input("mes-consumo-dropdown_clientes_r", "value")],
         )
+        #endregion 
+
         def update_dropdown(selected_values):
             if selected_values:
                 if "ALL" in selected_values:
