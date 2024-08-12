@@ -26,6 +26,7 @@ class DashBarChart:
         df_combinado_energia_clientes_r,
         port=8052,
     ):
+        #region Inicialización de variables
         self.port = port
         self.app = dash.Dash(__name__)
         self.df_combinado_energia = df_combinado_energia
@@ -53,9 +54,9 @@ class DashBarChart:
             "Nov",
             "Dic",
         ]
-
+        #endregion
         # Preprocess the data
-
+        #region Diseño de Páginas
         inicio_energia = html.Div(
             [
                 html.H1(
@@ -143,8 +144,10 @@ class DashBarChart:
                 "padding": "0 10px",
             },
         )
+        #endregion
 
         # ? Diseño de Página Revisor de Energía
+        #region Preprocesamiento Revisor de Energía
         # Preprocesamiento del dataframe
         # Convert 'Mes Consumo' to datetime if it's not already
         df_combinado_energia["Mes Consumo"] = pd.to_datetime(
@@ -372,9 +375,9 @@ class DashBarChart:
             className="dropdown_tipo",
             style={"width": "100%"},
         )
-
+        #endregion
         # ? Diseño de Página Revisor de Sistemas
-
+        #region Preprocesamiento Revisor de Sistemas
         # Preprocesamiento del dataframe
         # Convert 'Mes Consumo' to datetime if it's not already
         df_combinado_sistemas["Mes Consumo"] = pd.to_datetime(
@@ -414,11 +417,27 @@ class DashBarChart:
         ].apply(lambda x: self.meses_esp[x.day] + "-" + str(x.year))
 
         # Agrupar por tipo y obtener cantidad de errores
+        
+             
+        
+        # Agrupar por tipo y obtener cantidad de errores 
         df_combinado_por_tipo_sistemas = (
-            df_combinado_sistemas.groupby("Tipo")
-            .size()
-            .reset_index(name="Cantidad Registros")
-        )
+    df_combinado_sistemas.groupby("Tipo")
+    .agg(
+        Cantidad_Registros=("Tipo", "size"),
+        Diferencia_Recaudacion_Sistema_y_NT_Sum=("Diferencia Recaudación Sistema y NT [$]", "sum")
+    )
+    .reset_index()
+)
+
+# Rename columns to replace underscores with spaces
+        df_combinado_por_tipo_sistemas = df_combinado_por_tipo_sistemas.rename(columns={
+            "Cantidad_Registros": "Cantidad Registros",
+            "Diferencia_Recaudacion_Sistema_y_NT_Sum": "Diferencia Recaudacion Sistema y NT [$]"
+})
+
+   
+
 
         df_combinado_por_tipo_sistemas["Porcentaje Registros [%]"] = (
             df_combinado_por_tipo_sistemas["Cantidad Registros"]
@@ -426,14 +445,20 @@ class DashBarChart:
             * 100
         )
 
-        df_combinado_por_tipo_sistemas[
+        columns_to_format = [
+           "Diferencia Recaudacion Sistema y NT [$]",
             "Porcentaje Registros [%]"
-        ] = df_combinado_por_tipo_sistemas["Porcentaje Registros [%]"].apply(
-            lambda x: "{:,.2f}".format(x)
-            .replace(",", " ")
-            .replace(".", ",")
-            .replace(" ", ".")
-        )
+        ]
+
+        for column in columns_to_format:
+            df_combinado_por_tipo_sistemas[column] = df_combinado_por_tipo_sistemas[
+                column
+            ].apply(
+                lambda x: "{:,.2f}".format(x)
+                .replace(",", " ")
+                .replace(".", ",")
+                .replace(" ", ".")
+            )
 
         # Tablas Revisor de Energía
         tabla_revision_tipo_sistemas = dash_table.DataTable(
@@ -548,9 +573,9 @@ class DashBarChart:
             className="dropdown_tipo_sistemas",
             style={"width": "100%"},
         )
-
+        #endregion
         # ? Diseño de Página Revisor de Clientes Individualizados
-
+        #region Preprocesamiento Revisor de Clientes Individualizados
         # Preprocesamiento del dataframe
         # Tablas Revisor de Energía
         tabla_revision_clientes_ind = dash_table.DataTable(
@@ -571,9 +596,9 @@ class DashBarChart:
                 }
             ],
         )
-
+        #endregion
         # ? Diseño de Página Revisor de Energia Clientes Regulados
-
+        #region Preprocesamiento Revisor de Energía Clientes Regulados
         df_combinado_energia_clientes_r["Mes"] = pd.to_datetime(
             df_combinado_energia_clientes_r["Mes"]
         )
@@ -648,7 +673,7 @@ class DashBarChart:
             className="dropdown_recaudador_sistemas",
             style={"width": "100%"},
         )
-
+        #endregion
         #! Layout--------------------------------------------------------------------------------------
         # Wait for a few seconds
         self.app.layout = html.Div(
@@ -1347,7 +1372,6 @@ class DashBarChart:
                 return fig
 
         # ? Callbacks Revisor Sistema
-
         # Mes consumo dropdown
         @self.app.callback(
             [
@@ -1406,9 +1430,7 @@ class DashBarChart:
                 ] + [
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  # Only "ALL" is displayed and selected"""
-
-        #
-
+        
         @self.app.callback(
             [
                 Output("recaudador-dropdown_sistemas", "options"),
@@ -1684,7 +1706,7 @@ class DashBarChart:
                     orientation="h",
                 )
                 return fig
-        #region MiSeccion 
+        
         # ? Callbacks Revisor Clientes Regualdos
         @self.app.callback(
             [
@@ -1693,8 +1715,6 @@ class DashBarChart:
             ],
             [Input("mes-consumo-dropdown_clientes_r", "value")],
         )
-        #endregion 
-
         def update_dropdown(selected_values):
             if selected_values:
                 if "ALL" in selected_values:
@@ -1716,7 +1736,7 @@ class DashBarChart:
                 ] + [
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  # Only "ALL" is displayed and selected
-
+            
         @self.app.callback(
             [
                 Output("suministrador-dropdown_clientes_r", "options"),

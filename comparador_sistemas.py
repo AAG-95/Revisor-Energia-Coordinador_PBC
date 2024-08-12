@@ -379,7 +379,7 @@ class ComparadorSistemas:
 
         # mantaing columns Barra, Mes Inicial, Mes Final, Meses Particulares
         self.df_sistema_filtro = self.df_sistema_filtro[
-            ["Barra", "Clave", "Mes Inicial", "Mes Final", "Meses Particulares"]
+            ["Barra", "Clave", "Mes Inicial","Zonal", "Nivel Tensión [kV]", "Mes Final", "Meses Particulares"]
         ]
 
         # Change date format of columns Mes Inicial and Mes Final like columnas_rango_fecha = ["Mes Inicial", "Mes Final"] self.df_diferencias_clientes[columnas_rango_fecha] =     self.df_diferencias_clientes[columnas_rango_fecha.replace("-", np.nan).apply(lambda x: pd.to_datetime(x).dt.strftime("%d-%m-%Y")))
@@ -432,47 +432,53 @@ class ComparadorSistemas:
 
 
         # Create column Barra-Clave-Mes
-        self.df_sistemas_filtro["Barra-Clave-Mes"] = (
+        self.df_sistemas_filtro["Barra-Clave-Mes-Zonal-Tension"] = (
             self.df_sistemas_filtro["Barra"].astype(str)
             + "-_-"
             + self.df_sistemas_filtro["Clave"].astype(str)
             + "-_-"
             + self.df_sistemas_filtro["Mes_Consumo"].astype(str)
+            + "-_-"
+            + self.df_sistemas_filtro["Zonal"].astype(str)
+            + "-_-"
+            + self.df_sistemas_filtro["Nivel Tensión [kV]"].astype(str)
         )
 
         # Drop other columns
         self.df_sistemas_filtro = self.df_sistemas_filtro[
             [
-                "Barra-Clave-Mes",
+                "Barra-Clave-Mes-Zonal-Tension"
                 
             ]
         ]
 
-        print("")
-
     def filtro_sistemas(self):
 
-        self.df_combinado_sistemas["Barra-Clave-Mes"] = (
+        self.df_combinado_sistemas["Barra-Clave-Mes-Zonal-Tension"] = (
             self.df_combinado_sistemas["Barra"].astype(str)
             + "-_-"
             + self.df_combinado_sistemas["Clave"].astype(str)
             + "-_-"
             + self.df_combinado_sistemas["Mes Consumo"].astype(str)
+            + "-_-"
+            + self.df_combinado_sistemas["Zonal"].astype(str)
+            + "-_-"
+            + self.df_combinado_sistemas["Nivel Tensión Zonal"].astype(str)
         )
 
         self.df_combinado_sistemas["Filtro_Registro_Clave"] = self.df_combinado_sistemas[
-            "Barra-Clave-Mes"
+            "Barra-Clave-Mes-Zonal-Tension"
         ].apply(
             lambda x: (
                 "Clientes Filtrados"
-                if x in self.df_sistemas_filtro["Barra-Clave-Mes"].values
+                if x in self.df_sistemas_filtro["Barra-Clave-Mes-Zonal-Tension"].values
                 else "Clientes No Filtrados"
             )
         )
 
         # drop Barra - Clave - Mes
         self.df_combinado_sistemas = self.df_combinado_sistemas.drop(
-            columns=["Barra-Clave-Mes"]
+            columns=["Barra-Clave-Mes-Zonal-Tension"]
         )
 
     def contador_tipos_historicos_sistemas(self):
@@ -527,5 +533,7 @@ class ComparadorSistemas:
         self.cargar_datos_revision_sistemas()
         print("Filtrando datos...")
         self.filtro_sistemas()
+        print("Contando tipos históricos sistemas...")
+        self.contador_tipos_historicos_sistemas()
         print("Guardando datos...")
         self.guardar_datos()
