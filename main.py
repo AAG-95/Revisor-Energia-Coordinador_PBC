@@ -2,12 +2,12 @@ import visualizador as vs
 import revisor_planillas_IFC as rpi
 import recaudaciones_historicas as rech
 import creador_listado_clientes_energia as clc
-import retiros_historicos as reth
+import retiros_historicos as reth   
 import comparador_recaudacion_y_energia_clientes_libres as cre
 import comparador_recaudacion_y_energia_clientes_regulados as crr
 import comparador_cliente_individualizado as cci
 import comparador_sistemas as csi
-import interfaz as gui
+import interfaz as gui      
 import funciones as fc
 import pandas as pd
 
@@ -20,7 +20,7 @@ codigos_a_correr = seleccion_procesos.iniciar()
  
 if (
     codigos_a_correr["revisor_recaudacion_mensual"]
-    or codigos_a_correr["revisor_recaudacion_historico"]
+    or codigos_a_correr["revisor_recaudacion_historico"]            
     or codigos_a_correr["revisor_clientes_balance_mensual"]
     or codigos_a_correr["revisor_retiros_historico"]
 ):

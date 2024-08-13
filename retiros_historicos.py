@@ -102,7 +102,7 @@ class ProcesadorRetirosHistoricos:
             i = pair[1]
             df_mes_clientes_R = pd.read_excel(
                 self.ruta_balances_clientes_libres + f"\Retiros_{i}.xlsx",
-                sheet_name="Listado_Clientes_L",
+                sheet_name="Listado_Clientes_R",
             )
             # Get first 18 columns
             df_mes_clientes_R = df_mes_clientes_R.iloc[:, :18]
