@@ -149,9 +149,10 @@ class DashBarChart:
         # endregion
 
         # ? Diseño de Página Revisor de Energía
-        # region Preprocesamiento Revisor de Energía
+        # region Diseño Revisor de Energía
         # Preprocesamiento del dataframe
         # Convert 'Mes Consumo' to datetime if it's not already
+        # region Procesamiento 
         df_combinado_energia["Mes Consumo"] = pd.to_datetime(
             df_combinado_energia["Mes Consumo"]
         )
@@ -174,7 +175,9 @@ class DashBarChart:
         df_combinado_energia["Cantidad Registros"] = df_combinado_energia.groupby(
             "Tipo"
         )["Tipo"].transform("count")
+        #endregion
 
+        #region Tabla Resumen de Energía por Tipo 
         # Original aggregation
         df_combinado_por_tipo_energia = (
             df_combinado_energia.groupby(["Tipo"])
@@ -256,8 +259,10 @@ class DashBarChart:
                 {"name": i, "id": i} for i in df_combinado_por_tipo_energia.columns
             ],
             data=df_combinado_por_tipo_energia.to_dict("records"),
-        )
+        ) 
+        #endregion
         
+        # region Tabla Resumen de Energía
         # Tabla Revision detallada
         tabla_revision_energia = dash_table.DataTable(
             id="tabla_revision_energia",
@@ -268,8 +273,10 @@ class DashBarChart:
             export_headers="display",
             css=[{"selector": ".export_button", "rule": "width: 100%;"}],
         )
+        # endregion
 
-        # Gráfico diferencias por Recaudador
+        # ? Gráfico diferencias por Recaudador
+        # region Gráfico diferencias por Recaudador
         df_combinado_por_recaudador_energia = (
             df_combinado_energia.groupby(["Recaudador"])
             .agg({"Diferencia Energía [kWh]": "sum"})
@@ -294,7 +301,37 @@ class DashBarChart:
             figure=fig_energia,
             className="grafico_recaudadores",
         )
+        # endregion
+        
+        # ? Gráfico diferencias por Recaudador y Mes Consumo
+        # region Gráfico diferencias por Recaudador y Mes Consumo
+        df_combinado_por_recaudador_mes = (
+            df_combinado_energia.groupby(["Recaudador", "Mes Consumo"])
+            .agg({"Diferencia Energía [kWh]": "sum"})
+            .reset_index()
+        )
 
+        df_combinado_por_recaudador_mes = (
+            df_combinado_por_recaudador_mes.sort_values(
+                ["Recaudador", "Mes Consumo"], ascending=[True, True]
+            )
+        )
+
+        fig_energia_mes = px.bar(
+            df_combinado_por_recaudador_mes,
+            y="Recaudador",
+            x="Diferencia Energía [kWh]",
+            color="Mes Consumo",
+            orientation="h",
+        )
+        grafico_energia_mes = dcc.Graph(
+            id="grafico_diferencias_recaudadores_mes_energia",
+            figure=fig_energia_mes,
+            className="grafico_recaudadores_mes",
+        )
+        # endregion
+
+        #region Dropdowns
         # Generate the dropdown options
         dropdown_mes_consumo = dcc.Dropdown(
             id="mes-consumo-dropdown_energia",
@@ -361,11 +398,13 @@ class DashBarChart:
             className="dropdown_tipo",
             style={"width": "100%"},
         )
+        #endregion
         # endregion
         # ? Diseño de Página Revisor de Sistemas
-        # region Preprocesamiento Revisor de Sistemas
+        # region Diseño Revisor de Sistemas
         # Preprocesamiento del dataframe
         # Convert 'Mes Consumo' to datetime if it's not already
+        # region Procesamiento
         df_combinado_sistemas["Mes Consumo"] = pd.to_datetime(
             df_combinado_sistemas["Mes Consumo"]
         )
@@ -401,10 +440,10 @@ class DashBarChart:
         df_combinado_sistemas["mes_repartición"] = df_combinado_sistemas[
             "mes_repartición"
         ].apply(lambda x: self.meses_esp[x.day] + "-" + str(x.year))
-
+        # endregion
+        
         # Agrupar por tipo y obtener cantidad de errores
-
-        # Agrupar por tipo y obtener cantidad de errores
+        # region Tabla Resumen de Sistemas
         df_combinado_por_tipo_sistemas = (
             df_combinado_sistemas.groupby("Tipo")
             .agg(
@@ -464,8 +503,10 @@ class DashBarChart:
             ],
             data=df_combinado_por_tipo_sistemas.to_dict("records"),
         )
+        # endregion
 
         # Revision general
+        # region Tabla Resumen de Sistemas
         tabla_revision_sistemas = dash_table.DataTable(
             id="tabla_revision_sistemas",
             columns=[{"name": i, "id": i} for i in df_combinado_sistemas.columns],
@@ -474,8 +515,10 @@ class DashBarChart:
             export_headers="display",
             css=[{"selector": ".export_button", "rule": "width: 100%;"}],
         )
+        # endregion
 
         # Gráfico diferencias por Recaudador
+        # region Gráfico diferencias por Recaudador
         df_combinado_por_recaudador_sistemas = (
             df_combinado_sistemas.groupby(["Recaudador"])
             .size()
@@ -500,7 +543,9 @@ class DashBarChart:
             figure=fig_sistemas,
             className="grafico_recaudadores",
         )
+        # endregion
 
+        # region Dropdowns
         # Generate the dropdown options
         dropdown_mes_consumo_sistemas = dcc.Dropdown(
             id="mes-consumo-dropdown_sistemas",
@@ -570,8 +615,9 @@ class DashBarChart:
             style={"width": "100%"},
         )
         # endregion
+        # endregion
         # ? Diseño de Página Revisor de Clientes Individualizados
-        # region Preprocesamiento Revisor de Clientes Individualizados
+        # region Diseño Revisor de Clientes Individualizados
         # Preprocesamiento del dataframe
         # Tablas Revisor de Energía
         tabla_revision_clientes_ind = dash_table.DataTable(
@@ -594,7 +640,7 @@ class DashBarChart:
         )
         # endregion
         # ? Diseño de Página Revisor de Energia Clientes Regulados
-        # region Preprocesamiento Revisor de Energía Clientes Regulados
+        # region Diseño Revisor de Energía Clientes Regulados
         df_combinado_energia_clientes_r["Mes"] = pd.to_datetime(
             df_combinado_energia_clientes_r["Mes"]
         )
@@ -993,7 +1039,7 @@ class DashBarChart:
         #endregion
 
         # ? Callbacks Revisor Energía
-        # region Callbacks Revisor Energía
+        # region Revisor Energía
         @self.app.callback(
             [
                 Output("mes-consumo-dropdown_energia", "options"),
@@ -1139,7 +1185,7 @@ class DashBarChart:
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  # Only "ALL" is displayed and selected
 
-        #region Callbacks Tabla Revision Energía
+        #region Tabla Revision Energía
         @self.app.callback(
             Output("tabla_revision_energia", "data"),
             [
@@ -1219,7 +1265,7 @@ class DashBarChart:
                 return df_combinado_energia.to_dict("records")
         #endregion
 
-        #region Callbacks Tabla Revision Resumen Tipo Energía
+        #region Tabla Revision Resumen Tipo Energía
         @self.app.callback(
             Output("tabla_revision_tipo_energia", "data"),
             [
@@ -1323,7 +1369,7 @@ class DashBarChart:
                 return df_combinado_por_tipo_energia.to_dict("records")
         #endregion
 
-        #region Callbacks Gráfico Diferencias por Recaudador
+        #region Gráfico Diferencias por Recaudador
         @self.app.callback(
             Output("grafico_diferencias_recaudadores_energia", "figure"),
             [
@@ -1523,7 +1569,7 @@ class DashBarChart:
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  # Only "ALL" is displayed and selected
          
-        # region Callbacks Tabla Revision Sistemas
+        # region Tabla Revision Sistemas
         @self.app.callback(
             Output("tabla_revision_sistemas", "data"),
             [
@@ -1605,7 +1651,7 @@ class DashBarChart:
                 return df_combinado_sistemas.to_dict("records")
         #endregion
 
-        #region Callbacks Tabla Revision Resumen Tipo Sistemas
+        #region Tabla Revision Resumen Tipo Sistemas
         @self.app.callback(
             Output("tabla_revision_tipo_sistemas", "data"),
             [
@@ -1694,7 +1740,7 @@ class DashBarChart:
                 return df_combinado_por_tipo_sistemas.to_dict("records")
         #endregion
 
-        #region Callbacks Gráfico Diferencias por Recaudador
+        #region Gráfico Diferencias por Recaudador
         @self.app.callback(
             Output("grafico_diferencias_recaudadores_sistemas", "figure"),
             [
@@ -1840,7 +1886,7 @@ class DashBarChart:
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  # Only "ALL" is displayed and selected
 
-        #region Callbacks Tabla Revision Energía Clientes Regulados
+        #region Tabla Revision Energía Clientes Regulados
         @self.app.callback(
             Output("tabla_revision_energia_clientes_r", "data"),
             [
