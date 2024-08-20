@@ -5,15 +5,19 @@ import numpy as np
 
 class ComparadorSistemas:
     def __init__(self):
-        # Carpeta de salida
-        self.carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Balance-Recaudación\\"
-        # Carpeta de recaudación
-        self.carpeta_recaudacion = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Recaudación\\Revisión Histórica\\"
-        # Carpeta de energía
-        self.carpeta_sistemas = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\\02 Repartición\\Revisiones\\Revisión Recaudación\\"
+        # Carpeta donde se guardan los resultados de la revisión de Balance-Recaudación
+        self.carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Revisiones\Revisión Balance-Recaudación\\"
 
-        self.carpeta_cargos = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\\01 Fijaciones\\00 Formatos de declaración CUT\\Cargos Actualizados\\"
+        # Carpeta donde se encuentran los datos históricos de recaudación
+        self.carpeta_recaudacion = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Revisiones\Revisión Recaudación\Revisión Histórica\\"
 
+        # Carpeta donde se encuentran los datos del sistema relacionados con la recaudación
+        self.carpeta_sistemas = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Revisiones\Revisión Recaudación\\"
+
+        # Carpeta donde se encuentran los cargos actualizados para las declaraciones CUT
+        self.carpeta_cargos = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\01 Fijaciones\00 Formatos de declaración CUT\Cargos Actualizados\\"
+
+        # Lista de sistemas zonales permitidos
         self.sistemas_zonales_permitidos = [
             "Sistema A",
             "Sistema B",
@@ -23,69 +27,81 @@ class ComparadorSistemas:
             "Sistema F",
         ]
 
+        # Lista de niveles de tensión permitidos
         self.niveles_de_tension_permitidos = [
-            "Tx < 25",
-            "66",
-            "110",
-            "220",
-            "154",
-            "44",
-            "33",
+            "Tx < 25",  # Tensión menor a 25 kV
+            "66",  # Tensión de 66 kV
+            "110",  # Tensión de 110 kV
+            "220",  # Tensión de 220 kV
+            "154",  # Tensión de 154 kV
+            "44",  # Tensión de 44 kV
+            "33",  # Tensión de 33 kV
         ]
 
     def cargar_datos_sistemas(self):
+        """
+        Esta función carga, filtra y normaliza los datos de sistemas zonales desde un archivo Excel.
+        Se realizan diversas transformaciones, incluyendo reemplazos y normalizaciones de valores,
+        para asegurarse de que los datos estén en un formato adecuado para su análisis.
+        Finalmente, devuelve un DataFrame con las columnas relevantes.
+        """
+        # Cargar los datos desde un archivo Excel
         self.df_sistemas = pd.read_excel(
-            self.carpeta_sistemas + "Revisores RCUT.xlsm",
-            sheet_name="Sistemas Zonales vigentes Clien",
-            header=None,
-            engine="openpyxl",
+            self.carpeta_sistemas + "Revisores RCUT.xlsm",  # Ruta del archivo Excel
+            sheet_name="Sistemas Zonales vigentes Clien",  # Hoja específica del Excel
+            header=None,  # Sin encabezado en el archivo
+            engine="openpyxl",  # Motor para leer el archivo Excel
         )
 
+        # Obtener y procesar tablas específicas usando una función externa
         self.df_sistemas = fc.ObtencionDatos().obtencion_Tablas(self.df_sistemas, 5, 6)
 
-        # Mantain Barra, Zonal Definitivo and Sistema (RE244 2019) and Nivel Tensión Definitivo
-        self.df_sistemas = self.df_sistemas[
-            [
-                "Barra",
-                "Zonal Definitivo",
-                "Nivel Tensión Definitivo",
-            ]
-        ]
-
-        # Mayusculas
-        """ self.df_sistemas["Zonal Definitivo"] = self.df_sistemas[
-            "Zonal Definitivo"
-        ].str.upper()
-
-        self.df_sistemas["Nivel Tensión Definitivo"] = self.df_sistemas[
-            "Nivel Tensión Definitivo"
-        ].str.upper() """
-
-        # Replace in Zonal Definitivo word SISTEMA for Sistema
+        # Reemplazar en "Zonal Definitivo" ciertas palabras por otras
         self.df_sistemas["Zonal Definitivo"] = (
             self.df_sistemas["Zonal Definitivo"]
             .str.replace("SISTEMA", "Sistema")
             .str.replace("Nacional", "na")
             .str.replace("Dedicado", "na")
         )
-        # Si valor de nivel de tensión no está en la lista de zonal ni niveles de tensión permitidos, se reemplaza por "na"
+
+        # Filtrar y normalizar el campo "Zonal Definitivo" según los sistemas zonales permitidos
         self.df_sistemas["Zonal Definitivo"] = self.df_sistemas[
             "Zonal Definitivo"
         ].apply(lambda x: (x if x in self.sistemas_zonales_permitidos else "na"))
+
+        # Filtrar y normalizar el campo "Nivel Tensión Definitivo" según los niveles de tensión permitidos
         self.df_sistemas["Nivel Tensión Definitivo"] = self.df_sistemas[
             "Nivel Tensión Definitivo"
         ].apply(lambda x: (x if x in self.niveles_de_tension_permitidos else "-"))
 
+        # Seleccionar las columnas relevantes para el análisis
+        self.df_sistemas = self.df_sistemas[
+            [
+                "Barra",  # Nombre de la barra de energía
+                "Zonal Definitivo",  # Sistema zonal definitivo
+                "Nivel Tensión Definitivo",  # Nivel de tensión definitivo del sistema zonal
+            ]
+        ]
+
+        # Devolver el DataFrame procesado
         return self.df_sistemas
 
     def cargar_datos_recaudacion(self):
+        """
+        Esta función carga, filtra y normaliza los datos históricos de recaudación de clientes desde un archivo CSV.
+        Se asegura de que solo se incluyan las filas relevantes para el análisis, elimina filas con datos faltantes
+        o no informados, y ajusta ciertos campos a valores estandarizados. Finalmente, devuelve un DataFrame limpio
+        y listo para su uso en posteriores análisis de recaudación.
+        """
+        # Cargar los datos históricos de recaudación desde un archivo CSV
         self.df_recaudacion = pd.read_csv(
-            self.carpeta_recaudacion + "BDD Clientes Libres Históricos.csv",
-            sep=";",
-            encoding="UTF-8",
+            self.carpeta_recaudacion
+            + "BDD Clientes Libres Históricos.csv",  # Ruta del archivo CSV
+            sep=";",  # Separador de columnas
+            encoding="UTF-8",  # Codificación del archivo
         )
 
-        # Filtrar dataframe para obtener empresas informantes que sean recaduador y revissar caso que no hay recaduador pero sí energía
+        # Filtrar las filas donde no hay recaudador informado pero sí hay energía
         self.df_recaudacion = self.df_recaudacion[
             ~(
                 (self.df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 0)
@@ -93,48 +109,44 @@ class ComparadorSistemas:
             )
         ]
 
+        # Filtrar las filas donde la empresa sí es recaudadora
         self.df_recaudacion = self.df_recaudacion[
             (self.df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 1)
         ]
 
-        self.df_recaudacion = self.df_recaudacion[
-            [
-                "Barra",
-                "Clave",
-                "Mes Consumo",
-                "Suministrador",
-                "Recaudador",
-                "mes_repartición",
-                "Cliente Individualizado",
-                "Recaudador No Informado",
-                "Zonal",
-                "Nivel Tensión Zonal",
-                "Energía [kWh]",
-            ]
-        ]
-
-        # Mayusculas
-        """ self.df_recaudacion["Zonal"] = self.df_recaudacion["Zonal"].str.upper()
-        self.df_recaudacion["Nivel Tensión Zonal"] = self.df_recaudacion[
-            "Nivel Tensión Zonal"
-        ].str.upper() """
-
-        # Si valor de nivel de tensión no está en la lista de zonal ni niveles de tensión permitidos, se reemplaza por "na"
+        # Filtrar y normalizar el campo "Zonal" según los sistemas zonales permitidos
         self.df_recaudacion["Zonal"] = self.df_recaudacion["Zonal"].apply(
             lambda x: (x if x in self.sistemas_zonales_permitidos else "na")
         )
 
+        # Filtrar y normalizar el campo "Nivel Tensión Zonal" según los niveles de tensión permitidos
         self.df_recaudacion["Nivel Tensión Zonal"] = self.df_recaudacion[
             "Nivel Tensión Zonal"
         ].apply(lambda x: (x if x in self.niveles_de_tension_permitidos else "-"))
 
-        # ? Otros ajustes
-
-        # Replace column "Cliente Individualizado" with 0 if "Cliente Individualizado" is not 0 or 1
+        # Reemplazar el valor de "Cliente Individualizado" con 0 si no es 0 o 1
         self.df_recaudacion["Cliente Individualizado"] = self.df_recaudacion[
             "Cliente Individualizado"
         ].apply(lambda x: 0 if x not in [0, 1] else x)
 
+        # Seleccionar las columnas relevantes para el análisis
+        self.df_recaudacion = self.df_recaudacion[
+            [
+                "Barra",  # Nombre de la barra de energía
+                "Clave",  # Clave de identificación
+                "Mes Consumo",  # Mes de consumo de energía
+                "Suministrador",  # Empresa suministradora
+                "Recaudador",  # Empresa recaudadora
+                "mes_repartición",  # Mes de repartición
+                "Cliente Individualizado",  # Indicador de cliente individualizado
+                "Recaudador No Informado",  # Indicador de recaudador no informado
+                "Zonal",  # Sistema zonal
+                "Nivel Tensión Zonal",  # Nivel de tensión del sistema zonal
+                "Energía [kWh]",  # Energía consumida en kWh
+            ]
+        ]
+
+        # Devolver el DataFrame procesado
         return self.df_recaudacion
 
     def combinar_datos(self):
@@ -373,13 +385,19 @@ class ComparadorSistemas:
 
         #! Clientes con diferencias de sistemas registrados
         # Eliminate rows where all columns (excluding the first column) are NaN
-        self.df_sistema_filtro = self.df_sistema_filtro.dropna(
-             how="all"
-        )
+        self.df_sistema_filtro = self.df_sistema_filtro.dropna(how="all")
 
         # mantaing columns Barra, Mes Inicial, Mes Final, Meses Particulares
         self.df_sistema_filtro = self.df_sistema_filtro[
-            ["Barra", "Clave", "Mes Inicial","Zonal", "Nivel Tensión [kV]", "Mes Final", "Meses Particulares"]
+            [
+                "Barra",
+                "Clave",
+                "Mes Inicial",
+                "Zonal",
+                "Nivel Tensión [kV]",
+                "Mes Final",
+                "Meses Particulares",
+            ]
         ]
 
         # Change date format of columns Mes Inicial and Mes Final like columnas_rango_fecha = ["Mes Inicial", "Mes Final"] self.df_diferencias_clientes[columnas_rango_fecha] =     self.df_diferencias_clientes[columnas_rango_fecha.replace("-", np.nan).apply(lambda x: pd.to_datetime(x).dt.strftime("%d-%m-%Y")))
@@ -393,9 +411,9 @@ class ComparadorSistemas:
 
         # Update 'Meses Particulares' column to change format only if value does not contain "," self.df_diferencias_clientes[ "Meses Particulares"] = self.df_diferencias_clientes["Meses Particulares"].apply(lambda x: (  pd.to_datetime(x, errors="coerce").strftime("%d-%m-%Y") if not pd.isna(x) and "," not in str(x) and pd.to_datetime(x, errors="coerce") is not pd.NaTelse x ))
 
-        self.df_sistema_filtro[
+        self.df_sistema_filtro["Meses Particulares"] = self.df_sistema_filtro[
             "Meses Particulares"
-        ] = self.df_sistema_filtro["Meses Particulares"].apply(
+        ].apply(
             lambda x: (
                 pd.to_datetime(x, errors="coerce").strftime("%d-%m-%Y")
                 if not pd.isna(x)
@@ -406,30 +424,25 @@ class ComparadorSistemas:
         )
 
         # Convert "Meses Particulares" to datetime and then format as "%d-%m-%Y"
-        self.df_sistema_filtro["Meses Particulares"] = (
-            self.df_sistema_filtro.apply(
-                lambda x: (
-                    ", ".join(
-                        pd.date_range(
-                            start=pd.to_datetime(x["Mes Inicial"], format="%d-%m-%Y"),
-                            end=pd.to_datetime(x["Mes Final"], format="%d-%m-%Y"),
-                            freq="MS",
-                        ).strftime("%d-%m-%Y")
-                    )
-                    if pd.notna(x["Mes Inicial"]) and pd.notna(x["Mes Final"])
-                    else x["Meses Particulares"]
-                ),
-                axis=1,
-            )
+        self.df_sistema_filtro["Meses Particulares"] = self.df_sistema_filtro.apply(
+            lambda x: (
+                ", ".join(
+                    pd.date_range(
+                        start=pd.to_datetime(x["Mes Inicial"], format="%d-%m-%Y"),
+                        end=pd.to_datetime(x["Mes Final"], format="%d-%m-%Y"),
+                        freq="MS",
+                    ).strftime("%d-%m-%Y")
+                )
+                if pd.notna(x["Mes Inicial"]) and pd.notna(x["Mes Final"])
+                else x["Meses Particulares"]
+            ),
+            axis=1,
         )
 
         # Split "Meses Particulares" by ", " and then explode the column
         self.df_sistemas_filtro = self.df_sistema_filtro.assign(
-            Mes_Consumo=self.df_sistema_filtro["Meses Particulares"].str.split(
-                ", "
-            )
+            Mes_Consumo=self.df_sistema_filtro["Meses Particulares"].str.split(", ")
         ).explode("Mes_Consumo")
-
 
         # Create column Barra-Clave-Mes
         self.df_sistemas_filtro["Barra-Clave-Mes-Zonal-Tension"] = (
@@ -446,10 +459,7 @@ class ComparadorSistemas:
 
         # Drop other columns
         self.df_sistemas_filtro = self.df_sistemas_filtro[
-            [
-                "Barra-Clave-Mes-Zonal-Tension"
-                
-            ]
+            ["Barra-Clave-Mes-Zonal-Tension"]
         ]
 
     def filtro_sistemas(self):
@@ -466,9 +476,9 @@ class ComparadorSistemas:
             + self.df_combinado_sistemas["Nivel Tensión Zonal"].astype(str)
         )
 
-        self.df_combinado_sistemas["Filtro_Registro_Clave"] = self.df_combinado_sistemas[
-            "Barra-Clave-Mes-Zonal-Tension"
-        ].apply(
+        self.df_combinado_sistemas[
+            "Filtro_Registro_Clave"
+        ] = self.df_combinado_sistemas["Barra-Clave-Mes-Zonal-Tension"].apply(
             lambda x: (
                 "Clientes Filtrados"
                 if x in self.df_sistemas_filtro["Barra-Clave-Mes-Zonal-Tension"].values
@@ -483,33 +493,83 @@ class ComparadorSistemas:
 
     def contador_tipos_historicos_sistemas(self):
 
-        self.df_combinado_sistemas["Registro_Historico_de_Mes_por_Clave"] = (self.df_combinado_sistemas.groupby(["Clave"])["Mes Consumo"].transform("count") )
+        self.df_combinado_sistemas["Registro_Historico_de_Mes_por_Clave"] = (
+            self.df_combinado_sistemas.groupby(["Clave"])["Mes Consumo"].transform(
+                "count"
+            )
+        )
 
-        self.df_combinado_sistemas["Registro_Historico_por_Clave_y_Tipo"] = (self.df_combinado_sistemas.groupby(["Clave", "Tipo"])["Mes Consumo"].transform("count") )
+        self.df_combinado_sistemas["Registro_Historico_por_Clave_y_Tipo"] = (
+            self.df_combinado_sistemas.groupby(["Clave", "Tipo"])[
+                "Mes Consumo"
+            ].transform("count")
+        )
 
-        filtro_tipo = self.df_combinado_sistemas["Tipo"].isin(["Sistema y Nivel de Tensión Incorrecto", "Sistema Incorrecto", "Nivel de Tensión Incorrecto"])
+        filtro_tipo = self.df_combinado_sistemas["Tipo"].isin(
+            [
+                "Sistema y Nivel de Tensión Incorrecto",
+                "Sistema Incorrecto",
+                "Nivel de Tensión Incorrecto",
+            ]
+        )
 
         self.df_combinado_sistemas["Registro_Historico_Sistemas_y_NT_Incorrectos"] = 0
 
-        self.df_combinado_sistemas.loc[filtro_tipo , "Registro_Historico_Sistemas_y_NT_Incorrectos"] = (self.df_combinado_sistemas[filtro_tipo].groupby(["Clave"])["Mes Consumo"].transform("count") )
+        self.df_combinado_sistemas.loc[
+            filtro_tipo, "Registro_Historico_Sistemas_y_NT_Incorrectos"
+        ] = (
+            self.df_combinado_sistemas[filtro_tipo]
+            .groupby(["Clave"])["Mes Consumo"]
+            .transform("count")
+        )
 
-        self.df_combinado_sistemas["Porcentaje_Registro_Historico_Sistemas_y_NT_Incorrectos"] = (self.df_combinado_sistemas["Registro_Historico_Sistemas_y_NT_Incorrectos"] / self.df_combinado_sistemas["Registro_Historico_de_Mes_por_Clave"] * 100).round(2)
+        self.df_combinado_sistemas[
+            "Porcentaje_Registro_Historico_Sistemas_y_NT_Incorrectos"
+        ] = (
+            self.df_combinado_sistemas["Registro_Historico_Sistemas_y_NT_Incorrectos"]
+            / self.df_combinado_sistemas["Registro_Historico_de_Mes_por_Clave"]
+            * 100
+        ).round(
+            2
+        )
 
         conditions = [
-            (self.df_combinado_sistemas["Porcentaje_Registro_Historico_Sistemas_y_NT_Incorrectos"] < 5),
-            (self.df_combinado_sistemas["Porcentaje_Registro_Historico_Sistemas_y_NT_Incorrectos"] >= 5)
-            & (self.df_combinado_sistemas["Porcentaje_Registro_Historico_Sistemas_y_NT_Incorrectos"] <= 20),
-            (self.df_combinado_sistemas["Porcentaje_Registro_Historico_Sistemas_y_NT_Incorrectos"]> 20),
+            (
+                self.df_combinado_sistemas[
+                    "Porcentaje_Registro_Historico_Sistemas_y_NT_Incorrectos"
+                ]
+                < 5
+            ),
+            (
+                self.df_combinado_sistemas[
+                    "Porcentaje_Registro_Historico_Sistemas_y_NT_Incorrectos"
+                ]
+                >= 5
+            )
+            & (
+                self.df_combinado_sistemas[
+                    "Porcentaje_Registro_Historico_Sistemas_y_NT_Incorrectos"
+                ]
+                <= 20
+            ),
+            (
+                self.df_combinado_sistemas[
+                    "Porcentaje_Registro_Historico_Sistemas_y_NT_Incorrectos"
+                ]
+                > 20
+            ),
         ]
 
         choices = [
             "Claves sin Errores de Sistemas y Nivel de Tensión",
             "Claves con Errores de Sistemas y Nivel de Tensión Bajos"
             "Claves con Errores de Sistemas y Nivel de Tensión Medios",
-            "Claves con Errores de Sistemas y Nivel de Tensión Altos"
+            "Claves con Errores de Sistemas y Nivel de Tensión Altos",
         ]
-        
-        self.df_combinado_sistemas["Clasificación_Registro_Historico_Sistemas_y_NT_Incorrectos"] = np.select(conditions, choices, default="Error")
+
+        self.df_combinado_sistemas[
+            "Clasificación_Registro_Historico_Sistemas_y_NT_Incorrectos"
+        ] = np.select(conditions, choices, default="Error")
 
     def guardar_datos(self):
         self.df_combinado_sistemas.to_csv(

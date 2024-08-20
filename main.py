@@ -37,12 +37,13 @@ if (
         lista_meses
     )
 
+
     if codigos_a_correr["revisor_recaudacion_mensual"]:
         print("Entrando a revisor_planillas_IFC.py...")
         rpi.PlanillaRevisor(primer_año, ultimo_año, primer_mes, ultimo_mes).run()
         print("Saliendo de revisor_planillas_IFC.py...")
         pass
-
+                
     if codigos_a_correr["revisor_recaudacion_historico"]:
         print("Entrando a recaudaciones_historicas.py...")
         rech.ProcesadorRecaudacionesHistoricas(

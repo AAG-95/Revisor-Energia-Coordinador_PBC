@@ -40,7 +40,7 @@ class ProcesadorRecaudacionesHistoricas:
     def procesamiento_datos(self):
         for par in self.pares_lista:
 
-            # ? Histórico de Clientes Libres
+            # ? Registro Mensual de Clientes Libres
             df_clientes_L = pd.read_csv(
                 self.carpeta_entrada
                 + "Revisiones Mensuales\\BDD_"
@@ -80,9 +80,17 @@ class ProcesadorRecaudacionesHistoricas:
                 subset=["Barra", "Clave", "Suministrador"], inplace=True
             )
 
+            # Parse the date string in 'YYYY-MM-DD' format
+            df_clientes_L_total["mes_repartición"] = pd.to_datetime(
+                df_clientes_L_total["mes_repartición"], format="%Y-%m-%d"
+            )
+
+            # Reformat the date to 'DD-MM-YYYY'
+            df_clientes_L_total["mes_repartición"] = df_clientes_L_total["mes_repartición"].dt.strftime("%d-%m-%Y")
+
             self.dataframe_clientes_libres.append(df_clientes_L_total)
 
-            # ? Histórico de Clientes Regulados
+            # ? Registro Mensual de Clientes Regulados
 
             df_clientes_R = pd.read_csv(
                 self.carpeta_entrada
@@ -97,9 +105,22 @@ class ProcesadorRecaudacionesHistoricas:
                 header=0,
             )
 
+            df_clientes_R["Mes de consumo"] = pd.to_datetime(
+                df_clientes_R["Mes de consumo"], format="%Y-%m-%d"
+)
+
+            df_clientes_R["Mes de consumo"] = df_clientes_R["Mes de consumo"].dt.strftime("%d-%m-%Y")
+
+            df_clientes_R["mes_repartición"] = pd.to_datetime(
+                df_clientes_R["mes_repartición"], format="%Y-%m-%d"
+            )
+
+            df_clientes_R["mes_repartición"] = df_clientes_R["mes_repartición"].dt.strftime("%d-%m-%Y")
+
+            
             self.dataframe_clientes_regulados.append(df_clientes_R)
 
-            # ? Histórico de Observaciones
+            # ? Registro Mensual de Observaciones
             df_observaciones_clientes_L = pd.read_csv(
                 self.carpeta_entrada
                 + "Revisiones Mensuales\\BDD_"
@@ -135,9 +156,20 @@ class ProcesadorRecaudacionesHistoricas:
                 ignore_index=True,
             )
 
+            df_observaciones_total["Mes de consumo"] = pd.to_datetime(
+                df_observaciones_total["Mes de consumo"], format="%Y-%m-%d"
+            )
+
+            df_observaciones_total["Mes de consumo"] = df_observaciones_total["Mes de consumo"].dt.strftime("%d-%m-%Y")
+
+            df_observaciones_total["mes_repartición"] = pd.to_datetime( df_observaciones_total["mes_repartición"], format="%Y-%m-%d")
+
+            df_observaciones_total["mes_repartición"] = df_observaciones_total["mes_repartición"].dt.strftime("%d-%m-%Y")
+
+
             self.dataframe_observaciones.append(df_observaciones_total)
 
-            # ? Histórico de Revisor de Clientes Libres
+            # ? Registro Mensual de Clientes Libres
             df_revisor_clientes_L = pd.read_csv(
                 self.carpeta_entrada
                 + "Revisiones Mensuales\\BDD_"
@@ -150,10 +182,17 @@ class ProcesadorRecaudacionesHistoricas:
                 sep=";",
                 header=0,
             )
+            
+            df_revisor_clientes_L["mes_repartición"] = pd.to_datetime(
+                df_revisor_clientes_L["mes_repartición"], format="%Y-%m-%d"
+            )
+
+            df_revisor_clientes_L["mes_repartición"] = df_revisor_clientes_L["mes_repartición"].dt.strftime("%d-%m-%Y")
+
 
             self.dataframe_revisor_clientes_L.append(df_revisor_clientes_L)
 
-            # ? Histórico de Revisor de Clientes Regulados
+            # ? Registro Mensual de Revisor de Clientes Regulados
             df_revisor_clientes_R = pd.read_csv(
                 self.carpeta_entrada
                 + "Revisiones Mensuales\\BDD_"
@@ -171,10 +210,11 @@ class ProcesadorRecaudacionesHistoricas:
             self.dataframe_revisor_clientes_R.append(df_revisor_clientes_R)
 
             # Parse the date string in 'YYYY-MM-DD' format
-            mes_rep = datetime.strptime(df_clientes_L["mes_repartición"].unique()[0], "%d-%m-%Y")
+            mes_rep = datetime.strptime(df_clientes_R["mes_repartición"].unique()[0], "%d-%m-%Y")
+            mes_rep = mes_rep.strftime("%d-%m-%Y")
 
             # Format the date as 'DD-MM-YYYY'
-            mes_rep = mes_rep.strftime("%d-%m-%Y")
+            
             self.meses_rep.append(mes_rep)
 
         #! Dataframes históricos
@@ -205,11 +245,17 @@ class ProcesadorRecaudacionesHistoricas:
                 self.lista_df_historicos[idx]["mes_repartición"] = pd.to_datetime(
                     self.lista_df_historicos[idx]["mes_repartición"]
                 )
+
+                self.lista_df_historicos[idx]["mes_repartición"] = self.lista_df_historicos[idx][
+                    "mes_repartición"
+                ].dt.strftime("%m-%d-%Y")
+
                 valores_mes = (
                     self.lista_df_historicos[idx]["mes_repartición"]
-                    .dt.strftime("%d-%m-%Y")
                     .unique()
                 )
+              
+                
                 lista_valores_mes.append(valores_mes)
             else:
                 print(f"No Existe {nombre_archivo} en: {self.carpeta_entrada}")
@@ -247,6 +293,7 @@ class ProcesadorRecaudacionesHistoricas:
                     # Format the date as 'DD-MM-YYYY'
                     mes_df = mes_df.strftime("%d-%m-%Y")
 
+                    print("d")
                 else:
                     df_vacio = True
 
