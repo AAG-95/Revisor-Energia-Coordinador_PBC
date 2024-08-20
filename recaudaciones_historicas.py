@@ -293,7 +293,7 @@ class ProcesadorRecaudacionesHistoricas:
                     # Format the date as 'DD-MM-YYYY'
                     mes_df = mes_df.strftime("%d-%m-%Y")
 
-                    print("d")
+            
                 else:
                     df_vacio = True
 
