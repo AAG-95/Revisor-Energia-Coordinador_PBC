@@ -70,8 +70,8 @@ class DashBarChart:
             ],
             style={
                 "background-image": "url('/assets/paneles.png')",
-        "background-size": "cover",
-        "background-position": "center",
+                "background-size": "cover",
+                "background-position": "center",
                 "width": "100%",
                 "height": "80px",
                 "display": "flex",
@@ -152,7 +152,7 @@ class DashBarChart:
         # region Diseño Revisor de Energía
         # Preprocesamiento del dataframe
         # Convert 'Mes Consumo' to datetime if it's not already
-        # region Procesamiento 
+        # region Procesamiento
         df_combinado_energia["Mes Consumo"] = pd.to_datetime(
             df_combinado_energia["Mes Consumo"]
         )
@@ -175,9 +175,9 @@ class DashBarChart:
         df_combinado_energia["Cantidad Registros"] = df_combinado_energia.groupby(
             "Tipo"
         )["Tipo"].transform("count")
-        #endregion
+        # endregion
 
-        #region Tabla Resumen de Energía por Tipo 
+        # region Tabla Resumen de Energía por Tipo
         # Original aggregation
         df_combinado_por_tipo_energia = (
             df_combinado_energia.groupby(["Tipo"])
@@ -259,9 +259,9 @@ class DashBarChart:
                 {"name": i, "id": i} for i in df_combinado_por_tipo_energia.columns
             ],
             data=df_combinado_por_tipo_energia.to_dict("records"),
-        ) 
-        #endregion
-        
+        )
+        # endregion
+
         # region Tabla Resumen de Energía
         # Tabla Revision detallada
         tabla_revision_energia = dash_table.DataTable(
@@ -302,7 +302,7 @@ class DashBarChart:
             className="grafico_recaudadores",
         )
         # endregion
-        
+
         # ? Gráfico diferencias por Recaudador y Mes Consumo
         # region Gráfico diferencias por Recaudador y Mes Consumo
         df_combinado_por_recaudador_mes = (
@@ -311,10 +311,8 @@ class DashBarChart:
             .reset_index()
         )
 
-        df_combinado_por_recaudador_mes = (
-            df_combinado_por_recaudador_mes.sort_values(
-                ["Recaudador", "Mes Consumo"], ascending=[True, True]
-            )
+        df_combinado_por_recaudador_mes = df_combinado_por_recaudador_mes.sort_values(
+            ["Recaudador", "Mes Consumo"], ascending=[True, True]
         )
 
         fig_energia_mes = px.bar(
@@ -331,7 +329,7 @@ class DashBarChart:
         )
         # endregion
 
-        #region Dropdowns
+        # region Dropdowns
         # Generate the dropdown options
         dropdown_mes_consumo = dcc.Dropdown(
             id="mes-consumo-dropdown_energia",
@@ -398,7 +396,7 @@ class DashBarChart:
             className="dropdown_tipo",
             style={"width": "100%"},
         )
-        #endregion
+        # endregion
         # endregion
         # ? Diseño de Página Revisor de Sistemas
         # region Diseño Revisor de Sistemas
@@ -441,7 +439,7 @@ class DashBarChart:
             "mes_repartición"
         ].apply(lambda x: self.meses_esp[x.day] + "-" + str(x.year))
         # endregion
-        
+
         # Agrupar por tipo y obtener cantidad de errores
         # region Tabla Resumen de Sistemas
         df_combinado_por_tipo_sistemas = (
@@ -717,43 +715,50 @@ class DashBarChart:
         )
         # endregion
         #! Layout--------------------------------------------------------------------------------------
-        #region Layout
+        # region Layout
         # Wait for a few seconds
         self.app.layout = html.Div(
+    [
+        dcc.Location(id="url", refresh=False, pathname="/page-1"),
+        html.Div(
             [
-                dcc.Location(id="url", refresh=False, pathname="/page-1"),
-                html.Div(
-                    [
-                        dcc.Link(
-                            "Revisor de Energía",
-                            href="/page-1",
-                            id="page-1-link",
-                            className="button-link_energia_libres",
-                        ),
-                        dcc.Link(
-                            "Revisor de Sistemas Zonales",
-                            href="/page-2",
-                            id="page-2-link",
-                            className="button-link_sistemas",
-                        ),
-                        dcc.Link(
-                            "Revisor de Clientes Individualizados",
-                            href="/page-3",
-                            id="page-3-link",
-                            className="button-link_clientes_ind",
-                        ),
-                        dcc.Link(
-                            "Revisor de Energía Clientes Regulados",
-                            href="/page-4",
-                            id="page-4-link",
-                            className="button-link_energia_regulados",
-                        ),
-                    ],
-                    id="nav-links",
+                dcc.Link(
+                    "Revisor de Energía",
+                    href="/page-1",
+                    id="page-1-link",
+                    className="button-link_energia_libres",
                 ),
-                html.Div(id="page-content"),
-            ]
-        )
+                dcc.Link(
+                    "Revisor de Sistemas Zonales",
+                    href="/page-2",
+                    id="page-2-link",
+                    className="button-link_sistemas",
+                ),
+                dcc.Link(
+                    "Revisor de Clientes Individualizados",
+                    href="/page-3",
+                    id="page-3-link",
+                    className="button-link_clientes_ind",
+                ),
+                dcc.Link(
+                    "Revisor de Energía Clientes Regulados",
+                    href="/page-4",
+                    id="page-4-link",
+                    className="button-link_energia_regulados",
+                ),
+            ],
+            id="nav-links",
+            style={
+                "backgroundImage": "url('/assets/paneles.png')",  # Path to your PNG file
+                "backgroundSize": "cover",  # Ensure the image covers the entire div
+                "backgroundRepeat": "no-repeat",  # Prevent the image from repeating
+                "height": "80px",  # Set the height of the div to the full viewport height
+                "width": "100%",  # Ensure the div takes the full width of its container
+            },
+        ),
+        html.Div(id="page-content"),
+    ]
+)
 
         energia_layout = html.Div(
             [
@@ -850,8 +855,16 @@ class DashBarChart:
                     ],
                     className="tabla_y_figura_1",
                 ),
+
+                html.Div(
+                    [
+                        grafico_energia_mes,
+                    ],
+                    className="figura_1",
+                ),
+              
             ],
-     className="diseño_pagina_energia"
+            className="diseño_pagina_energia",
         )
 
         # ? Sistemas
@@ -1019,10 +1032,10 @@ class DashBarChart:
                 ),
             ]
         )
-        #endregion
+        # endregion
 
         # ? Callbacks páginas
-        #region Callbacks Páginas
+        # region Callbacks Páginas
         @self.app.callback(Output("page-content", "children"), Input("url", "pathname"))
         def display_page(pathname):
             if pathname == "/page-1":
@@ -1036,7 +1049,8 @@ class DashBarChart:
 
             else:
                 return html.Div([])  # Empty Div for no match
-        #endregion
+
+        # endregion
 
         # ? Callbacks Revisor Energía
         # region Revisor Energía
@@ -1185,7 +1199,7 @@ class DashBarChart:
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  # Only "ALL" is displayed and selected
 
-        #region Tabla Revision Energía
+        # region Tabla Revision Energía
         @self.app.callback(
             Output("tabla_revision_energia", "data"),
             [
@@ -1263,9 +1277,10 @@ class DashBarChart:
                 return df_combinado_filtrado.to_dict("records")
             else:
                 return df_combinado_energia.to_dict("records")
-        #endregion
 
-        #region Tabla Revision Resumen Tipo Energía
+        # endregion
+
+        # region Tabla Revision Resumen Tipo Energía
         @self.app.callback(
             Output("tabla_revision_tipo_energia", "data"),
             [
@@ -1291,8 +1306,10 @@ class DashBarChart:
                 ]
 
                 # Revision por Tipo
-            
-                df_combinado_filtrado["Cantidad Registros"] = df_combinado_filtrado.groupby("Tipo")["Tipo"].transform("count")
+
+                df_combinado_filtrado["Cantidad Registros"] = (
+                    df_combinado_filtrado.groupby("Tipo")["Tipo"].transform("count")
+                )
 
                 df_combinado_por_tipo_filtrado = (
                     df_combinado_filtrado.groupby(["Tipo"])
@@ -1345,7 +1362,6 @@ class DashBarChart:
                     ]
                 ]
 
-            
                 #  thousands as dots
                 columnas_nuevo_formato = [
                     "Porcentaje Registros [%]",
@@ -1367,9 +1383,10 @@ class DashBarChart:
                 return df_combinado_por_tipo_filtrado.to_dict("records")
             else:
                 return df_combinado_por_tipo_energia.to_dict("records")
-        #endregion
 
-        #region Gráfico Diferencias por Recaudador
+        # endregion
+
+        # region Gráfico Diferencias por Recaudador
         @self.app.callback(
             Output("grafico_diferencias_recaudadores_energia", "figure"),
             [
@@ -1419,11 +1436,12 @@ class DashBarChart:
                     orientation="h",
                 )
                 return fig
+
         # endregion
         # endregion
 
         # ? Callbacks Revisor Sistema
-        #region Callbacks Revisor Sistemas
+        # region Callbacks Revisor Sistemas
         @self.app.callback(
             [
                 Output("mes-consumo-dropdown_sistemas", "options"),
@@ -1568,7 +1586,7 @@ class DashBarChart:
                 ] + [
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  # Only "ALL" is displayed and selected
-         
+
         # region Tabla Revision Sistemas
         @self.app.callback(
             Output("tabla_revision_sistemas", "data"),
@@ -1649,9 +1667,10 @@ class DashBarChart:
                 return df_combinado_filtrado.to_dict("records")
             else:
                 return df_combinado_sistemas.to_dict("records")
-        #endregion
 
-        #region Tabla Revision Resumen Tipo Sistemas
+        # endregion
+
+        # region Tabla Revision Resumen Tipo Sistemas
         @self.app.callback(
             Output("tabla_revision_tipo_sistemas", "data"),
             [
@@ -1738,9 +1757,10 @@ class DashBarChart:
                 return df_combinado_por_tipo_filtrado.to_dict("records")
             else:
                 return df_combinado_por_tipo_sistemas.to_dict("records")
-        #endregion
 
-        #region Gráfico Diferencias por Recaudador
+        # endregion
+
+        # region Gráfico Diferencias por Recaudador
         @self.app.callback(
             Output("grafico_diferencias_recaudadores_sistemas", "figure"),
             [
@@ -1790,11 +1810,12 @@ class DashBarChart:
                     orientation="h",
                 )
                 return fig
-        #endregion
-        #endregion
+
+        # endregion
+        # endregion
 
         # ? Callbacks Revisor Clientes Regualdos
-        #region Callbacks Clientes Regulados
+        # region Callbacks Clientes Regulados
         @self.app.callback(
             [
                 Output("mes-consumo-dropdown_clientes_r", "options"),
@@ -1886,7 +1907,7 @@ class DashBarChart:
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  # Only "ALL" is displayed and selected
 
-        #region Tabla Revision Energía Clientes Regulados
+        # region Tabla Revision Energía Clientes Regulados
         @self.app.callback(
             Output("tabla_revision_energia_clientes_r", "data"),
             [
@@ -1938,16 +1959,14 @@ class DashBarChart:
                         .replace(" ", ".")
                     )
 
-               
-
                 return df_combinado_filtrado.to_dict("records")
             else:
                 return df_combinado_energia_clientes_r.to_dict("records")
-    #endregion
-    #endregion
 
+    # endregion
+    # endregion
 
-    #region Función Abrir Navegador
+    # region Función Abrir Navegador
     def open_browser(self):
         # Abre el navegador web para visualizar la aplicación
         debug_mode = self.app.server.debug
@@ -1955,11 +1974,13 @@ class DashBarChart:
         ("WERKZEUG_RUN_MAIN") == "true"
         if not debug_mode or run_main:
             webbrowser.get().open_new(f"http://localhost:{self.port}")
-    #endregion
 
-    #region Función Run
+    # endregion
+
+    # region Función Run
     def run(self):
         # Inicia la aplicación Dash y abre el navegador
         Timer(1, self.open_browser).start()
         self.app.run_server(debug=False, port=self.port)
-    #endregion
+
+    # endregion

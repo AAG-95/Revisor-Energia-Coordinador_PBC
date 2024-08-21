@@ -9,7 +9,6 @@ import tkinter as tk
 # openpyxl version: 3.0.10
 # pandas version: 1.4.4
 
-
 class ObtencionDatos:
     # Función para obtener tablas desde una hoja de cálculo
     def obtencion_Tablas(self, data_total, primera_fila, primera_columna):
@@ -152,9 +151,6 @@ class ObtencionDatos:
         )
 
         return new_rows_df
-
-
-
 
 class ProcesamientosDeDatos:
     # Función para procesar datos y guardarlos en archivos CSV
@@ -317,8 +313,6 @@ class ConversionDatos:
         year = year + 2000
         return datetime(year, month, 1)
              
-
-
     # Función para generar una lista de pares de años y meses
     def generar_pares(self, primer_año, último_año, primer_mes_primer_año, último_mes_último_año):
         pares_lista = []
@@ -339,7 +333,6 @@ class ConversionDatos:
                 pares_lista.append((año, año_mes))
 
         return pares_lista
-
 
     # Genera listado de datos
     def generar_listado_meses(self,
