@@ -4,38 +4,60 @@ import numpy as np
 
 
 class ComparadorRecaudacionEnergia:
+    """
+    Esta clase compara la energía del balance de energía con el proceso RCUT para identificar las diferencias
+    entre energía y recaudación. Facilita la organización y revisión de los datos relacionados con recaudación,
+    energía, y los sistemas zonales permitidos.
+
+    Atributos:
+    - carpeta_salida: Ruta de la carpeta donde se guardan los resultados de la comparación.
+    - carpeta_recaudacion: Ruta de la carpeta donde se almacenan los datos históricos de recaudación.
+    - carpeta_energia: Ruta de la carpeta donde se encuentran los listados de clientes con sus retiros históricos de energía.
+    - carpeta_rev_listado_clientes: Ruta de la carpeta donde se revisan las diferencias de energía por cliente.
+    - carpeta_sistemas: Ruta de la carpeta donde se realizan revisiones del proceso RCUT.
+    - carpeta_cargos: Ruta de la carpeta donde se encuentran los formatos de declaración de cargos actualizados.
+    - sistemas_zonales_permitidos: Lista de sistemas zonales permitidos para el análisis.
+    - niveles_de_tension_permitidos: Lista de niveles de tensión permitidos para el análisis.
+    """
+    
     def __init__(self):
         # Carpeta de salida
         self.carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Balance-Recaudación\\"
+
         # Carpeta de recaudación
         self.carpeta_recaudacion = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Recaudación\\Revisión Histórica\\"
+
         # Carpeta de energía
-        self.carpeta_energia = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\\02 Repartición\Balances\\Listados de Clientes\\Retiros Históricos Clientes\\"
-        # Carpeta de revisión listado de cliente con diferencias de energía
-        self.carpeta_rev_listado_clientes = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\\02 Repartición\\Revisiones\\Revisión Recaudación\\"
+        self.carpeta_energia = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\\02 Repartición\Balances\\Listados de Clientes\\Retiros Históricos Clientes\\"
 
-        self.carpeta_sistemas = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\\02 Repartición\\Revisiones\\Revisión Recaudación\\"
+        # Carpeta de revisión de listado de cliente con diferencias de energía
+        self.carpeta_rev_listado_clientes = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\\02 Repartición\\Revisiones\\Revisión Recaudación\\"
 
+        # Carpeta de revisiones del proceso RCUT
+        self.carpeta_sistemas = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\\02 Repartición\\Revisiones\\Revisión Recaudación\\"
+
+        # Carpeta de cargos actualizados
         self.carpeta_cargos = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\\01 Fijaciones\\00 Formatos de declaración CUT\\Cargos Actualizados\\"
 
+        # Sistemas zonales permitidos
         self.sistemas_zonales_permitidos = [
             "Sistema A",
             "Sistema B",
             "Sistema C",
             "Sistema D",
             "Sistema E",
-            "Sistema F",
+            "Sistema F"
         ]
 
-        self.niveles_de_tension_permitidos = ["Tx < 25", "33", "44", "66", "110", "154", "220"]    
-
+        # Niveles de tensión permitidos
+        self.niveles_de_tension_permitidos = ["Tx < 25", "33", "44", "66", "110", "154", "220"]
 
     def cargar_datos_energia(self):
-        self.df_energia = pd.read_csv(
-            self.carpeta_energia + "Retiros_Históricos_Clientes_L.csv",
-            sep=";",
-            encoding="UTF-8",
-        )
+    # Cargar el archivo CSV de energía
+        archivo_energia = self.carpeta_energia + "Retiros_Históricos_Clientes_L.csv"
+        self.df_energia = pd.read_csv(archivo_energia, sep=";", encoding="UTF-8")
+
+        # Crear columna "Barra-Clave-Mes"
         self.df_energia["Barra-Clave-Mes"] = (
             self.df_energia["Barra"].astype(str)
             + "-_-"
@@ -43,42 +65,39 @@ class ComparadorRecaudacionEnergia:
             + "-_-"
             + self.df_energia["Mes"].astype(str)
         )
+
+        # Convertir "Medida 2" de string a float y cambiar el signo
         self.df_energia["Medida 2"] = (
-            self.df_energia["Medida 2"].str.replace(",", ".").astype(float)
+            self.df_energia["Medida 2"].str.replace(",", ".").astype(float) * -1
         )
-        self.df_energia["Medida 2"] = self.df_energia["Medida 2"] * -1
-        self.df_energia.rename(
-            columns={"Medida 2": "Energía Balance [kWh]"}, inplace=True
-        )
+
+        # Renombrar la columna "Medida 2" a "Energía Balance [kWh]"
+        self.df_energia.rename(columns={"Medida 2": "Energía Balance [kWh]"}, inplace=True)
+
+        # Filtrar las columnas relevantes
         self.df_energia = self.df_energia[
-            [
-                "Barra-Clave-Mes",
-                "Nombre",
-                "Energía Balance [kWh]",
-                "Suministrador_final",
-            ]
+            ["Barra-Clave-Mes", "Nombre", "Energía Balance [kWh]", "Suministrador_final"]
         ]
+
+        # Agrupar por "Barra-Clave-Mes" y agregar los valores
         self.df_energia = (
-            self.df_energia.groupby(["Barra-Clave-Mes"])
-            .agg(
+            self.df_energia.groupby("Barra-Clave-Mes").agg(
                 {
                     "Energía Balance [kWh]": "sum",
-                    "Suministrador_final": lambda x: list(x)[0],
-                    "Nombre": lambda x: list(x)[0],
+                    "Suministrador_final": lambda x: x.iloc[0],
+                    "Nombre": lambda x: x.iloc[0],
                 }
-            )
-            .reset_index()
+            ).reset_index()
         )
+
         return self.df_energia
 
     def cargar_datos_recaudacion(self):
-        self.df_recaudacion = pd.read_csv(
-            self.carpeta_recaudacion + "BDD Clientes Libres Históricos.csv",
-            sep=";",
-            encoding="UTF-8",
-        )
+        # Cargar el archivo CSV de recaudación
+        archivo_recaudacion = self.carpeta_recaudacion + "BDD Clientes Libres Históricos.csv"
+        self.df_recaudacion = pd.read_csv(archivo_recaudacion, sep=";", encoding="UTF-8")
 
-        # Filtrar dataframe para obtener empresas informantes que sean recaduador y revisar caso que no hay recaduador pero sí energía
+        # Filtrar para obtener empresas recaudadoras, excluyendo aquellas sin recaudador pero con energía
         self.df_recaudacion = self.df_recaudacion[
             ~(
                 (self.df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 0)
@@ -86,10 +105,12 @@ class ComparadorRecaudacionEnergia:
             )
         ]
 
+        # Filtrar empresas recaudadoras
         self.df_recaudacion = self.df_recaudacion[
-            (self.df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 1)
+            self.df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 1
         ]
 
+        # Crear columna "Barra-Clave-Mes"
         self.df_recaudacion["Barra-Clave-Mes"] = (
             self.df_recaudacion["Barra"].astype(str)
             + "-_-"
@@ -98,6 +119,7 @@ class ComparadorRecaudacionEnergia:
             + self.df_recaudacion["Mes Consumo"].astype(str)
         )
 
+        # Limpiar y convertir la columna "Energía [kWh]" a float
         self.df_recaudacion["Energía [kWh]"] = (
             self.df_recaudacion["Energía [kWh]"]
             .str.replace(",", ".")
@@ -107,43 +129,44 @@ class ComparadorRecaudacionEnergia:
             .astype(float)
         )
 
-        self.df_recaudacion = (
-            self.df_recaudacion.groupby(["Barra-Clave-Mes"])
-            .agg(
-                {
-                    "Energía [kWh]": "sum",
-                    "Suministrador": lambda x: list(x)[0],
-                    "Recaudador": lambda x: list(x)[-1],
-                    "mes_repartición": lambda x: list(x),
-                    "Recaudador No Informado": lambda x: list(x),
-                    "Cliente Individualizado": lambda x: list(x)[0],
-                    "Zonal": lambda x: list(x)[0],
-                    "Nivel Tensión Zonal": lambda x: list(x)[0],
-                }
-            )
-            .reset_index()
-        )
+        # Agrupar por "Barra-Clave-Mes" y agregar los valores
+        self.df_recaudacion = self.df_recaudacion.groupby("Barra-Clave-Mes").agg(
+            {
+                "Energía [kWh]": "sum",
+                "Suministrador": lambda x: x.iloc[0],
+                "Recaudador": lambda x: x.iloc[-1],
+                "mes_repartición": lambda x: list(x),
+                "Recaudador No Informado": lambda x: list(x),
+                "Cliente Individualizado": lambda x: x.iloc[0],
+                "Zonal": lambda x: x.iloc[0],
+                "Nivel Tensión Zonal": lambda x: x.iloc[0],
+            }
+        ).reset_index()
 
-        
+        # Validar si "Zonal" está en sistemas zonales permitidos, si no, asignar "na"
         self.df_recaudacion["Zonal"] = self.df_recaudacion["Zonal"].apply(
             lambda x: x if x in self.sistemas_zonales_permitidos or pd.isna(x) else "na"
         )
 
+        # Validar si "Nivel Tensión Zonal" está en niveles de tensión permitidos, si no, asignar "-"
         self.df_recaudacion["Nivel Tensión Zonal"] = self.df_recaudacion[
             "Nivel Tensión Zonal"
-        ].apply(lambda x: x if x in self.niveles_de_tension_permitidos or pd.isna(x) else "-")
+        ].apply(
+            lambda x: x if x in self.niveles_de_tension_permitidos or pd.isna(x) else "-"
+        )
 
-        # If column Zonal has na then zonal is -
+        # Si "Zonal" es "na", asignar "-"
         self.df_recaudacion["Zonal"] = self.df_recaudacion["Zonal"].apply(
             lambda x: "-" if x == "na" else x
         )
 
-        # Replace column "Cliente Individualizado" with 0 if "Cliente Individualizado" is not 0 or 1
+        # Reemplazar "Cliente Individualizado" con 0 si no es 0 o 1
         self.df_recaudacion["Cliente Individualizado"] = self.df_recaudacion[
             "Cliente Individualizado"
         ].apply(lambda x: 0 if x not in [0, 1] else x)
 
         return self.df_recaudacion
+
 
     def cargar_datos_revision_clientes(self):
         # read xlsm file
@@ -159,12 +182,12 @@ class ComparadorRecaudacionEnergia:
         )
 
         #! Clientes con diferencias de energía registrados
-        # Eliminate rows where all columns (excluding the first column) are NaN
+       # Eliminar filas donde todas las columnas (excepto la primera) sean NaN
         self.df_diferencias_clientes = self.df_diferencias_clientes.dropna(
             subset=self.df_diferencias_clientes.columns[1:], how="all"
         )
 
-        # Mantain column Barra, Clave, Mes Inicial, Mes Final, Meses Particulares
+        # Mantener columnas específicas
         self.df_diferencias_clientes = self.df_diferencias_clientes[
             [
                 "Barra",
@@ -175,10 +198,7 @@ class ComparadorRecaudacionEnergia:
             ]
         ]
 
-        # Change date format of column Mes Inicial and Mes Final
-
-        # Replace "-" with np.nan just in "Mes Inicial" and "Mes Final" columns
-        # Replace "-" with np.nan and convert to datetime format in fewer lines
+        # Cambiar formato de fecha de las columnas "Mes Inicial" y "Mes Final"
         columnas_rango_fecha = ["Mes Inicial", "Mes Final"]
         self.df_diferencias_clientes[columnas_rango_fecha] = (
             self.df_diferencias_clientes[columnas_rango_fecha]
@@ -186,7 +206,7 @@ class ComparadorRecaudacionEnergia:
             .apply(lambda x: pd.to_datetime(x).dt.strftime("%d-%m-%Y"))
         )
 
-        # Update 'Meses Particulares' column to change format only if value does not contain ","
+        # Actualizar columna 'Meses Particulares' cambiando el formato solo si el valor no contiene ","
         self.df_diferencias_clientes[
             "Meses Particulares"
         ] = self.df_diferencias_clientes["Meses Particulares"].apply(
@@ -199,7 +219,7 @@ class ComparadorRecaudacionEnergia:
             )
         )
 
-        # Convert "Meses Particulares" to datetime and then format as "%d-%m-%Y"
+        # Convertir "Meses Particulares" a datetime y luego formatear como "%d-%m-%Y"
         self.df_diferencias_clientes["Meses Particulares"] = (
             self.df_diferencias_clientes.apply(
                 lambda x: (
@@ -217,14 +237,14 @@ class ComparadorRecaudacionEnergia:
             )
         )
 
-        # Split "Meses Particulares" by ", " and then explode the column
+        # Dividir "Meses Particulares" por ", " y luego explotar la columna
         self.df_diferencias_clientes = self.df_diferencias_clientes.assign(
             Mes_Consumo=self.df_diferencias_clientes["Meses Particulares"].str.split(
                 ", "
             )
         ).explode("Mes_Consumo")
 
-        # Create column Barra-Clave-Mes
+        # Crear columna "Barra-Clave-Mes"
         self.df_diferencias_clientes["Barra-Clave-Mes"] = (
             self.df_diferencias_clientes["Barra"].astype(str)
             + "-_-"
@@ -233,7 +253,7 @@ class ComparadorRecaudacionEnergia:
             + self.df_diferencias_clientes["Mes_Consumo"].astype(str)
         )
 
-        # Drop other columns
+        # Eliminar otras columnas
         self.df_diferencias_clientes = self.df_diferencias_clientes[
             [
                 "Barra-Clave-Mes",

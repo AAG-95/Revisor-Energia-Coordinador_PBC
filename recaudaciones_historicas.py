@@ -82,11 +82,11 @@ class ProcesadorRecaudacionesHistoricas:
 
             # Parse the date string in 'YYYY-MM-DD' format
             df_clientes_L_total["mes_repartición"] = pd.to_datetime(
-                df_clientes_L_total["mes_repartición"], format="%Y-%m-%d"
+                df_clientes_L_total["mes_repartición"]
             )
 
             # Reformat the date to 'DD-MM-YYYY'
-            df_clientes_L_total["mes_repartición"] = df_clientes_L_total["mes_repartición"].dt.strftime("%d-%m-%Y")
+            df_clientes_L_total["mes_repartición"] = df_clientes_L_total["mes_repartición"].dt.strftime("%m-%d-%Y")
 
             self.dataframe_clientes_libres.append(df_clientes_L_total)
 
@@ -106,16 +106,16 @@ class ProcesadorRecaudacionesHistoricas:
             )
 
             df_clientes_R["Mes de consumo"] = pd.to_datetime(
-                df_clientes_R["Mes de consumo"], format="%Y-%m-%d"
+                df_clientes_R["Mes de consumo"]
 )
 
-            df_clientes_R["Mes de consumo"] = df_clientes_R["Mes de consumo"].dt.strftime("%d-%m-%Y")
+            df_clientes_R["Mes de consumo"] = df_clientes_R["Mes de consumo"].dt.strftime("%m-%d-%Y")
 
             df_clientes_R["mes_repartición"] = pd.to_datetime(
-                df_clientes_R["mes_repartición"], format="%Y-%m-%d"
+                df_clientes_R["mes_repartición"]
             )
 
-            df_clientes_R["mes_repartición"] = df_clientes_R["mes_repartición"].dt.strftime("%d-%m-%Y")
+            df_clientes_R["mes_repartición"] = df_clientes_R["mes_repartición"].dt.strftime("%m-%d-%Y")
 
             
             self.dataframe_clientes_regulados.append(df_clientes_R)
@@ -157,14 +157,14 @@ class ProcesadorRecaudacionesHistoricas:
             )
 
             df_observaciones_total["Mes de consumo"] = pd.to_datetime(
-                df_observaciones_total["Mes de consumo"], format="%Y-%m-%d"
+                df_observaciones_total["Mes de consumo"]
             )
 
-            df_observaciones_total["Mes de consumo"] = df_observaciones_total["Mes de consumo"].dt.strftime("%d-%m-%Y")
+            df_observaciones_total["Mes de consumo"] = df_observaciones_total["Mes de consumo"].dt.strftime("%m-%d-%Y")
 
-            df_observaciones_total["mes_repartición"] = pd.to_datetime( df_observaciones_total["mes_repartición"], format="%Y-%m-%d")
+            df_observaciones_total["mes_repartición"] = pd.to_datetime( df_observaciones_total["mes_repartición"])
 
-            df_observaciones_total["mes_repartición"] = df_observaciones_total["mes_repartición"].dt.strftime("%d-%m-%Y")
+            df_observaciones_total["mes_repartición"] = df_observaciones_total["mes_repartición"].dt.strftime("%m-%d-%Y")
 
 
             self.dataframe_observaciones.append(df_observaciones_total)
@@ -184,10 +184,10 @@ class ProcesadorRecaudacionesHistoricas:
             )
             
             df_revisor_clientes_L["mes_repartición"] = pd.to_datetime(
-                df_revisor_clientes_L["mes_repartición"], format="%Y-%m-%d"
+                df_revisor_clientes_L["mes_repartición"]
             )
 
-            df_revisor_clientes_L["mes_repartición"] = df_revisor_clientes_L["mes_repartición"].dt.strftime("%d-%m-%Y")
+            df_revisor_clientes_L["mes_repartición"] = df_revisor_clientes_L["mes_repartición"].dt.strftime("%m-%d-%Y")
 
 
             self.dataframe_revisor_clientes_L.append(df_revisor_clientes_L)

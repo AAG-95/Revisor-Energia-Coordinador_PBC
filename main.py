@@ -15,8 +15,8 @@ print("Iniciando programa...")
 # Create an instance of SeleccionProcesos
 seleccion_procesos = gui.SeleccionProcesos()
 
-# Start the GUI and get the useEne2024r's input
-codigos_a_correr =                           seleccion_procesos.iniciar()
+# Start the GUI and get the user's input
+codigos_a_correr =seleccion_procesos.iniciar()
  
 if (
     codigos_a_correr["revisor_recaudacion_mensual"]
@@ -118,3 +118,4 @@ if codigos_a_correr["visualizador"]:
     ).run()
     print("Saliendo de visualizador.py...")
     pass
+            

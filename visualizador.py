@@ -54,6 +54,13 @@ class DashBarChart:
             "Nov",
             "Dic",
         ]
+
+        # Mapping for Spanish to English month abbreviations
+        meses_mapa_ingles = {
+    'Ene': 'Jan', 'Feb': 'Feb', 'Mar': 'Mar', 'Abr': 'Apr', 'May': 'May', 'Jun': 'Jun',
+    'Jul': 'Jul', 'Ago': 'Aug', 'Sep': 'Sep', 'Oct': 'Oct', 'Nov': 'Nov', 'Dic': 'Dec'
+}
+
         # endregion
         # Preprocess the data
         # region Diseño de Páginas
@@ -305,23 +312,35 @@ class DashBarChart:
 
         # ? Gráfico diferencias por Recaudador y Mes Consumo
         # region Gráfico diferencias por Recaudador y Mes Consumo
-        df_combinado_por_recaudador_mes = (
+        df_combinado_por_recaudador_energia_mes = (
             df_combinado_energia.groupby(["Recaudador", "Mes Consumo"])
             .agg({"Diferencia Energía [kWh]": "sum"})
             .reset_index()
         )
 
-        df_combinado_por_recaudador_mes = df_combinado_por_recaudador_mes.sort_values(
-            ["Recaudador", "Mes Consumo"], ascending=[True, True]
+        # Replace Spanish month abbreviations with English ones
+        df_combinado_por_recaudador_energia_mes["Mes Consumo"] = df_combinado_por_recaudador_energia_mes["Mes Consumo"].replace(meses_mapa_ingles, regex=True)
+ 
+        # Mes consumo to datetime
+        df_combinado_por_recaudador_energia_mes["Mes Consumo"] = pd.to_datetime(
+            df_combinado_por_recaudador_energia_mes["Mes Consumo"], format="%b-%Y"
         )
 
+        df_combinado_por_recaudador_energia_mes = df_combinado_por_recaudador_energia_mes.sort_values(
+            ["Mes Consumo","Recaudador"], ascending=[True, True]
+        ) 
+# strtime to %m - %y
+        df_combinado_por_recaudador_energia_mes["Mes Consumo"] = df_combinado_por_recaudador_energia_mes["Mes Consumo"].dt.strftime("%m-%Y") 
+
         fig_energia_mes = px.bar(
-            df_combinado_por_recaudador_mes,
-            y="Recaudador",
-            x="Diferencia Energía [kWh]",
-            color="Mes Consumo",
-            orientation="h",
+            df_combinado_por_recaudador_energia_mes,
+            y="Diferencia Energía [kWh]",
+            x="Mes Consumo",
+            color="Recaudador",
+            orientation="v",
         )
+       
+
         grafico_energia_mes = dcc.Graph(
             id="grafico_diferencias_recaudadores_mes_energia",
             figure=fig_energia_mes,
@@ -441,7 +460,7 @@ class DashBarChart:
         # endregion
 
         # Agrupar por tipo y obtener cantidad de errores
-        # region Tabla Resumen de Sistemas
+        # region Tabla Resumen de Sistemas por Tipo
         df_combinado_por_tipo_sistemas = (
             df_combinado_sistemas.groupby("Tipo")
             .agg(
@@ -543,6 +562,43 @@ class DashBarChart:
         )
         # endregion
 
+        # region Gráfico diferencias por Recaudador y Mes Consumo
+        df_combinado_por_recaudador_sistemas_mes = (
+            df_combinado_sistemas.groupby(["Recaudador", "Mes Consumo"])
+            .agg({"Diferencia Recaudación Sistema y NT [$]": "sum"})
+            .reset_index()
+        )
+
+        # Replace Spanish month abbreviations with English ones
+        df_combinado_por_recaudador_sistemas_mes["Mes Consumo"] = df_combinado_por_recaudador_sistemas_mes["Mes Consumo"].replace(meses_mapa_ingles, regex=True)
+ 
+        # Mes consumo to datetime
+        df_combinado_por_recaudador_sistemas_mes["Mes Consumo"] = pd.to_datetime(
+            df_combinado_por_recaudador_sistemas_mes["Mes Consumo"], format="%b-%Y"
+        )
+
+        df_combinado_por_recaudador_sistemas_mes = df_combinado_por_recaudador_sistemas_mes.sort_values(
+            ["Mes Consumo","Recaudador"], ascending=[True, True]
+        )
+
+        # strtime to %m - %y
+        df_combinado_por_recaudador_sistemas_mes["Mes Consumo"] = df_combinado_por_recaudador_sistemas_mes["Mes Consumo"].dt.strftime("%m-%Y") 
+
+        fig_energia_mes = px.bar(
+            df_combinado_por_recaudador_sistemas_mes,
+            y="Diferencia Recaudación Sistema y NT [$]",
+            x="Mes Consumo",
+            color="Recaudador",
+            orientation="v",
+        )
+    
+        grafico_sistemas_mes = dcc.Graph(
+            id="grafico_diferencias_recaudadores_mes_sistemas",
+            figure=fig_energia_mes,
+            className="grafico_recaudadores_mes",
+        )
+        # endregion
+
         # region Dropdowns
         # Generate the dropdown options
         dropdown_mes_consumo_sistemas = dcc.Dropdown(
@@ -605,7 +661,7 @@ class DashBarChart:
             id="tipo-dropdown_sistemas",
             options=[
                 {"label": i, "value": i} for i in df_combinado_sistemas["Tipo"].unique()
-            ]
+    ]
             + [{"label": "Select All", "value": "ALL"}],
             value=["ALL"],
             multi=True,
@@ -614,6 +670,7 @@ class DashBarChart:
         )
         # endregion
         # endregion
+
         # ? Diseño de Página Revisor de Clientes Individualizados
         # region Diseño Revisor de Clientes Individualizados
         # Preprocesamiento del dataframe
@@ -639,29 +696,35 @@ class DashBarChart:
         # endregion
         # ? Diseño de Página Revisor de Energia Clientes Regulados
         # region Diseño Revisor de Energía Clientes Regulados
-        df_combinado_energia_clientes_r["Mes"] = pd.to_datetime(
-            df_combinado_energia_clientes_r["Mes"]
+        #region Preprocesamiento
+        # change Mes Consumo column to to Mes Consumo Consumo
+        df_combinado_energia_clientes_r= df_combinado_energia_clientes_r.rename(columns={"Mes": "Mes Consumo"})
+
+        df_combinado_energia_clientes_r["Mes Consumo"] = pd.to_datetime(
+            df_combinado_energia_clientes_r["Mes Consumo"]
         )
 
-        # Sort the DataFrame by 'Mes'
+        # Sort the DataFrame by 'Mes Consumo'
         df_combinado_energia_clientes_r = df_combinado_energia_clientes_r.sort_values(
-            "Mes"
+            "Mes Consumo"
         )
 
-        # Ensure "Mes" is of datetime type
-        df_combinado_energia_clientes_r["Mes"] = pd.to_datetime(
-            df_combinado_energia_clientes_r["Mes"], format="%d-%m-%Y"
+        # Ensure "Mes Consumo" is of datetime type
+        df_combinado_energia_clientes_r["Mes Consumo"] = pd.to_datetime(
+            df_combinado_energia_clientes_r["Mes Consumo"], format="%d-%m-%Y"
         )
 
         # Change column format to Ene-2023
-        df_combinado_energia_clientes_r["Mes"] = df_combinado_energia_clientes_r[
-            "Mes"
+        df_combinado_energia_clientes_r["Mes Consumo"] = df_combinado_energia_clientes_r[
+            "Mes Consumo"
         ].apply(lambda x: self.meses_esp[x.day] + "-" + str(x.year))
+        #endregion
 
+        #region Tabla Resumen de Clientes Regulados 
         # Preprocesamiento del dataframe
         # Tablas Revisor de Energía
         tabla_revision_energia_clientes_r = dash_table.DataTable(
-            id="tabla_revision_energia_clientes_r",
+            id="id_tabla_revision_energia_clientes_r",
             columns=[
                 {"name": i, "id": i}
                 for i in self.df_combinado_energia_clientes_r.columns
@@ -671,13 +734,52 @@ class DashBarChart:
             export_headers="display",
             style_table={"overflowX": "auto", "overflowY": "auto"},
         )
+        #endregion
+
+         # region Gráfico diferencias por Recaudador y Mes Consumo
+        df_combinado_por_recaudador_energia_clientes_r_mes = (
+            df_combinado_energia_clientes_r.groupby(["Suministrador", "Mes Consumo"])
+            .agg({"Diferencia Energía [kWh]": "sum"})
+            .reset_index()
+        )
+
+        # Replace Spanish month abbreviations with English ones
+        df_combinado_por_recaudador_energia_clientes_r_mes["Mes Consumo"] = df_combinado_por_recaudador_energia_clientes_r_mes["Mes Consumo"].replace(meses_mapa_ingles, regex=True)
+ 
+        # Mes Consumo consumo to datetime
+        df_combinado_por_recaudador_energia_clientes_r_mes["Mes Consumo"] = pd.to_datetime(
+            df_combinado_por_recaudador_energia_clientes_r_mes["Mes Consumo"], format="%b-%Y"
+        )
+
+        df_combinado_por_recaudador_energia_clientes_r_mes = df_combinado_por_recaudador_energia_clientes_r_mes.sort_values(
+            ["Mes Consumo","Suministrador"], ascending=[True, True]
+        )
+
+        # strtime to %m - %y
+        df_combinado_por_recaudador_energia_clientes_r_mes["Mes Consumo"] = df_combinado_por_recaudador_energia_clientes_r_mes["Mes Consumo"].dt.strftime("%m-%Y") 
+
+        fig_energia_mes = px.bar(
+            df_combinado_por_recaudador_energia_clientes_r_mes,
+            y="Diferencia Energía [kWh]",
+            x="Mes Consumo",
+            color="Suministrador",
+            orientation="v",
+        )
+    
+        grafico_energia_clientes_r_mes = dcc.Graph(
+            id="grafico_diferencias_recaudadores_mes_energia_clientes_r",
+            figure=fig_energia_mes,
+            className="grafico_recaudadores_mes",
+        )
+        # endregion
+        
 
         # Generate the dropdown options
         dropdown_mes_consumo_clientes_r = dcc.Dropdown(
             id="mes-consumo-dropdown_clientes_r",
             options=[
                 {"label": i, "value": i}
-                for i in df_combinado_energia_clientes_r["Mes"].unique()
+                for i in df_combinado_energia_clientes_r["Mes Consumo"].unique()
             ]
             + [{"label": "Select All", "value": "ALL"}],
             value=["ALL"],
@@ -713,52 +815,54 @@ class DashBarChart:
             className="dropdown_tipo_sistemas",
             style={"width": "100%"},
         )
+        
+
         # endregion
         #! Layout--------------------------------------------------------------------------------------
         # region Layout
         # Wait for a few seconds
         self.app.layout = html.Div(
-    [
-        dcc.Location(id="url", refresh=False, pathname="/page-1"),
-        html.Div(
             [
-                dcc.Link(
-                    "Revisor de Energía",
-                    href="/page-1",
-                    id="page-1-link",
-                    className="button-link_energia_libres",
+                dcc.Location(id="url", refresh=False, pathname="/page-1"),
+                html.Div(
+                    [
+                        dcc.Link(
+                            "Revisor de Energía",
+                            href="/page-1",
+                            id="page-1-link",
+                            className="button-link_energia_libres",
+                        ),
+                        dcc.Link(
+                            "Revisor de Sistemas Zonales",
+                            href="/page-2",
+                            id="page-2-link",
+                            className="button-link_sistemas",
+                        ),
+                        dcc.Link(
+                            "Revisor de Clientes Individualizados",
+                            href="/page-3",
+                            id="page-3-link",
+                            className="button-link_clientes_ind",
+                        ),
+                        dcc.Link(
+                            "Revisor de Energía Clientes Regulados",
+                            href="/page-4",
+                            id="page-4-link",
+                            className="button-link_energia_regulados",
+                        ),
+                    ],
+                    id="nav-links",
+                    style={
+                        "backgroundImage": "url('/assets/despacho .png')",  # Path to your PNG file
+                        "backgroundSize": "cover",  # Ensure the image covers the entire div
+                        "backgroundRepeat": "no-repeat",  # Prevent the image from repeating
+                        "height": "70px",  # Set the height of the div to the full viewport height
+                        "width": "100%",  # Ensure the div takes the full width of its container
+                    },
                 ),
-                dcc.Link(
-                    "Revisor de Sistemas Zonales",
-                    href="/page-2",
-                    id="page-2-link",
-                    className="button-link_sistemas",
-                ),
-                dcc.Link(
-                    "Revisor de Clientes Individualizados",
-                    href="/page-3",
-                    id="page-3-link",
-                    className="button-link_clientes_ind",
-                ),
-                dcc.Link(
-                    "Revisor de Energía Clientes Regulados",
-                    href="/page-4",
-                    id="page-4-link",
-                    className="button-link_energia_regulados",
-                ),
-            ],
-            id="nav-links",
-            style={
-                "backgroundImage": "url('/assets/paneles.png')",  # Path to your PNG file
-                "backgroundSize": "cover",  # Ensure the image covers the entire div
-                "backgroundRepeat": "no-repeat",  # Prevent the image from repeating
-                "height": "80px",  # Set the height of the div to the full viewport height
-                "width": "100%",  # Ensure the div takes the full width of its container
-            },
-        ),
-        html.Div(id="page-content"),
-    ]
-)
+                html.Div(id="page-content"),
+            ]
+        )
 
         energia_layout = html.Div(
             [
@@ -855,14 +959,12 @@ class DashBarChart:
                     ],
                     className="tabla_y_figura_1",
                 ),
-
                 html.Div(
                     [
                         grafico_energia_mes,
                     ],
                     className="figura_1",
                 ),
-              
             ],
             className="diseño_pagina_energia",
         )
@@ -953,6 +1055,12 @@ class DashBarChart:
                     ],
                     className="tabla_y_figura_1",
                 ),
+                html.Div(
+                    [
+                        grafico_sistemas_mes,
+                    ],
+                    className="figura_1",
+                ),
             ]
         )
 
@@ -1029,6 +1137,12 @@ class DashBarChart:
                         )
                     ],
                     className="tabla_clientes_ind",
+                ),
+                html.Div(
+                    [
+                   grafico_energia_clientes_r_mes,
+                    ],
+                    className="figura_1",
                 ),
             ]
         )
@@ -1438,6 +1552,103 @@ class DashBarChart:
                 return fig
 
         # endregion
+
+        # region Gráfico Diferencias por Recaudador y Mes de Consumo
+        @self.app.callback(
+            Output("grafico_diferencias_recaudadores_mes_energia", "figure"),
+            [
+                Input("mes-consumo-dropdown_energia", "value"),
+                Input("barra-dropdown_energia", "value"),
+                Input("recaudador-dropdown_energia", "value"),
+                Input("clave-dropdown_energia", "value"),
+                Input("tipo-dropdown_energia", "value"),
+            ],
+        )
+
+        def update_table(
+            selected_mes_consumo,
+            selected_barra,
+            selected_recaudador,
+            selected_clave,
+            selected_tipo,
+        ):
+            if (
+                selected_mes_consumo
+                or selected_barra
+                or selected_recaudador
+                or selected_clave
+                or selected_tipo
+            ):
+                if selected_mes_consumo == ["ALL"]:
+                    selected_mes_consumo = (
+                        df_combinado_energia["Mes Consumo"].unique().tolist()
+                    )
+
+                if selected_barra == ["ALL"]:
+                    selected_barra = df_combinado_energia["Barra"].unique().tolist()
+
+                if selected_recaudador == ["ALL"]:
+                    selected_recaudador = (
+                        df_combinado_energia["Recaudador"].unique().tolist()
+                    )
+
+                if selected_clave == ["ALL"]:
+                    selected_clave = df_combinado_energia["Clave"].unique().tolist()
+
+                if selected_tipo == ["ALL"]:
+                    selected_tipo = df_combinado_energia["Tipo"].unique().tolist()
+
+                df_combinado_filtrado = df_combinado_energia[
+                    df_combinado_energia["Mes Consumo"].isin(selected_mes_consumo)
+                    & df_combinado_energia["Barra"].isin(selected_barra)
+                    & df_combinado_energia["Recaudador"].isin(selected_recaudador)
+                    & df_combinado_energia["Clave"].isin(selected_clave)
+                    & df_combinado_energia["Tipo"].isin(selected_tipo)
+                ]
+                df_combinado_filtrado = (
+                       df_combinado_filtrado.groupby(["Recaudador", "Mes Consumo"])
+                        .agg({"Diferencia Energía [kWh]": "sum"})
+                        .reset_index()
+                    )
+
+                    # Replace Spanish month abbreviations with English ones
+                df_combinado_filtrado["Mes Consumo"] = df_combinado_filtrado["Mes Consumo"].replace(meses_mapa_ingles, regex=True)
+            
+                    # Mes consumo to datetime
+                df_combinado_filtrado["Mes Consumo"] = pd.to_datetime(
+                        df_combinado_filtrado["Mes Consumo"], format="%b-%Y"
+                    )
+
+                df_combinado_filtrado = df_combinado_filtrado.sort_values(
+                        ["Mes Consumo","Recaudador"], ascending=[True, True]
+                    ) 
+            # strtime to %m - %y
+                df_combinado_filtrado["Mes Consumo"] = df_combinado_filtrado["Mes Consumo"].dt.strftime("%m-%Y") 
+
+                fig_energia_mes = px.bar(
+                        df_combinado_filtrado,
+                        y="Diferencia Energía [kWh]",
+                        x="Mes Consumo",
+                        color="Recaudador",
+                        orientation="v",
+                    )
+        
+                return fig_energia_mes
+            else:
+
+                fig = px.bar(
+                        df_combinado_por_recaudador_energia_mes,
+                        y="Diferencia Energía [kWh]",
+                        x="Mes Consumo",
+                        color="Recaudador",
+                        orientation="v",
+                    )
+            
+                return fig
+                           
+                                
+        # endregion
+
         # endregion
 
         # ? Callbacks Revisor Sistema
@@ -1812,6 +2023,103 @@ class DashBarChart:
                 return fig
 
         # endregion
+
+        # region Gráfico Diferencias por Recaudador y Mes de Consumo
+        @self.app.callback(
+            Output("grafico_diferencias_recaudadores_mes_sistemas", "figure"),
+            [
+                Input("mes-consumo-dropdown_sistemas", "value"),
+                Input("barra-dropdown_sistemas", "value"),
+                Input("recaudador-dropdown_sistemas", "value"),
+                Input("clave-dropdown_sistemas", "value"),
+                Input("tipo-dropdown_sistemas", "value"),
+            ],
+        )
+
+        def update_table(
+            selected_mes_consumo,
+            selected_barra,
+            selected_recaudador,
+            selected_clave,
+            selected_tipo,
+        ):
+            if (
+                selected_mes_consumo
+                or selected_barra
+                or selected_recaudador
+                or selected_clave
+                or selected_tipo
+            ):
+                if selected_mes_consumo == ["ALL"]:
+                    selected_mes_consumo = (
+                        df_combinado_sistemas["Mes Consumo"].unique().tolist()
+                    )
+
+                if selected_barra == ["ALL"]:
+                    selected_barra = df_combinado_sistemas["Barra"].unique().tolist()
+
+                if selected_recaudador == ["ALL"]:
+                    selected_recaudador = (
+                        df_combinado_sistemas["Recaudador"].unique().tolist()
+                    )
+
+                if selected_clave == ["ALL"]:
+                    selected_clave = df_combinado_sistemas["Clave"].unique().tolist()
+
+                if selected_tipo == ["ALL"]:
+                    selected_tipo = df_combinado_sistemas["Tipo"].unique().tolist()
+
+                df_combinado_filtrado = df_combinado_sistemas[
+                    df_combinado_sistemas["Mes Consumo"].isin(selected_mes_consumo)
+                    & df_combinado_sistemas["Barra"].isin(selected_barra)
+                    & df_combinado_sistemas["Recaudador"].isin(selected_recaudador)
+                    & df_combinado_sistemas["Clave"].isin(selected_clave)
+                    & df_combinado_sistemas["Tipo"].isin(selected_tipo)
+                ]
+                df_combinado_filtrado = (
+                       df_combinado_filtrado.groupby(["Recaudador", "Mes Consumo"])
+                        .agg({"Diferencia Recaudación Sistema y NT [$]": "sum"})
+                        .reset_index()
+                    )
+
+                    # Replace Spanish month abbreviations with English ones
+                df_combinado_filtrado["Mes Consumo"] = df_combinado_filtrado["Mes Consumo"].replace(meses_mapa_ingles, regex=True)
+            
+                    # Mes consumo to datetime
+                df_combinado_filtrado["Mes Consumo"] = pd.to_datetime(
+                        df_combinado_filtrado["Mes Consumo"], format="%b-%Y"
+                    )
+
+                df_combinado_filtrado = df_combinado_filtrado.sort_values(
+                        ["Mes Consumo","Recaudador"], ascending=[True, True]
+                    ) 
+            # strtime to %m - %y
+                df_combinado_filtrado["Mes Consumo"] = df_combinado_filtrado["Mes Consumo"].dt.strftime("%m-%Y") 
+
+                fig_sistemas_mes = px.bar(
+                        df_combinado_filtrado,
+                        y="Diferencia Recaudación Sistema y NT [$]",
+                        x="Mes Consumo",
+                        color="Recaudador",
+                        orientation="v",
+                    )
+        
+                return fig_sistemas_mes
+            else:
+
+                fig = px.bar(
+                        df_combinado_por_recaudador_sistemas_mes,
+                        y="Diferencia Energía [kWh]",
+                        x="Mes Consumo",
+                        color="Recaudador",
+                        orientation="v",
+                    )
+            
+                return fig
+                           
+                                
+        # endregion
+
         # endregion
 
         # ? Callbacks Revisor Clientes Regualdos
@@ -1828,19 +2136,19 @@ class DashBarChart:
                 if "ALL" in selected_values:
                     return [
                         {"label": i, "value": i}
-                        for i in df_combinado_energia_clientes_r["Mes"].unique()
+                        for i in df_combinado_energia_clientes_r["Mes Consumo"].unique()
                     ] + [{"label": "Select All", "value": "ALL"}], ["ALL"]
                 else:
                     return [
                         {"label": i, "value": i}
-                        for i in df_combinado_energia_clientes_r["Mes"].unique()
+                        for i in df_combinado_energia_clientes_r["Mes Consumo"].unique()
                     ] + [{"label": "Select All", "value": "ALL"}], [
                         value for value in selected_values if value != "ALL"
                     ]  # All options are displayed, selected values are selected
             else:
                 return [
                     {"label": i, "value": i}
-                    for i in df_combinado_energia_clientes_r["Mes"].unique()
+                    for i in df_combinado_energia_clientes_r["Mes Consumo"].unique()
                 ] + [
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  # Only "ALL" is displayed and selected
@@ -1909,7 +2217,7 @@ class DashBarChart:
 
         # region Tabla Revision Energía Clientes Regulados
         @self.app.callback(
-            Output("tabla_revision_energia_clientes_r", "data"),
+            Output("id_tabla_revision_energia_clientes_r", "data"),
             [
                 Input("mes-consumo-dropdown_clientes_r", "value"),
                 Input("suministrador-dropdown_clientes_r", "value"),
@@ -1920,9 +2228,9 @@ class DashBarChart:
             if selected_mes_consumo or selected_recaudador or selected_tipo:
                 if selected_mes_consumo == ["ALL"]:
                     selected_mes_consumo = (
-                        df_combinado_energia_clientes_r["Mes"].unique().tolist()
+                        df_combinado_energia_clientes_r["Mes Consumo"].unique().tolist()
                     )
-                print("ss")
+
                 if selected_recaudador == ["ALL"]:
                     selected_recaudador = (
                         df_combinado_energia_clientes_r["Suministrador"]
@@ -1936,7 +2244,7 @@ class DashBarChart:
                     )
 
                 df_combinado_filtrado = df_combinado_energia_clientes_r[
-                    df_combinado_energia_clientes_r["Mes"].isin(selected_mes_consumo)
+                    df_combinado_energia_clientes_r["Mes Consumo"].isin(selected_mes_consumo)
                     & df_combinado_energia_clientes_r["Suministrador"].isin(
                         selected_recaudador
                     )
@@ -1964,7 +2272,86 @@ class DashBarChart:
                 return df_combinado_energia_clientes_r.to_dict("records")
 
     # endregion
+        
+        # region Grafico Diferencias por Suministrador y Mes de Consumo
+        @self.app.callback(
+            Output("grafico_diferencias_recaudadores_mes_energia_clientes_r", "figure"),
+            [
+                Input("mes-consumo-dropdown_clientes_r", "value"),
+                Input("suministrador-dropdown_clientes_r", "value"),
+                Input("tipo-dropdown_clientes_r", "value"),
+            ],
+        )
+        def update_table(selected_mes_consumo, selected_recaudador, selected_tipo):
+            if selected_mes_consumo or selected_recaudador or selected_tipo:
+                if selected_mes_consumo == ["ALL"]:
+                    selected_mes_consumo = (
+                        df_combinado_energia_clientes_r["Mes Consumo"].unique().tolist()
+                    )
+
+                if selected_recaudador == ["ALL"]:
+                    selected_recaudador = (
+                        df_combinado_energia_clientes_r["Suministrador"]
+                        .unique()
+                        .tolist()
+                    )
+
+                if selected_tipo == ["ALL"]:
+                    selected_tipo = (
+                        df_combinado_energia_clientes_r["Tipo"].unique().tolist()
+                    )
+
+
+                df_combinado_filtrado = df_combinado_energia_clientes_r[
+                    df_combinado_energia_clientes_r["Mes Consumo"].isin(selected_mes_consumo)
+                    & df_combinado_energia_clientes_r["Suministrador"].isin(selected_recaudador)
+                    & df_combinado_energia_clientes_r["Tipo"].isin(selected_tipo)
+                ]    
+
+                df_combinado_filtrado = (
+                df_combinado_filtrado.groupby(["Suministrador", "Mes Consumo"])
+                .agg({"Diferencia Energía [kWh]": "sum"})
+                .reset_index()
+            )
+
+                # Replace Spanish month abbreviations with English ones
+                df_combinado_filtrado["Mes Consumo"] = df_combinado_filtrado["Mes Consumo"].replace(meses_mapa_ingles, regex=True)
+        
+                # Mes Consumo consumo to datetime
+                df_combinado_filtrado["Mes Consumo"] = pd.to_datetime(
+                    df_combinado_filtrado["Mes Consumo"], format="%b-%Y"
+                )
+
+                df_combinado_filtrado = df_combinado_filtrado.sort_values(
+                    [   "Mes Consumo","Suministrador"], ascending=[True, True]
+                )
+
+                # strtime to %m - %y
+                df_combinado_filtrado["Mes Consumo"] = df_combinado_filtrado["Mes Consumo"].dt.strftime("%m-%Y") 
+
+                fig_energia_mes = px.bar(
+                    df_combinado_filtrado,
+                    y="Diferencia Energía [kWh]",
+                    x="Mes Consumo",
+                    color="Suministrador",
+                    orientation="v",
+                )
+            
+                return fig_energia_mes
+            else:
+                 fig = px.bar(
+                    df_combinado_por_recaudador_energia_clientes_r_mes,
+                    y="Diferencia Energía [kWh]",
+                    x="Mes Consumo",
+                    color="Suministrador",
+                    orientation="v",
+                )
+                 return fig
+
     # endregion
+        
+        
+        # endregion
 
     # region Función Abrir Navegador
     def open_browser(self):

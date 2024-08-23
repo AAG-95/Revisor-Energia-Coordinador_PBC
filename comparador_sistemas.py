@@ -213,12 +213,12 @@ class ComparadorSistemas:
                 axis=1,
             )
         )
+
         """# Drop "Correcto" en columna Tipo
         df_combinado_sistemas = df_combinado_sistemas[df_combinado_sistemas["Tipo"] != "Correcto"]"""
 
     def cargos_sistemas_nt(self):
 
-        # Fecha de Cargos Auxiliar
         self.df_combinado_sistemas["Mes Consumo Formato Datetime"] = pd.to_datetime(
             self.df_combinado_sistemas["Mes Consumo"], format="%d-%m-%Y"
         )
