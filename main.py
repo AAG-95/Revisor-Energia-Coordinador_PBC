@@ -67,7 +67,7 @@ if (
         print("Saliendo de retiros_historicos.py...")
         pass
 
-if codigos_a_correr["comparador_recaudacion_clientes_libres"]:                      
+if codigos_a_correr["comparador_recaudacion_clientes_libres"]:                          
     print("Entrando a comparador_recaudacion_y_energia_clientes_libres. bnpy...")                       
     cre.ComparadorRecaudacionEnergia().run()
     print("Saliendo de comparador_recaudacion_y_energia_clientes_libres.py...")
@@ -118,4 +118,3 @@ if codigos_a_correr["visualizador"]:
     ).run()
     print("Saliendo de visualizador.py...")
     pass
-            
