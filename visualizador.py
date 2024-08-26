@@ -541,6 +541,14 @@ class DashBarChart:
             * 100
         )
 
+        totales = df_combinado_por_tipo_sistemas.sum(numeric_only=True)
+        totales["Tipo"] = "Total"
+
+        # Append the total row to the original DataFrame
+        df_combinado_por_tipo_sistemas = df_combinado_por_tipo_sistemas.append(
+            totales, ignore_index=True
+        )
+
         columns_to_format = [
             "Porcentaje Energía [%]",
             "Porcentaje Registros [%]",
@@ -585,12 +593,12 @@ class DashBarChart:
         df_combinado_por_recaudador_sistemas = (
             df_combinado_sistemas.groupby(["Recaudador"])
             .size()
-            .reset_index(name="Cantidad Registros")
+            .reset_index(name="Diferencia Recaudación Sistema y NT [$]")
         )
 
         df_combinado_por_recaudador_sistemas = (
             df_combinado_por_recaudador_sistemas.sort_values(
-                "Cantidad Registros", ascending=False
+                "Diferencia Recaudación Sistema y NT [$]", ascending=False
             )
         )
 
@@ -598,7 +606,7 @@ class DashBarChart:
         fig_sistemas = px.bar(
             df_combinado_por_recaudador_sistemas,
             y="Recaudador",
-            x="Cantidad Registros",
+            x="Diferencia Recaudación Sistema y NT [$]",
             orientation="h",
         )
         grafico_sistemas = dcc.Graph(
@@ -613,6 +621,18 @@ class DashBarChart:
             df_combinado_sistemas.groupby(["Recaudador", "Mes Consumo"])
             .agg({"Diferencia Recaudación Sistema y NT [$]": "sum"})
             .reset_index()
+        )
+
+        totales = (
+            df_combinado_por_recaudador_sistemas_mes.groupby("Mes Consumo")
+            .sum(numeric_only=True)
+            .reset_index()
+        )
+        totales["Recaudador"] = "Total"
+
+        # Append the total row to the original DataFrame
+        df_combinado_por_recaudador_sistemas_mes = pd.concat(
+            [df_combinado_por_recaudador_sistemas_mes, totales], ignore_index=True
         )
 
         # Replace Spanish month abbreviations with English ones
@@ -2057,6 +2077,16 @@ class DashBarChart:
                     * 100
                 )
 
+                totales = df_combinado_por_tipo_filtrado.sum(numeric_only=True)
+                totales["Tipo"] = "Total"
+
+                # Append the total row to the original DataFrame
+                df_combinado_por_tipo_filtrado = df_combinado_por_tipo_filtrado.append(
+                    totales, ignore_index=True
+                )
+
+                
+
                 columns_to_format = [
                     "Porcentaje Energía [%]",
                     "Porcentaje Registros [%]",
@@ -2115,19 +2145,19 @@ class DashBarChart:
                 df_combinado_por_recaudador_filtrado = (
                     df_combinado_filtrado.groupby("Recaudador")
                     .size()
-                    .reset_index(name="Cantidad Registros")
+                    .reset_index(name="Diferencia Recaudación Sistema y NT [$]")
                 )
 
                 df_combinado_por_recaudador_filtrado = (
                     df_combinado_por_recaudador_filtrado.sort_values(
-                        "Cantidad Registros", ascending=False
+                        "Diferencia Recaudación Sistema y NT [$]", ascending=False
                     )
                 )
 
                 fig_filtrada = px.bar(
                     df_combinado_por_recaudador_filtrado,
                     y="Recaudador",
-                    x="Cantidad Registros",
+                    x="Diferencia Recaudación Sistema y NT [$]",
                     orientation="h",
                 )
                 return fig_filtrada
@@ -2135,7 +2165,7 @@ class DashBarChart:
                 fig = px.bar(
                     df_combinado_por_recaudador_sistemas,
                     y="Recaudador",
-                    x="Cantidad Registros",
+                    x="Diferencia Recaudación Sistema y NT [$]",
                     orientation="h",
                 )
                 return fig
@@ -2197,6 +2227,18 @@ class DashBarChart:
                     df_combinado_filtrado.groupby(["Recaudador", "Mes Consumo"])
                     .agg({"Diferencia Recaudación Sistema y NT [$]": "sum"})
                     .reset_index()
+                )
+
+                totales = (
+            df_combinado_filtrado.groupby("Mes Consumo")
+            .sum(numeric_only=True)
+            .reset_index()
+        )
+                totales["Recaudador"] = "Total"
+
+                # Append the total row to the original DataFrame
+                df_combinado_filtrado = pd.concat(
+                    [df_combinado_filtrado, totales], ignore_index=True
                 )
 
                 # Replace Spanish month abbreviations with English ones
@@ -2445,6 +2487,19 @@ class DashBarChart:
                     .agg({"Diferencia Energía [kWh]": "sum"})
                     .reset_index()
                 )
+
+                totales = (
+            df_combinado_filtrado.groupby("Mes Consumo")
+            .sum(numeric_only=True)
+            .reset_index()
+        )
+                totales["Suministrador"] = "Total"
+
+        # Append the total row to the original DataFrame
+                df_combinado_filtrado = pd.concat(
+            [df_combinado_filtrado, totales], ignore_index=True
+        )
+
 
                 # Replace Spanish month abbreviations with English ones
                 df_combinado_filtrado["Mes Consumo"] = df_combinado_filtrado[
