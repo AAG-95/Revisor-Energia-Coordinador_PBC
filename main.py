@@ -116,5 +116,5 @@ if codigos_a_correr["visualizador"]:
         df_combinado_ind,
         df_combinado_energia_regulados,
     ).run()
-    print("Saliendo de visualizador.py...")
+    print("Saliendo de visualizador.py...")                                 
     pass
