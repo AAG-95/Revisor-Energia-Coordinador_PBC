@@ -170,6 +170,16 @@ class DashBarChart:
         # Preprocesamiento del dataframe
         # Convert 'Mes Consumo' to datetime if it's not already
         # region Procesamiento
+
+        # drop Column Recaudador No Informado
+        df_combinado_energia = df_combinado_energia.drop(
+            columns=["Recaudador No Informado"]
+        )
+
+        df_combinado_energia = df_combinado_energia.rename(
+            columns={"Recaudación [$]": "Diferencia Recaudación [$]"}
+        )
+
         df_combinado_energia["Mes Consumo"] = pd.to_datetime(
             df_combinado_energia["Mes Consumo"]
         )
@@ -202,7 +212,7 @@ class DashBarChart:
                 {
                     "Cantidad Registros": "first",
                     "Diferencia Energía [kWh]": "sum",
-                    "Recaudación [$]": "sum",
+                    "Diferencia Recaudación [$]": "sum",
                 }
             )
             .reset_index()
@@ -253,7 +263,7 @@ class DashBarChart:
                 "Clientes No Filtrados",
                 "Diferencia Energía [kWh]",
                 "Porcentaje Energía Dif [%]",
-                "Recaudación [$]",
+                "Diferencia Recaudación [$]",
             ]
         ]
 
@@ -266,7 +276,7 @@ class DashBarChart:
             "Diferencia Energía [kWh]",
             "Porcentaje Registros [%]",
             "Porcentaje Energía Dif [%]",
-            "Recaudación [$]",
+            "Diferencia Recaudación [$]",
         ]
 
         for column in columns_to_format:
@@ -373,19 +383,19 @@ class DashBarChart:
 
         # Sort 'Mes Consumo' to ensure correct order in the plot
         meses_listados = sorted(
-                    df_combinado_por_recaudador_energia_mes["Mes Consumo"].unique(),
-                    key=lambda date: pd.to_datetime(date, format="%m-%Y"),
-                )
+            df_combinado_por_recaudador_energia_mes["Mes Consumo"].unique(),
+            key=lambda date: pd.to_datetime(date, format="%m-%Y"),
+        )
 
-                # Create the bar plot
+        # Create the bar plot
         fig_energia_mes = px.bar(
-                    df_combinado_por_recaudador_energia_mes,
-                    y="Diferencia Energía [kWh]",
-                    x="Mes Consumo",
-                    color="Recaudador",
-                    orientation="v",
-                    category_orders={"Mes Consumo": meses_listados},
-                )
+            df_combinado_por_recaudador_energia_mes,
+            y="Diferencia Energía [kWh]",
+            x="Mes Consumo",
+            color="Recaudador",
+            orientation="v",
+            category_orders={"Mes Consumo": meses_listados},
+        )
 
         grafico_energia_mes = dcc.Graph(
             id="grafico_diferencias_recaudadores_mes_energia",
@@ -468,6 +478,11 @@ class DashBarChart:
         # Preprocesamiento del dataframe
         # Convert 'Mes Consumo' to datetime if it's not already
         # region Procesamiento
+
+        df_combinado_sistemas = df_combinado_sistemas.drop(
+            columns=["Recaudador No Informado"]
+        )
+
         df_combinado_sistemas["Mes Consumo"] = pd.to_datetime(
             df_combinado_sistemas["Mes Consumo"]
         )
@@ -566,6 +581,17 @@ class DashBarChart:
                 .replace(" ", ".")
             )
 
+      # Reorder the DataFrame
+        df_combinado_por_tipo_sistemas =  df_combinado_por_tipo_sistemas[
+                    [   "Tipo",
+                        "Cantidad Registros",
+                        "Porcentaje Registros [%]",
+                        "Energía [kWh]",
+                        "Porcentaje Energía [%]",
+                        "Diferencia Recaudacion Sistema y NT [$]",
+                    ]
+                ]        
+
         # Tablas Revisor de Energía
         tabla_revision_tipo_sistemas = dash_table.DataTable(
             id="tabla_revision_tipo_sistemas",
@@ -656,13 +682,13 @@ class DashBarChart:
         # strtime to %m - %y
         df_combinado_por_recaudador_sistemas_mes["Mes Consumo"] = (
             df_combinado_por_recaudador_sistemas_mes["Mes Consumo"].dt.strftime("%m-%Y")
-        )        
+        )
 
         # Sort 'Mes Consumo' to ensure correct order in the plot
         meses_listados = sorted(
-                    df_combinado_por_recaudador_sistemas_mes["Mes Consumo"].unique(),
-                    key=lambda date: pd.to_datetime(date, format="%m-%Y"),
-                )
+            df_combinado_por_recaudador_sistemas_mes["Mes Consumo"].unique(),
+            key=lambda date: pd.to_datetime(date, format="%m-%Y"),
+        )
 
         fig_energia_mes = px.bar(
             df_combinado_por_recaudador_sistemas_mes,
@@ -811,8 +837,7 @@ class DashBarChart:
         tabla_revision_energia_clientes_r = dash_table.DataTable(
             id="id_tabla_revision_energia_clientes_r",
             columns=[
-                {"name": i, "id": i}
-                for i in df_combinado_energia_clientes_r.columns
+                {"name": i, "id": i} for i in df_combinado_energia_clientes_r.columns
             ],
             data=df_combinado_energia_clientes_r.to_dict("records"),
             export_format="csv",
@@ -858,9 +883,9 @@ class DashBarChart:
 
         # Sort 'Mes Consumo' to ensure correct order in the plot
         meses_listados = sorted(
-                    df_combinado_por_recaudador_energia_clientes_r_mes["Mes Consumo"].unique(),
-                    key=lambda date: pd.to_datetime(date, format="%m-%Y"),
-                )
+            df_combinado_por_recaudador_energia_clientes_r_mes["Mes Consumo"].unique(),
+            key=lambda date: pd.to_datetime(date, format="%m-%Y"),
+        )
 
         fig_energia_mes = px.bar(
             df_combinado_por_recaudador_energia_clientes_r_mes,
@@ -868,7 +893,7 @@ class DashBarChart:
             x="Mes Consumo",
             color="Suministrador",
             orientation="v",
-            category_orders={"Mes Consumo": meses_listados}
+            category_orders={"Mes Consumo": meses_listados},
         )
 
         grafico_energia_clientes_r_mes = dcc.Graph(
@@ -1473,6 +1498,7 @@ class DashBarChart:
                     "Energía Declarada [kWh]",
                     "Diferencia Energía [kWh]",
                     "Porcentaje_No_Inf_y_Dif_por_Clave",
+                    "Cargo Acumulado" "Diferencia Recaudación [$]",
                 ]  # replace with your column names
 
                 for column in columnas_a_modificar:
@@ -1533,7 +1559,7 @@ class DashBarChart:
                     .agg(
                         {
                             "Diferencia Energía [kWh]": "sum",
-                            "Recaudación [$]": "sum",
+                            "Diferencia Recaudación [$]": "sum",
                             "Cantidad Registros": "first",
                         }
                     )
@@ -1584,7 +1610,7 @@ class DashBarChart:
                         "Clientes No Filtrados",
                         "Diferencia Energía [kWh]",
                         "Porcentaje Energía Dif [%]",
-                        "Recaudación [$]",
+                        "Diferencia Recaudación [$]",
                     ]
                 ]
 
@@ -1593,7 +1619,7 @@ class DashBarChart:
                     "Porcentaje Registros [%]",
                     "Porcentaje Energía Dif [%]",
                     "Diferencia Energía [kWh]",
-                    "Recaudación [$]",
+                    "Diferencia Recaudación [$]",
                 ]
 
                 for column in columnas_nuevo_formato:
@@ -1755,7 +1781,6 @@ class DashBarChart:
                 df_combinado_filtrado = df_combinado_filtrado.sort_values(
                     ["Mes Consumo", "Recaudador"], ascending=[True, True]
                 )
-                
 
                 # Sort 'Mes Consumo' to ensure correct order in the plot
                 meses_listados = sorted(
@@ -2085,8 +2110,6 @@ class DashBarChart:
                     totales, ignore_index=True
                 )
 
-                
-
                 columns_to_format = [
                     "Porcentaje Energía [%]",
                     "Porcentaje Registros [%]",
@@ -2103,6 +2126,17 @@ class DashBarChart:
                         .replace(".", ",")
                         .replace(" ", ".")
                     )
+
+                # Reorder the DataFrame
+                df_combinado_por_tipo_filtrado = df_combinado_por_tipo_filtrado[
+                    [   "Tipo",
+                        "Cantidad Registros",
+                        "Porcentaje Registros [%]",
+                        "Energía [kWh]",
+                        "Porcentaje Energía [%]",
+                        "Diferencia Recaudacion Sistema y NT [$]",
+                    ]
+                ]
 
                 """ df_combinado_por_tipo_filtrado[
                         "Diferencia Energía [kWh]"
@@ -2230,10 +2264,10 @@ class DashBarChart:
                 )
 
                 totales = (
-            df_combinado_filtrado.groupby("Mes Consumo")
-            .sum(numeric_only=True)
-            .reset_index()
-        )
+                    df_combinado_filtrado.groupby("Mes Consumo")
+                    .sum(numeric_only=True)
+                    .reset_index()
+                )
                 totales["Recaudador"] = "Total"
 
                 # Append the total row to the original DataFrame
@@ -2271,7 +2305,7 @@ class DashBarChart:
                     x="Mes Consumo",
                     color="Recaudador",
                     orientation="v",
-                     category_orders={"Mes Consumo": meses_listados},
+                    category_orders={"Mes Consumo": meses_listados},
                 )
 
                 return fig_sistemas_mes
@@ -2489,17 +2523,16 @@ class DashBarChart:
                 )
 
                 totales = (
-            df_combinado_filtrado.groupby("Mes Consumo")
-            .sum(numeric_only=True)
-            .reset_index()
-        )
+                    df_combinado_filtrado.groupby("Mes Consumo")
+                    .sum(numeric_only=True)
+                    .reset_index()
+                )
                 totales["Suministrador"] = "Total"
 
-        # Append the total row to the original DataFrame
+                # Append the total row to the original DataFrame
                 df_combinado_filtrado = pd.concat(
-            [df_combinado_filtrado, totales], ignore_index=True
-        )
-
+                    [df_combinado_filtrado, totales], ignore_index=True
+                )
 
                 # Replace Spanish month abbreviations with English ones
                 df_combinado_filtrado["Mes Consumo"] = df_combinado_filtrado[
@@ -2520,12 +2553,11 @@ class DashBarChart:
                     "Mes Consumo"
                 ].dt.strftime("%m-%Y")
 
-                 # Sort 'Mes Consumo' to ensure correct order in the plot
+                # Sort 'Mes Consumo' to ensure correct order in the plot
                 meses_listados = sorted(
                     df_combinado_filtrado["Mes Consumo"].unique(),
                     key=lambda date: pd.to_datetime(date, format="%m-%Y"),
                 )
-
 
                 fig_energia_mes = px.bar(
                     df_combinado_filtrado,
@@ -2533,7 +2565,7 @@ class DashBarChart:
                     x="Mes Consumo",
                     color="Suministrador",
                     orientation="v",
-                    category_orders={"Mes Consumo": meses_listados}
+                    category_orders={"Mes Consumo": meses_listados},
                 )
 
                 return fig_energia_mes

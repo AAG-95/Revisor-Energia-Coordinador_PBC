@@ -581,7 +581,6 @@ class ComparadorRecaudacionEnergia:
         )
 
         #! Make a join based in Barra-Clave-Mes in df_recaudación and Barra Original-Claver Orignal-Mes of clientes Cruzados and then replace Barra-Clave-Mes  with Barra Homologada-Clave Homologada-Mes only if Barra-Clave-Mes is in Barra Original-Clave Original-Mes. Do these in two steps: Join and Replace
-
         # Join df_recaudación with df_homologa_clientes_cruzados
         self.df_recaudacion = pd.merge(
             self.df_recaudacion,
@@ -949,14 +948,7 @@ class ComparadorRecaudacionEnergia:
             how="left",
         )
 
-        # New Column Recaudación[$] = Diferencia Energía [kWh] * Cargo Acumulado Individualizados  if Cliente Individualizado = 1 else Diferencia Energía [kWh] * Cargo Acumulado No Individualizados
-        self.df_combinado_energia["Recaudación [$]"] = np.where(
-            self.df_combinado_energia["Cliente Individualizado"] == 1,
-            self.df_combinado_energia["Diferencia Energía [kWh]"]
-            * self.df_combinado_energia["Cargo Acumulado Individualizado"],
-            self.df_combinado_energia["Diferencia Energía [kWh]"]
-            * self.df_combinado_energia["Cargo Acumulado No Individualizado"],
-        ).round(4)
+       
 
         # New Column Cargo Acumulado = Cargo Acumulado Individualizados if Cliente Individualizado = 1 else Cargo Acumulado No Individualizados
         self.df_combinado_energia["Cargo Acumulado"] = np.where(
@@ -964,6 +956,16 @@ class ComparadorRecaudacionEnergia:
             self.df_combinado_energia["Cargo Acumulado Individualizado"],
             self.df_combinado_energia["Cargo Acumulado No Individualizado"],
         )
+
+         # New Column Recaudación[$] = Diferencia Energía [kWh] * Cargo Acumulado Individualizados  if Cliente Individualizado = 1 else Diferencia Energía [kWh] * Cargo Acumulado No Individualizados
+        
+        self.df_combinado_energia["Recaudación [$]"] = np.where(
+            self.df_combinado_energia["Cliente Individualizado"] == 1,
+            self.df_combinado_energia["Diferencia Energía [kWh]"]
+            * self.df_combinado_energia["Cargo Acumulado Individualizado"],
+            self.df_combinado_energia["Diferencia Energía [kWh]"]
+            * self.df_combinado_energia["Cargo Acumulado No Individualizado"],
+        ).round(4)
 
         # Drop columns Cargo Acumulado Individualizados and Cargo Acumulado No Individualizados Segmento Nivel Tensión [kV] Mes de Consumo Formato Datetime and Mes de Consumo
         self.df_combinado_energia = self.df_combinado_energia.drop(
