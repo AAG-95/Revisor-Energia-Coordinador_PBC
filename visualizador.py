@@ -78,7 +78,8 @@ class DashBarChart:
             [
                 html.H1(
                     "Revisor de Energía",
-                    style={"text-align": "center", "color": "black"},
+                    className="shine-effect",
+                    style={"text-align": "center", "font-weight": "bold"},
                 ),
                 html.Img(
                     src="assets\coordinador_logo.png",
@@ -86,7 +87,6 @@ class DashBarChart:
                 ),
             ],
             style={
-                "background-image": "url('/assets/paneles.png')",
                 "background-size": "cover",
                 "background-position": "center",
                 "width": "100%",
@@ -102,7 +102,8 @@ class DashBarChart:
             [
                 html.H1(
                     "Revisor de Sistemas Zonales",
-                    style={"text-align": "center", "color": "black"},
+                    className="shine-effect",
+                    style={"text-align": "center", "font-weight": "bold"},
                 ),
                 html.Img(
                     src="assets\coordinador_logo.png",
@@ -124,7 +125,8 @@ class DashBarChart:
             [
                 html.H1(
                     "Revisor de Clientes Individualizados",
-                    style={"text-align": "center", "color": "black"},
+                    className="shine-effect",
+                    style={"text-align": "center", "font-weight": "bold"},
                 ),
                 html.Img(
                     src="assets\coordinador_logo.png",
@@ -146,7 +148,8 @@ class DashBarChart:
             [
                 html.H1(
                     "Revisor de Energía Clientes Regulados",
-                    style={"text-align": "center", "color": "black"},
+                    className="shine-effect",
+                    style={"text-align": "center", "font-weight": "bold"},
                 ),
                 html.Img(
                     src="assets\coordinador_logo.png",
@@ -581,16 +584,17 @@ class DashBarChart:
                 .replace(" ", ".")
             )
 
-      # Reorder the DataFrame
-        df_combinado_por_tipo_sistemas =  df_combinado_por_tipo_sistemas[
-                    [   "Tipo",
-                        "Cantidad Registros",
-                        "Porcentaje Registros [%]",
-                        "Energía [kWh]",
-                        "Porcentaje Energía [%]",
-                        "Diferencia Recaudacion Sistema y NT [$]",
-                    ]
-                ]        
+        # Reorder the DataFrame
+        df_combinado_por_tipo_sistemas = df_combinado_por_tipo_sistemas[
+            [
+                "Tipo",
+                "Cantidad Registros",
+                "Porcentaje Registros [%]",
+                "Energía [kWh]",
+                "Porcentaje Energía [%]",
+                "Diferencia Recaudacion Sistema y NT [$]",
+            ]
+        ]
 
         # Tablas Revisor de Energía
         tabla_revision_tipo_sistemas = dash_table.DataTable(
@@ -842,7 +846,11 @@ class DashBarChart:
             data=df_combinado_energia_clientes_r.to_dict("records"),
             export_format="csv",
             export_headers="display",
-            style_table={"overflowX": "auto", "overflowY": "auto"},
+            style_table={
+                "overflowX": "auto",
+                "overflowY": "scroll",  # Ensure vertical scroll
+                "maxHeight": "500px",  # Set the maximum height
+            },
         )
         # endregion
 
@@ -950,7 +958,8 @@ class DashBarChart:
         # region Layout
         # Wait for a few seconds
         self.app.layout = html.Div(
-            [
+            className="diseño_pagina_inicio",
+            children=[
                 dcc.Location(id="url", refresh=False, pathname="/page-1"),
                 html.Div(
                     [
@@ -981,19 +990,20 @@ class DashBarChart:
                     ],
                     id="nav-links",
                     style={
-                        "backgroundImage": "url('/assets/despacho .png')",  # Path to your PNG file
-                        "backgroundSize": "cover",  # Ensure the image covers the entire div
-                        "backgroundRepeat": "no-repeat",  # Prevent the image from repeating
-                        "height": "70px",  # Set the height of the div to the full viewport height
-                        "width": "100%",  # Ensure the div takes the full width of its container
+                        "backgroundImage": "url('/assets/relampago.png')",  # Path to your PNG file
+                        "backgroundSize": "auto",  # Do not stretch the image
+                        "backgroundRepeat": "repeat",  # Repeat the image
+                        "height": "70px",  # Set the height of the div
+                        "width": "auto",  # Ensure the div takes the full width of its container
                     },
                 ),
                 html.Div(id="page-content"),
-            ]
+            ],
         )
 
         energia_layout = html.Div(
-            [
+            className="diseño_pagina_energia",
+            children=[
                 dcc.Loading(
                     id="dropdown-loading_inicio",
                     type="circle",
@@ -1094,12 +1104,12 @@ class DashBarChart:
                     className="figura_1",
                 ),
             ],
-            className="diseño_pagina_energia",
         )
 
         # ? Sistemas
         sistemas_layout = html.Div(
-            [
+            className="diseño_pagina_sistemas",
+            children=[
                 dcc.Loading(
                     id="dropdown_sistemas-loading_inicio",
                     type="circle",
@@ -1189,12 +1199,13 @@ class DashBarChart:
                     ],
                     className="figura_1",
                 ),
-            ]
+            ],
         )
 
         # ? Clientes Individualizados
         clientes_ind_layout = html.Div(
-            [
+            className="diseño_pagina_clientes_ind",
+            children=[
                 dcc.Loading(
                     id="dropdown_sistemas-loading_inicio",
                     type="circle",
@@ -1213,12 +1224,13 @@ class DashBarChart:
                     ],
                     className="tabla_clientes_ind",
                 ),
-            ]
+            ],
         )
 
         # ? Energia Clientes Regulados
         energia_clientes_r_layout = html.Div(
-            [
+            className="diseño_pagina_clientes_r",
+            children=[
                 dcc.Loading(
                     id="dropdown_clientes_r-loading_inicio",
                     type="circle",
@@ -1272,7 +1284,7 @@ class DashBarChart:
                     ],
                     className="figura_1",
                 ),
-            ]
+            ],
         )
         # endregion
 
@@ -1498,7 +1510,8 @@ class DashBarChart:
                     "Energía Declarada [kWh]",
                     "Diferencia Energía [kWh]",
                     "Porcentaje_No_Inf_y_Dif_por_Clave",
-                    "Cargo Acumulado" "Diferencia Recaudación [$]",
+                    "Cargo Acumulado",
+                    "Diferencia Recaudación [$]",
                 ]  # replace with your column names
 
                 for column in columnas_a_modificar:
@@ -2129,7 +2142,8 @@ class DashBarChart:
 
                 # Reorder the DataFrame
                 df_combinado_por_tipo_filtrado = df_combinado_por_tipo_filtrado[
-                    [   "Tipo",
+                    [
+                        "Tipo",
                         "Cantidad Registros",
                         "Porcentaje Registros [%]",
                         "Energía [kWh]",

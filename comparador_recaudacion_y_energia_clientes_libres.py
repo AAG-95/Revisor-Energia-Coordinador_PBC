@@ -18,6 +18,17 @@ class ComparadorRecaudacionEnergia:
     - carpeta_cargos: Ruta de la carpeta donde se encuentran los formatos de declaración de cargos actualizados.
     - sistemas_zonales_permitidos: Lista de sistemas zonales permitidos para el análisis.
     - niveles_de_tension_permitidos: Lista de niveles de tensión permitidos para el análisis.
+
+    Métodos:
+    - cargar_datos_energia: Carga los datos de energía y los procesa para obtener una tabla balanceada por cliente.
+    - cargar_datos_recaudacion: Carga los datos de recaudación y los procesa para obtener una tabla de empresas recaudadoras.
+    - cargar_datos_revision_clientes: Carga los datos de revisión de clientes y procesa los datos para obtener tablas de diferencias de energía, clientes homologados, clientes homologados con clientes y barras, y clientes con claves cruzadas en otras barras.
+    - filtro_clientes: Filtra los clientes en los DataFrames de recaudación y energía según las homologaciones y diferencias de clientes.
+    - combinar_datos: Combina los datos de recaudación y energía en un solo DataFrame.
+    - contador_tipos_historicos_claves: Cuenta los diferentes tipos históricos de claves en los datos combinados.
+    - sistemas_nt_barras: Asigna el sistema y nivel de tensión según la barra para los clientes que faltan.
+    - cargos_sistemas_nt: Carga los cargos de los sistemas y niveles de tensión.
+    - guardar_datos: Guarda los datos procesados en un archivo.
     """
     
     def __init__(self):
@@ -53,6 +64,13 @@ class ComparadorRecaudacionEnergia:
         self.niveles_de_tension_permitidos = ["Tx < 25", "33", "44", "66", "110", "154", "220"]
 
     def cargar_datos_energia(self):
+        """
+        Se encarga de cargar los datos de energía desde el archivo "Retiros_Históricos_Clientes_L.csv" y procesar
+        los datos para obtener una tabla de energía balanceada por cliente.
+
+        Los datos se almacenan en el DataFrame 'df_energia' y se utilizan para comparar y analizar los datos de
+        energía y recaudación de los clientes.
+        """
     # Cargar el archivo CSV de energía
         archivo_energia = self.carpeta_energia + "Retiros_Históricos_Clientes_L.csv"
         self.df_energia = pd.read_csv(archivo_energia, sep=";", encoding="UTF-8")
@@ -93,6 +111,14 @@ class ComparadorRecaudacionEnergia:
         return self.df_energia
 
     def cargar_datos_recaudacion(self):
+        """
+        Carga los datos de recaudación desde el archivo "BDD Clientes Libres Históricos.csv" y procesa los datos
+        para obtener una tabla de recaudación de empresas recaudadoras.
+
+        Los datos se almacenan en el DataFrame 'df_recaudacion' y se utilizan para comparar y analizar los datos
+        de energía y recaudación de los clientes.
+
+        """
         # Cargar el archivo CSV de recaudación
         archivo_recaudacion = self.carpeta_recaudacion + "BDD Clientes Libres Históricos.csv"
         self.df_recaudacion = pd.read_csv(archivo_recaudacion, sep=";", encoding="UTF-8")
@@ -169,7 +195,22 @@ class ComparadorRecaudacionEnergia:
 
 
     def cargar_datos_revision_clientes(self):
-        # read xlsm file
+        """
+        Carga los datos de revisión de clientes desde el archivo "Revisores RCUT.xlsm" y procesa los datos
+        para obtener tablas de diferencias de energía, clientes homologados, clientes homologados con clientes y barras,
+        y clientes con claves cruzadas en otras barras.
+
+        Los datos se almacenan en los DataFrames:
+        - df_diferencias_clientes: Tabla de diferencias de energía registradas por cliente.
+        - df_homologa_clientes: Tabla de clientes homologados.
+        - df_homologa_clientes_barras: Tabla de homologación de clientes por barras.
+        - df_homologa_clientes_cruzados: Tabla de clientes con claves cruzadas en otras barras.
+
+        Los DataFrames se utilizan para comparar y analizar los datos de energía y recaudación de los clientes.
+
+        """
+        # Carga el archivo "Revisores RCUT.xlsm" desde la carpeta especificada en 'carpeta_rev_listado_clientes'
+        # Lee la hoja llamada "Casos excepcionales Clientes" sin encabezados (header=None)
         self.df_revision_clientes = pd.read_excel(
             self.carpeta_rev_listado_clientes + "Revisores RCUT.xlsm",
             sheet_name="Casos excepcionales Clientes",
@@ -177,17 +218,19 @@ class ComparadorRecaudacionEnergia:
             header=None,
         )
 
+        # Obtener tablas de diferencias de clientes
+        # Utiliza la función 'obtencion_tablas_clientes' para procesar los datos del DataFrame 'df_revision_clientes'
+        # Los parámetros 5, 2, 15 indican la configuración específica para obtener las tablas según primera fila, primera columna y última columna
         self.df_diferencias_clientes = func.ObtencionDatos().obtencion_tablas_clientes(
             self.df_revision_clientes, 5, 2, 15
         )
-
         #! Clientes con diferencias de energía registrados
        # Eliminar filas donde todas las columnas (excepto la primera) sean NaN
         self.df_diferencias_clientes = self.df_diferencias_clientes.dropna(
             subset=self.df_diferencias_clientes.columns[1:], how="all"
         )
 
-        # Mantener columnas específicas
+        # Mantener solo las columnas específicas necesarias para el análisis
         self.df_diferencias_clientes = self.df_diferencias_clientes[
             [
                 "Barra",
@@ -198,7 +241,8 @@ class ComparadorRecaudacionEnergia:
             ]
         ]
 
-        # Cambiar formato de fecha de las columnas "Mes Inicial" y "Mes Final"
+        # Cambiar el formato de fecha de las columnas "Mes Inicial" y "Mes Final"
+        # Reemplaza los guiones "-" con NaN y aplica el formato de fecha "%d-%m-%Y"
         columnas_rango_fecha = ["Mes Inicial", "Mes Final"]
         self.df_diferencias_clientes[columnas_rango_fecha] = (
             self.df_diferencias_clientes[columnas_rango_fecha]
@@ -206,10 +250,11 @@ class ComparadorRecaudacionEnergia:
             .apply(lambda x: pd.to_datetime(x).dt.strftime("%d-%m-%Y"))
         )
 
-        # Actualizar columna 'Meses Particulares' cambiando el formato solo si el valor no contiene ","
-        self.df_diferencias_clientes[
+        # Actualizar la columna 'Meses Particulares' cambiando el formato solo si el valor no contiene ","
+        # Se convierte a fecha en formato "%d-%m-%Y" si es posible
+        self.df_diferencias_clientes["Meses Particulares"] = self.df_diferencias_clientes[
             "Meses Particulares"
-        ] = self.df_diferencias_clientes["Meses Particulares"].apply(
+        ].apply(
             lambda x: (
                 pd.to_datetime(x, errors="coerce").strftime("%d-%m-%Y")
                 if not pd.isna(x)
@@ -220,31 +265,28 @@ class ComparadorRecaudacionEnergia:
         )
 
         # Convertir "Meses Particulares" a datetime y luego formatear como "%d-%m-%Y"
-        self.df_diferencias_clientes["Meses Particulares"] = (
-            self.df_diferencias_clientes.apply(
-                lambda x: (
-                    ", ".join(
-                        pd.date_range(
-                            start=pd.to_datetime(x["Mes Inicial"], format="%d-%m-%Y"),
-                            end=pd.to_datetime(x["Mes Final"], format="%d-%m-%Y"),
-                            freq="MS",
-                        ).strftime("%d-%m-%Y")
-                    )
-                    if pd.notna(x["Mes Inicial"]) and pd.notna(x["Mes Final"])
-                    else x["Meses Particulares"]
-                ),
-                axis=1,
-            )
+        # Si "Mes Inicial" y "Mes Final" no son NaN, genera un rango de fechas en formato "%d-%m-%Y"
+        self.df_diferencias_clientes["Meses Particulares"] = self.df_diferencias_clientes.apply(
+            lambda x: (
+                ", ".join(
+                    pd.date_range(
+                        start=pd.to_datetime(x["Mes Inicial"], format="%d-%m-%Y"),
+                        end=pd.to_datetime(x["Mes Final"], format="%d-%m-%Y"),
+                        freq="MS",
+                    ).strftime("%d-%m-%Y")
+                )
+                if pd.notna(x["Mes Inicial"]) and pd.notna(x["Mes Final"])
+                else x["Meses Particulares"]
+            ),
+            axis=1,
         )
 
-        # Dividir "Meses Particulares" por ", " y luego explotar la columna
+        # Dividir "Meses Particulares" por ", " y luego explotar la columna en filas individuales
         self.df_diferencias_clientes = self.df_diferencias_clientes.assign(
-            Mes_Consumo=self.df_diferencias_clientes["Meses Particulares"].str.split(
-                ", "
-            )
+            Mes_Consumo=self.df_diferencias_clientes["Meses Particulares"].str.split(", ")
         ).explode("Mes_Consumo")
 
-        # Crear columna "Barra-Clave-Mes"
+        # Crear una nueva columna "Barra-Clave-Mes" combinando "Barra", "Clave" y "Mes_Consumo"
         self.df_diferencias_clientes["Barra-Clave-Mes"] = (
             self.df_diferencias_clientes["Barra"].astype(str)
             + "-_-"
@@ -253,25 +295,24 @@ class ComparadorRecaudacionEnergia:
             + self.df_diferencias_clientes["Mes_Consumo"].astype(str)
         )
 
-        # Eliminar otras columnas
+        # Mantener solo la columna "Barra-Clave-Mes"
         self.df_diferencias_clientes = self.df_diferencias_clientes[
-            [
-                "Barra-Clave-Mes",
-            ]
+            ["Barra-Clave-Mes"]
         ]
 
         #! Clientes homologados
+        # Utiliza la función 'obtencion_tablas_clientes' para procesar los datos del DataFrame 'df_revision_clientes'
+        # Los parámetros 5, 17, 23 indican la configuración específica para obtener las tablas de homologación
         self.df_homologa_clientes = func.ObtencionDatos().obtencion_tablas_clientes(
             self.df_revision_clientes, 5, 17, 23
         )
 
-        # Eliminate rows where all columns (excluding the first column) are NaN
+        # Eliminar filas donde todas las columnas (excepto la primera) sean NaN
         self.df_homologa_clientes = self.df_homologa_clientes.dropna(
             subset=self.df_homologa_clientes.columns[1:], how="all"
         )
 
-        # Mantain column Barra, Clave, Mes Inicial, Mes Final, Meses Particulares
-
+        # Mantener solo las columnas específicas necesarias para el análisis
         self.df_homologa_clientes = self.df_homologa_clientes[
             [
                 "Barra",
@@ -282,9 +323,8 @@ class ComparadorRecaudacionEnergia:
             ]
         ]
 
-        # Change date format of column Mes Inicial and Mes Final
-
-        # Replace "-" with np.nan just in "Mes Inicial" and "Mes Final" columns
+        # Cambiar el formato de fecha de las columnas "Mes Inicial" y "Mes Final"
+        # Reemplaza los guiones "-" con NaN y aplica el formato de fecha "%d-%m-%Y"
         columnas_rango_fecha = ["Mes Inicial", "Mes Final"]
         self.df_homologa_clientes[columnas_rango_fecha] = (
             self.df_homologa_clientes[columnas_rango_fecha]
@@ -292,31 +332,30 @@ class ComparadorRecaudacionEnergia:
             .apply(lambda x: pd.to_datetime(x).dt.strftime("%d-%m-%Y"))
         )
 
-        # Convert "Meses Particulares" to datetime and then format as "%d-%m-%Y"
-        self.df_homologa_clientes["Meses Particulares"] = (
-            self.df_homologa_clientes.apply(
-                lambda x: (
-                    ", ".join(
-                        pd.date_range(
-                            start=pd.to_datetime(x["Mes Inicial"], format="%d-%m-%Y"),
-                            end=pd.to_datetime(x["Mes Final"], format="%d-%m-%Y"),
-                            freq="MS",
-                        ).strftime("%d-%m-%Y")
-                    )
-                    if pd.notna(x["Mes Inicial"]) and pd.notna(x["Mes Final"])
-                    else None
-                ),
-                axis=1,
-            )
+        # Convertir "Meses Particulares" a datetime y luego formatear como "%d-%m-%Y"
+        # Si "Mes Inicial" y "Mes Final" no son NaN, genera un rango de fechas en formato "%d-%m-%Y"
+        self.df_homologa_clientes["Meses Particulares"] = self.df_homologa_clientes.apply(
+            lambda x: (
+                ", ".join(
+                    pd.date_range(
+                        start=pd.to_datetime(x["Mes Inicial"], format="%d-%m-%Y"),
+                        end=pd.to_datetime(x["Mes Final"], format="%d-%m-%Y"),
+                        freq="MS",
+                    ).strftime("%d-%m-%Y")
+                )
+                if pd.notna(x["Mes Inicial"]) and pd.notna(x["Mes Final"])
+                else None
+            ),
+            axis=1,
         )
 
-        # Split "Meses Particulares" by ", " and then explode the column
+        # Dividir "Meses Particulares" por ", " y luego explotar la columna en filas individuales
         self.df_homologa_clientes = self.df_homologa_clientes.assign(
             Mes_Consumo=self.df_homologa_clientes["Meses Particulares"].str.split(", ")
         ).explode("Mes_Consumo")
 
-        # Create column Barra-Clave-Mes
-        self.df_homologa_clientes["Barra-Clave Orginal-Mes"] = (
+        # Crear nuevas columnas "Barra-Clave Original-Mes" y "Barra-Clave Homologada-Mes"
+        self.df_homologa_clientes["Barra-Clave Original-Mes"] = (
             self.df_homologa_clientes["Barra"].astype(str)
             + "-_-"
             + self.df_homologa_clientes["Clave Original"].astype(str)
@@ -332,24 +371,26 @@ class ComparadorRecaudacionEnergia:
             + self.df_homologa_clientes["Mes_Consumo"].astype(str)
         )
 
-        # Drop other columns
+        # Mantener solo las columnas "Barra-Clave Original-Mes" y "Barra-Clave Homologada-Mes"
         self.df_homologa_clientes = self.df_homologa_clientes[
-            ["Barra-Clave Orginal-Mes", "Barra-Clave Homologada-Mes"]
+            ["Barra-Clave Original-Mes", "Barra-Clave Homologada-Mes"]
         ]
 
+
         #! Clientes homologados con clientes y barras
-        self.df_homologa_clientes_barras = (
-            func.ObtencionDatos().obtencion_tablas_clientes(
-                self.df_revision_clientes, 5, 25, 32
-            )
+        # Obtener tablas de homologación de clientes por barras
+        # Utiliza la función 'obtencion_tablas_clientes' para procesar los datos del DataFrame 'df_revision_clientes'
+        # Los parámetros 5, 25, 32 indican la configuración específica para obtener las tablas de homologación por barras
+        self.df_homologa_clientes_barras = func.ObtencionDatos().obtencion_tablas_clientes(
+            self.df_revision_clientes, 5, 25, 32
         )
 
-        # Eliminate rows where all columns (excluding the first column) are NaN
+        # Eliminar filas donde todas las columnas (excepto la primera) sean NaN
         self.df_homologa_clientes_barras = self.df_homologa_clientes_barras.dropna(
             subset=self.df_homologa_clientes_barras.columns[1:], how="all"
         )
 
-        # Mantain column Barra, Clave, Mes Inicial, Mes Final, Meses Particulares
+        # Mantener solo las columnas específicas necesarias para el análisis
         self.df_homologa_clientes_barras = self.df_homologa_clientes_barras[
             [
                 "Clave Original",
@@ -361,9 +402,8 @@ class ComparadorRecaudacionEnergia:
             ]
         ]
 
-        # Change date format of column Mes Inicial and Mes Final
-
-        # Replace "-" with np.nan just in "Mes Inicial" and "Mes Final" columns
+        # Cambiar el formato de fecha de las columnas "Mes Inicial" y "Mes Final"
+        # Reemplaza los guiones "-" con NaN y aplica el formato de fecha "%d-%m-%Y"
         columnas_rango_fecha = ["Mes Inicial", "Mes Final"]
         self.df_homologa_clientes_barras[columnas_rango_fecha] = (
             self.df_homologa_clientes_barras[columnas_rango_fecha]
@@ -371,32 +411,28 @@ class ComparadorRecaudacionEnergia:
             .apply(lambda x: pd.to_datetime(x).dt.strftime("%d-%m-%Y"))
         )
 
-        self.df_homologa_clientes_barras["Meses Particulares"] = (
-            self.df_homologa_clientes_barras.apply(
-                lambda x: (
-                    ", ".join(
-                        pd.date_range(
-                            start=pd.to_datetime(x["Mes Inicial"], format="%d-%m-%Y"),
-                            end=pd.to_datetime(x["Mes Final"], format="%d-%m-%Y"),
-                            freq="MS",
-                        ).strftime("%d-%m-%Y")
-                    )
-                    if pd.notna(x["Mes Inicial"]) and pd.notna(x["Mes Final"])
-                    else None
-                ),
-                axis=1,
-            )
+        # Crear la columna "Meses Particulares" con un rango de fechas si "Mes Inicial" y "Mes Final" no son NaN
+        self.df_homologa_clientes_barras["Meses Particulares"] = self.df_homologa_clientes_barras.apply(
+            lambda x: (
+                ", ".join(
+                    pd.date_range(
+                        start=pd.to_datetime(x["Mes Inicial"], format="%d-%m-%Y"),
+                        end=pd.to_datetime(x["Mes Final"], format="%d-%m-%Y"),
+                        freq="MS",
+                    ).strftime("%d-%m-%Y")
+                )
+                if pd.notna(x["Mes Inicial"]) and pd.notna(x["Mes Final"])
+                else None
+            ),
+            axis=1,
         )
 
-        # Split "Meses Particulares" by ", " and then explode the column
+        # Dividir "Meses Particulares" por ", " y luego explotar la columna en filas individuales
         self.df_homologa_clientes_barras = self.df_homologa_clientes_barras.assign(
-            Mes_Consumo=self.df_homologa_clientes_barras[
-                "Meses Particulares"
-            ].str.split(", ")
+            Mes_Consumo=self.df_homologa_clientes_barras["Meses Particulares"].str.split(", ")
         ).explode("Mes_Consumo")
 
-        # Create column Barra Original -Clave Original-Mes
-
+        # Crear columnas "Barra Original-Clave Original-Mes" y "Barra Homologada-Clave Homologada-Mes"
         self.df_homologa_clientes_barras["Barra Original-Clave Original-Mes"] = (
             self.df_homologa_clientes_barras["Barra Original"].astype(str)
             + "-_-"
@@ -413,7 +449,7 @@ class ComparadorRecaudacionEnergia:
             + self.df_homologa_clientes_barras["Mes_Consumo"].astype(str)
         )
 
-        # Drop other columns
+        # Mantener solo las columnas "Barra Original-Clave Original-Mes" y "Barra Homologada-Clave Homologada-Mes"
         self.df_homologa_clientes_barras = self.df_homologa_clientes_barras[
             [
                 "Barra Original-Clave Original-Mes",
@@ -421,19 +457,19 @@ class ComparadorRecaudacionEnergia:
             ]
         ]
 
+
         #! Clientes Con Claves Cruzadas en otras Barras
-        self.df_homologa_clientes_cruzados = (
-            func.ObtencionDatos().obtencion_tablas_clientes(
-                self.df_revision_clientes, 5, 34, 41
-            )
+        # Obtener datos y cargar en DataFrame
+        self.df_homologa_clientes_cruzados = func.ObtencionDatos().obtencion_tablas_clientes(
+            self.df_revision_clientes, 5, 34, 41
         )
 
-        # Eliminate rows where all columns (excluding the first column) are NaN
+        # Eliminar filas donde todas las columnas (excepto la primera) son NaN
         self.df_homologa_clientes_cruzados = self.df_homologa_clientes_cruzados.dropna(
             subset=self.df_homologa_clientes_cruzados.columns[1:], how="all"
         )
 
-        # Mantain column Barra, Clave, Mes Inicial, Mes Final, Meses Particulares
+        # Mantener solo las columnas relevantes
         self.df_homologa_clientes_cruzados = self.df_homologa_clientes_cruzados[
             [
                 "Clave Original",
@@ -445,42 +481,40 @@ class ComparadorRecaudacionEnergia:
             ]
         ]
 
-        # Change date format of column Mes Inicial and Mes Final
-
-        # Replace "-" with np.nan just in "Mes Inicial" and "Mes Final" columns
+        # Reemplazar "-" con np.nan en las columnas de fechas "Mes Inicial" y "Mes Final"
         columnas_rango_fecha = ["Mes Inicial", "Mes Final"]
-
         self.df_homologa_clientes_cruzados[columnas_rango_fecha] = (
             self.df_homologa_clientes_cruzados[columnas_rango_fecha]
             .replace("-", np.nan)
-            .apply(lambda x: pd.to_datetime(x).dt.strftime("%d-%m-%Y"))
         )
 
-        self.df_homologa_clientes_cruzados["Meses Particulares"] = (
-            self.df_homologa_clientes_cruzados.apply(
-                lambda x: (
-                    ", ".join(
-                        pd.date_range(
-                            start=pd.to_datetime(x["Mes Inicial"], format="%d-%m-%Y"),
-                            end=pd.to_datetime(x["Mes Final"], format="%d-%m-%Y"),
-                            freq="MS",
-                        ).strftime("%d-%m-%Y")
-                    )
-                    if pd.notna(x["Mes Inicial"]) and pd.notna(x["Mes Final"])
-                    else None
-                ),
-                axis=1,
-            )
+        # Cambiar el formato de las fechas de "Mes Inicial" y "Mes Final" a "dd-mm-YYYY"
+        self.df_homologa_clientes_cruzados[columnas_rango_fecha] = self.df_homologa_clientes_cruzados[columnas_rango_fecha].apply(
+            lambda x: pd.to_datetime(x).dt.strftime("%d-%m-%Y")
         )
 
-        # Split "Meses Particulares" by ", " and then explode the column
+        # Crear la columna "Meses Particulares" con los meses en el rango de fechas
+        self.df_homologa_clientes_cruzados["Meses Particulares"] = self.df_homologa_clientes_cruzados.apply(
+            lambda x: (
+                ", ".join(
+                    pd.date_range(
+                        start=pd.to_datetime(x["Mes Inicial"], format="%d-%m-%Y"),
+                        end=pd.to_datetime(x["Mes Final"], format="%d-%m-%Y"),
+                        freq="MS"
+                    ).strftime("%d-%m-%Y")
+                )
+                if pd.notna(x["Mes Inicial"]) and pd.notna(x["Mes Final"])
+                else None
+            ),
+            axis=1
+        )
+
+        # Dividir "Meses Particulares" por ", " y luego expandir la columna
         self.df_homologa_clientes_cruzados = self.df_homologa_clientes_cruzados.assign(
-            Mes_Consumo=self.df_homologa_clientes_cruzados[
-                "Meses Particulares"
-            ].str.split(", ")
+            Mes_Consumo=self.df_homologa_clientes_cruzados["Meses Particulares"].str.split(", ")
         ).explode("Mes_Consumo")
 
-        # Create column Barra Original -Clave Original-Mes
+        # Crear columna combinada "Barra Original - Clave Original - Mes"
         self.df_homologa_clientes_cruzados["Barra Original-Clave Original-Mes"] = (
             self.df_homologa_clientes_cruzados["Barra Original"].astype(str)
             + "-_-"
@@ -489,6 +523,7 @@ class ComparadorRecaudacionEnergia:
             + self.df_homologa_clientes_cruzados["Mes_Consumo"].astype(str)
         )
 
+        # Crear columna combinada "Barra Homologada - Clave Homologada - Mes"
         self.df_homologa_clientes_cruzados["Barra Homologada-Clave Homologada-Mes"] = (
             self.df_homologa_clientes_cruzados["Barra Homologada"].astype(str)
             + "-_-"
@@ -497,7 +532,7 @@ class ComparadorRecaudacionEnergia:
             + self.df_homologa_clientes_cruzados["Mes_Consumo"].astype(str)
         )
 
-        # Drop other columns
+        # Mantener solo las columnas combinadas
         self.df_homologa_clientes_cruzados = self.df_homologa_clientes_cruzados[
             [
                 "Barra Original-Clave Original-Mes",
@@ -508,7 +543,34 @@ class ComparadorRecaudacionEnergia:
         return self.df_revision_clientes
 
     def filtro_clientes(self):
-        # Add new column in df_recaudacion as Filtro Registro Cliente - If column Barra-Clave-Mes is in df_diferencias_clientes then a 1, if not a 0
+        """
+        Filtra los clientes en los DataFrames de recaudación y energía según las homologaciones y diferencias de clientes.
+        
+        1. Filtro de Clientes en df_energia:
+        - Se añade una nueva columna "Filtro_Registro_Clave" en df_energia.
+        - Si el valor de "Barra-Clave-Mes" en df_energia está presente en df_diferencias_clientes, se asigna "Clientes Filtrados"; de lo contrario, "Clientes No Filtrados".
+
+        2. Homologación de Claves en df_recaudacion:
+        - Se reemplazan los valores de "Barra-Clave-Mes" en df_recaudacion usando los valores homologados de df_homologa_clientes.
+        - Esto ocurre cuando "Barra-Clave-Mes" coincide con "Barra-Clave Original-Mes".
+
+        3. Homologación de Claves en df_energia:
+        - Similar a la homologación en df_recaudacion, se reemplazan los valores de "Barra-Clave-Mes" en df_energia.
+
+        4. Homologación de Claves usando df_homologa_clientes_barras en df_recaudacion:
+        - Se reemplazan los valores de "Barra-Clave-Mes" en df_recaudacion con "Barra Homologada-Clave Homologada-Mes".
+        - Esto ocurre cuando "Barra-Clave-Mes" coincide con "Barra Original-Clave Original-Mes".
+
+        5. Homologación de Claves usando df_homologa_clientes_barras en df_energia:
+        - Se reemplazan los valores de "Barra-Clave-Mes" en df_energia de manera similar a df_recaudacion.
+
+        6. Unión y Reemplazo con Clientes Cruzados:
+        - Se realiza una unión (join) entre df_recaudacion y df_homologa_clientes_cruzados basada en "Barra-Clave-Mes".
+        - Luego se reemplaza "Barra-Clave-Mes" con "Barra Homologada-Clave Homologada-Mes" si hay coincidencias.
+
+        """
+        # Se añade una nueva columna en df_energia llamada "Filtro_Registro_Clave".
+        # Si el valor de "Barra-Clave-Mes" en df_energia está presente en df_diferencias_clientes, se asigna "Clientes Filtrados"; de lo contrario, "Clientes No Filtrados".
         self.df_energia["Filtro_Registro_Clave"] = self.df_energia[
             "Barra-Clave-Mes"
         ].apply(
@@ -518,32 +580,39 @@ class ComparadorRecaudacionEnergia:
                 else "Clientes No Filtrados"
             )
         )
-        # Replace Barra-Clave-Mes of df_recaudación wirh Barra-Clave Homologada-Mes of df_homologa_clientes when Barra Clave Mes match with Barra-Clave Orginal-Mes
+        
+        # 2. Homologación de Claves en df_recaudacion
+        # Se reemplazan los valores de "Barra-Clave-Mes" en df_recaudacion usando los valores homologados de df_homologa_clientes.
+        # Esto ocurre cuando "Barra-Clave-Mes" coincide con "Barra-Clave Original-Mes".
         self.df_recaudacion["Barra-Clave-Mes"] = self.df_recaudacion[
             "Barra-Clave-Mes"
         ].apply(
             lambda x: (
                 self.df_homologa_clientes.loc[
-                    self.df_homologa_clientes["Barra-Clave Orginal-Mes"] == x,
+                    self.df_homologa_clientes["Barra-Clave Original-Mes"] == x,
                     "Barra-Clave Homologada-Mes",
                 ].values[0]
-                if x in self.df_homologa_clientes["Barra-Clave Orginal-Mes"].values
+                if x in self.df_homologa_clientes["Barra-Clave Original-Mes"].values
                 else x
             )
         )
 
+        # 3. Homologación de Claves en df_energia
+        # Similar a la homologación en df_recaudacion, se reemplazan los valores de "Barra-Clave-Mes" en df_energia.
         self.df_energia["Barra-Clave-Mes"] = self.df_energia["Barra-Clave-Mes"].apply(
             lambda x: (
                 self.df_homologa_clientes.loc[
-                    self.df_homologa_clientes["Barra-Clave Orginal-Mes"] == x,
+                    self.df_homologa_clientes["Barra-Clave Original-Mes"] == x,
                     "Barra-Clave Homologada-Mes",
                 ].values[0]
-                if x in self.df_homologa_clientes["Barra-Clave Orginal-Mes"].values
+                if x in self.df_homologa_clientes["Barra-Clave Original-Mes"].values
                 else x
             )
         )
 
-        # Replace Barra-Clave-Mes of df_recaudación wirh Barra Homologada - Clave Homologada - Mes of df_homologa_clientes_barras when Barra Clave Mes match with Barra Original -Clave Orginal-Mes
+        # 4. Homologación de Claves usando df_homologa_clientes_barras en df_recaudacion
+        # Se reemplazan los valores de "Barra-Clave-Mes" en df_recaudacion con "Barra Homologada-Clave Homologada-Mes".
+        # Esto ocurre cuando "Barra-Clave-Mes" coincide con "Barra Original-Clave Original-Mes".
         self.df_recaudacion["Barra-Clave-Mes"] = self.df_recaudacion[
             "Barra-Clave-Mes"
         ].apply(
@@ -551,37 +620,32 @@ class ComparadorRecaudacionEnergia:
                 self.df_homologa_clientes_barras.loc[
                     self.df_homologa_clientes_barras[
                         "Barra Original-Clave Original-Mes"
-                    ]
-                    == x,
+                    ] == x,
                     "Barra Homologada-Clave Homologada-Mes",
                 ].values[0]
-                if x
-                in self.df_homologa_clientes_barras[
-                    "Barra Original-Clave Original-Mes"
-                ].values
+                if x in self.df_homologa_clientes_barras["Barra Original-Clave Original-Mes"].values
                 else x
             )
         )
 
+        # 5. Homologación de Claves usando df_homologa_clientes_barras en df_energia
+        # Se reemplazan los valores de "Barra-Clave-Mes" en df_energia de manera similar a df_recaudacion.
         self.df_energia["Barra-Clave-Mes"] = self.df_energia["Barra-Clave-Mes"].apply(
             lambda x: (
                 self.df_homologa_clientes_barras.loc[
                     self.df_homologa_clientes_barras[
                         "Barra Original-Clave Original-Mes"
-                    ]
-                    == x,
+                    ] == x,
                     "Barra Homologada-Clave Homologada-Mes",
                 ].values[0]
-                if x
-                in self.df_homologa_clientes_barras[
-                    "Barra Original-Clave Original-Mes"
-                ].values
+                if x in self.df_homologa_clientes_barras["Barra Original-Clave Original-Mes"].values
                 else x
             )
         )
 
-        #! Make a join based in Barra-Clave-Mes in df_recaudación and Barra Original-Claver Orignal-Mes of clientes Cruzados and then replace Barra-Clave-Mes  with Barra Homologada-Clave Homologada-Mes only if Barra-Clave-Mes is in Barra Original-Clave Original-Mes. Do these in two steps: Join and Replace
-        # Join df_recaudación with df_homologa_clientes_cruzados
+        # 6. Unión y Reemplazo con Clientes Cruzados
+        # Se realiza una unión (join) entre df_recaudacion y df_homologa_clientes_cruzados basada en "Barra-Clave-Mes".
+        # Luego se reemplaza "Barra-Clave-Mes" con "Barra Homologada-Clave Homologada-Mes" si hay coincidencias.
         self.df_recaudacion = pd.merge(
             self.df_recaudacion,
             self.df_homologa_clientes_cruzados,
@@ -590,13 +654,14 @@ class ComparadorRecaudacionEnergia:
             how="left",
         )
 
-        # Replace
+        # Reemplazo
         self.df_recaudacion["Barra-Clave-Mes"] = self.df_recaudacion[
             "Barra Homologada-Clave Homologada-Mes"
         ].fillna(self.df_recaudacion["Barra-Clave-Mes"])
 
-        #! Group by
-        # gruo by barra clave mes and sum Energía [kWh]
+        # 7. Agrupación de Datos en df_recaudacion
+        # Se agrupan los datos por "Barra-Clave-Mes" y se suman los valores de "Energía [kWh]".
+        # Para otras columnas, se seleccionan valores únicos o el primer/último valor según corresponda.
         self.df_recaudacion = (
             self.df_recaudacion.groupby(["Barra-Clave-Mes"])
             .agg(
@@ -614,6 +679,8 @@ class ComparadorRecaudacionEnergia:
             .reset_index()
         )
 
+        # 8. Agrupación de Datos en df_energia
+        # Similar a la agrupación en df_recaudacion, se agrupan los datos por "Barra-Clave-Mes".
         self.df_energia = (
             self.df_energia.groupby(["Barra-Clave-Mes"])
             .agg(
@@ -627,9 +694,32 @@ class ComparadorRecaudacionEnergia:
             .reset_index()
         )
 
+        # 9. Retorno de Resultados
+        # Se retorna el dataframe df_recaudacion actualizado.
         return self.df_recaudacion
 
+
     def combinar_datos(self):
+
+        """
+        Combinar los datos de energía y recaudación en un solo DataFrame.
+
+        Se realiza una combinación de los DataFrames df_energia y df_recaudacion
+        utilizando la columna "Barra-Clave-Mes" como clave de unión.
+
+        Se realizan cálculos adicionales para obtener la diferencia de energía
+        entre "Energía Balance [kWh]" y "Energía Declarada [kWh]", así como el
+        porcentaje de diferencia de energía.
+
+        Se clasifican los registros en base a ciertas condiciones y se separa la
+        columna "Barra-Clave-Mes" en tres columnas: "Barra", "Clave" y "Mes Consumo".
+
+        Finalmente, se renombran las columnas y se convierten los datos según sea necesario.
+
+        Returns:
+            None
+        """
+        # Combinar df_energia con df_recaudacion utilizando la columna "Barra-Clave-Mes" como clave
         self.df_combinado_energia = pd.merge(
             self.df_energia,
             self.df_recaudacion[
@@ -644,33 +734,46 @@ class ComparadorRecaudacionEnergia:
                     "Nivel Tensión Zonal",
                 ]
             ],
-            on="Barra-Clave-Mes",
-            how="left",
-        ).reset_index(drop=True)
+            on="Barra-Clave-Mes",  # Realizar la unión en base a la columna "Barra-Clave-Mes"
+            how="left"  # Usar un 'left join' para mantener todas las filas de df_energia
+        ).reset_index(drop=True)  # Reiniciar el índice después de la combinación
 
+        # Renombrar la columna "Energía [kWh]" a "Energía Declarada [kWh]" para clarificar su uso
         self.df_combinado_energia.rename(
             columns={"Energía [kWh]": "Energía Declarada [kWh]"}, inplace=True
         )
+        
+        # Convertir la columna "Energía Balance [kWh]" de string a float, reemplazando comas por puntos
         self.df_combinado_energia["Energía Balance [kWh]"] = (
             self.df_combinado_energia["Energía Balance [kWh]"]
             .astype(str)
             .str.replace(",", ".")
             .astype(float)
         )
+        
+        # Rellenar valores nulos en "Energía Balance [kWh]" con 0
         self.df_combinado_energia["Energía Balance [kWh]"] = self.df_combinado_energia[
             "Energía Balance [kWh]"
         ].fillna(0)
+        
+        # Rellenar valores nulos en "Energía Declarada [kWh]" con 0
         self.df_combinado_energia["Energía Declarada [kWh]"] = (
             self.df_combinado_energia["Energía Declarada [kWh]"].fillna(0)
         )
+        
+        # Calcular la diferencia entre "Energía Balance [kWh]" y "Energía Declarada [kWh]"
         self.df_combinado_energia["Diferencia Energía [kWh]"] = -(
             self.df_combinado_energia["Energía Balance [kWh]"]
             - self.df_combinado_energia["Energía Declarada [kWh]"]
         )
+        
+        # Calcular el porcentaje de diferencia de energía
         self.df_combinado_energia["% Diferencia Energía"] = (
             self.df_combinado_energia["Diferencia Energía [kWh]"]
             / self.df_combinado_energia["Energía Balance [kWh]"]
         )
+        
+        # Clasificar el tipo de registro basado en condiciones especificadas
         self.df_combinado_energia["Tipo"] = self.df_combinado_energia.apply(
             lambda x: (
                 "Recaudador No Informado"
@@ -703,16 +806,18 @@ class ComparadorRecaudacionEnergia:
             ),
             axis=1,
         )
-
+        
+        # Separar la columna "Barra-Clave-Mes" en tres columnas: "Barra", "Clave" y "Mes Consumo"
         self.df_combinado_energia[["Barra", "Clave", "Mes Consumo"]] = (
             self.df_combinado_energia["Barra-Clave-Mes"].str.split("-_-", expand=True)
         )
 
-        # rename Suministrador_final to Suministrador
+        # Renombrar la columna "Suministrador_final" a "Suministrador" para consistencia
         self.df_combinado_energia = self.df_combinado_energia.rename(
             columns={"Suministrador_final": "Suministrador"}
         )
-
+        
+        # Reordenar las columnas del DataFrame para una presentación coherente
         self.df_combinado_energia = self.df_combinado_energia[
             [
                 "Barra",
@@ -734,23 +839,39 @@ class ComparadorRecaudacionEnergia:
                 "Filtro_Registro_Clave",
             ]
         ]
-
+        
+        # Rellenar valores nulos o vacíos en "Recaudador" con el valor de "Suministrador"
         self.df_combinado_energia["Recaudador"] = np.where(
             self.df_combinado_energia["Recaudador"].isna()
             | (self.df_combinado_energia["Recaudador"] == ""),
             self.df_combinado_energia["Suministrador"],
             self.df_combinado_energia["Recaudador"],
         )
-
+        
+        # Reiniciar el índice del DataFrame después de las modificaciones
         self.df_combinado_energia = self.df_combinado_energia.reset_index(drop=True)
 
+        # Devolver el DataFrame combinado y modificado
+        return self.df_combinado_energia
+    
     def contador_tipos_historicos_claves(self):
+        """
+        Calcula y clasifica los registros históricos de errores por 'Clave' y 'Mes Consumo' en el DataFrame combinado.
 
-        # Count the number of historical records per Clave and month
+        Esta función agrega varias columnas al DataFrame 'df_combinado_energia' para:
+        - Contar registros históricos filtrados por 'Clave'.
+        - Calcular el número de meses por cada 'Clave'.
+        - Contar registros históricos por combinación de 'Clave' y 'Tipo'.
+        - Calcular el porcentaje de registros de energía no informada o con diferencias por 'Clave'.
+        - Clasificar el nivel de error histórico basado en estos porcentajes.
+        - Filtrar claves según criterios específicos para el análisis.
 
-        self.df_combinado_energia[
-            "Registro_Historico_de_Filtro_por_Clave"
-        ] = self.df_combinado_energia.groupby("Clave")[
+        Retorna:
+            pd.DataFrame: DataFrame actualizado con las nuevas columnas y clasificaciones.
+        """
+        
+        # Contar el número de registros históricos por 'Clave' y aplicar filtro para determinar si un cliente está registrado históricamente
+        self.df_combinado_energia["Registro_Historico_de_Filtro_por_Clave"] = self.df_combinado_energia.groupby("Clave")[
             "Filtro_Registro_Clave"
         ].transform(
             lambda x: (
@@ -760,31 +881,25 @@ class ComparadorRecaudacionEnergia:
             )
         )
 
-        self.df_combinado_energia["Registro_Historico_de_Mes_por_Clave"] = (
-            self.df_combinado_energia.groupby(["Clave"])["Mes Consumo"].transform(
-                "count"
-            )
+        # Contar el número de meses por cada 'Clave'
+        self.df_combinado_energia["Registro_Historico_de_Mes_por_Clave"] = self.df_combinado_energia.groupby(["Clave"])["Mes Consumo"].transform(
+            "count"
         )
 
-        # If Tipo y Clave are the same, then count based in column Mes Consumo
-        self.df_combinado_energia["Registro_Historico_por_Clave_y_Tipo"] = (
-            self.df_combinado_energia.groupby(["Clave", "Tipo"])[
-                "Mes Consumo"
-            ].transform("count")
-        )
+        # Contar registros históricos por combinación de 'Clave' y 'Tipo'
+        self.df_combinado_energia["Registro_Historico_por_Clave_y_Tipo"] = self.df_combinado_energia.groupby(["Clave", "Tipo"])[
+            "Mes Consumo"
+        ].transform("count")
 
-        # Create a mask for rows where "Tipo" is either "Con Diferencias" or "No informado"
-        # Define the filter
-        # Filter rows where "Tipo" matches specific values
-        # Filter rows based on the "Tipo" condition
+        # Filtrar filas donde el "Tipo" sea "Clave no informada en RCUT" o "Energía con Diferencias"
         filtro_tipo = self.df_combinado_energia["Tipo"].isin(
             ["Clave no informada en RCUT", "Energía con Diferencias"]
         )
 
-        # Initialize the "Registro_Historico_No_Inf_y_Dif_por_Clave" column with 0
+        # Inicializar la columna "Registro_Historico_No_Inf_y_Dif_por_Clave" con 0
         self.df_combinado_energia["Registro_Historico_No_Inf_y_Dif_por_Clave"] = 0
 
-        # For rows matching the filter, sum the occurrences for each "Clave" across both "Tipo" categories
+        # Para las filas que coinciden con el filtro, sumar las ocurrencias por cada "Clave" en ambas categorías de "Tipo"
         self.df_combinado_energia.loc[
             filtro_tipo, "Registro_Historico_No_Inf_y_Dif_por_Clave"
         ] = (
@@ -793,11 +908,13 @@ class ComparadorRecaudacionEnergia:
             .transform("count")
         )
 
+        # Calcular el porcentaje de registros no informados y con diferencias por 'Clave'
         self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] = (
             self.df_combinado_energia["Registro_Historico_No_Inf_y_Dif_por_Clave"]
             / self.df_combinado_energia["Registro_Historico_de_Mes_por_Clave"]
         ) * 100
 
+        # Definir condiciones para clasificar el nivel de error histórico
         conditions = [
             (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] == 0),
             (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] < 5),
@@ -806,28 +923,30 @@ class ComparadorRecaudacionEnergia:
             (self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] > 20),
         ]
 
-        # Choices corresponding to each condition
+        # Opciones correspondientes a cada condición
         choices = [
-            "Clave sin Errores de Recaudación",  # For the first condition: 0%
-            "Clave con Errores de Recaudación Bajos",  # For values < 5%
-            "Clave con Errores de Recaudación Medios",  # For values >= 5% and <= 20%
-            "Clave con Errores de Recaudación Altos",  # For values > 20%
+            "Clave sin Errores de Recaudación",  # Para la primera condición: 0%
+            "Clave con Errores de Recaudación Bajos",  # Para valores < 5%
+            "Clave con Errores de Recaudación Medios",  # Para valores >= 5% y <= 20%
+            "Clave con Errores de Recaudación Altos",  # Para valores > 20%
         ]
 
-        # Apply conditions and choices
+        # Aplicar condiciones y opciones para clasificar el nivel de error histórico
         self.df_combinado_energia["Nivel_de_Error_Historico_por_Clave"] = np.select(
             conditions,
             choices,
-            default="Clientes No Filtrados",  # It's good practice to have a default value
+            default="Clientes No Filtrados",  # Es buena práctica tener un valor por defecto
         )
 
+        # Convertir la columna de porcentaje a cadena de texto
         self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"] = (
             self.df_combinado_energia["Porcentaje_No_Inf_y_Dif_por_Clave"].astype(str)
         )
 
-        # If Registro_Historico_por_Clave != Clientes No Filtrados, Filtro Registro Clave = Clientes Filtrados
-        casos_por_analizar = ["Clave sin Error de Recaudación", "Clientes No Filtrados"]
+        # Definir casos para análisis que no se consideran errores
+        casos_por_analizar = ["Clave sin Error de Recaudación", "Clientes No Filtrados", "Clave con Errores de Recaudación Bajos"]
 
+        # Filtrar registros de claves según condiciones específicas para el análisis
         self.df_combinado_energia["Filtro_Registro_Clave"] = np.where(
             (
                 ~self.df_combinado_energia["Nivel_de_Error_Historico_por_Clave"].isin(
@@ -842,24 +961,41 @@ class ComparadorRecaudacionEnergia:
             self.df_combinado_energia["Filtro_Registro_Clave"],
         )
 
+        # Retornar el DataFrame actualizado
         return self.df_combinado_energia
 
     def sistemas_nt_barras(self):
+        """
+        Cargar y procesar los datos de sistemas zonales y niveles de tensión de barras en el DataFrame combinado.
+
+        Esta función carga los datos de sistemas zonales y niveles de tensión de barras
+        desde el archivo "Revisores RCUT.xlsm" y los combina con el DataFrame combinado
+        utilizando la columna "Barra" como clave de unión.
+
+        Se reemplazan valores y se llenan columnas con información relevante para el análisis.
+
+        
+        """
+    # Cargar el archivo Excel "Revisores RCUT.xlsm" y leer la hoja "Sistemas Zonales vigentes Clien"
         self.df_sistemas_nt = pd.read_excel(
             self.carpeta_sistemas + "Revisores RCUT.xlsm",
             sheet_name="Sistemas Zonales vigentes Clien",
             engine="openpyxl",
             header=None,
         )
+
+        # Obtener y procesar las tablas de clientes utilizando la función 'obtencion_tablas_clientes'
         self.df_sistemas_nt = func.ObtencionDatos().obtencion_tablas_clientes(
             self.df_sistemas_nt, 5, 6, 16
-    )
+        )
 
+        # Seleccionar únicamente las columnas relevantes: "Barra", "Zonal Definitivo" y "Nivel Tensión Definitivo"
         self.df_sistemas_nt = self.df_sistemas_nt[
             ["Barra", "Zonal Definitivo", "Nivel Tensión Definitivo"]
         ]
-        
-        # Replace in Zonal Definitivo word SISTEMA for Sistema
+
+        # Reemplazar palabras en la columna "Zonal Definitivo"
+        # Reemplaza "SISTEMA" con "Sistema", "Nacional" con "na" y "Dedicado" con "na"
         self.df_sistemas_nt["Zonal Definitivo"] = (
             self.df_sistemas_nt["Zonal Definitivo"]
             .str.replace("SISTEMA", "Sistema")
@@ -867,80 +1003,83 @@ class ComparadorRecaudacionEnergia:
             .str.replace("Dedicado", "na")
         )
 
-        # ? Preparación de datos Combinados
-        # fill column Zonal and Nivel Tensón Zonal when values are nepty with values in self.df_sistemas_nt based in column Barra
+        # Preparación de datos combinados en 'df_combinado_energia'
+        # Rellenar la columna "Zonal" en 'df_combinado_energia' con valores de 'df_sistemas_nt' basados en la columna "Barra"
         self.df_combinado_energia["Zonal"] = self.df_combinado_energia["Zonal"].fillna(
             self.df_combinado_energia["Barra"].map(
                 self.df_sistemas_nt.set_index("Barra")["Zonal Definitivo"]
             )
         )
+
+        # Rellenar la columna "Nivel Tensión Zonal" en 'df_combinado_energia' con valores de 'df_sistemas_nt' basados en la columna "Barra"
         self.df_combinado_energia["Nivel Tensión Zonal"] = self.df_combinado_energia[
             "Nivel Tensión Zonal"
         ].fillna(
             self.df_combinado_energia["Barra"].map(
-                self.df_sistemas_nt.set_index("Barra")[
-                    "Nivel Tensión Definitivo"
-                ]
+                self.df_sistemas_nt.set_index("Barra")["Nivel Tensión Definitivo"]
             )
         )
-        # replace - with na in Zonal
+
+        # Reemplazar valores '-' por 'na' en la columna "Zonal" de 'df_combinado_energia'
         self.df_combinado_energia["Zonal"] = self.df_combinado_energia["Zonal"].replace(
             "-", "na"
         )
 
-        # If column Zonal has na then zonal is -[
-        # If column Zonal has na then replace in Nivel Tensión Zonal with -
-        self.df_combinado_energia["Nivel Tensión Zonal"] = (
-            self.df_combinado_energia.apply(
-                lambda row: "-" if row["Zonal"] == "na" else row["Nivel Tensión Zonal"],
-                axis=1,
-            )
+        # Si la columna "Zonal" tiene "na", entonces reemplazar el valor en "Nivel Tensión Zonal" con "-"
+        self.df_combinado_energia["Nivel Tensión Zonal"] = self.df_combinado_energia.apply(
+            lambda row: "-" if row["Zonal"] == "na" else row["Nivel Tensión Zonal"],
+            axis=1,
         )
 
+
     def cargos_sistemas_nt(self):
-        
-        # Fecha de Cargos Auxiliar
+        """
+        Cargar y procesar los datos de cargos de sistemas no transversales en el DataFrame combinado.
+
+        Esta función carga los datos de cargos de sistemas no transversales
+        desde el archivo "Cargos.xlsx" y los combina con el DataFrame combinado
+        utilizando las columnas "Zonal", "Nivel Tensión Zonal" y "Mes Consumo" como claves de unión.
+
+        Se realizan cálculos adicionales para obtener la recaudación y se eliminan columnas innecesarias.
+
+        """
+        # Convertir la columna "Mes Consumo" a formato datetime para facilitar la comparación y el filtrado
         self.df_combinado_energia["Mes Consumo Formato Datetime"] = pd.to_datetime(
             self.df_combinado_energia["Mes Consumo"], format="%d-%m-%Y"
         )
 
-        #! Cargos Sistemas NT
+        # Cargar el archivo Excel "Cargos.xlsx" y leer la hoja "Cargos"
         self.df_cargos_sistemas_nt = pd.read_excel(
             self.carpeta_cargos + "Cargos.xlsx", sheet_name="Cargos", engine="openpyxl"
-        ) # Read the excel file
+        )
 
+        # Eliminar filas donde las columnas "Segmento" y "Nivel Tensión [kV]" tengan todos sus valores como NaN
         self.df_cargos_sistemas_nt = self.df_cargos_sistemas_nt.dropna(
             subset=["Segmento", "Nivel Tensión [kV]"], how="all"
-        ) # Drop rows where all columns (excluding the first column) are NaN
+        )
 
+        # Reemplazar valores NaN con 0 en la columna "Cliente Individualizado"
         self.df_combinado_energia["Cliente Individualizado"] = (
             self.df_combinado_energia["Cliente Individualizado"].replace(np.nan, 0)
-        ) # Replace NaN with 0 in column Cliente Individualizado
+        )
 
+        # Reemplazar valores NaN con 'na' en la columna "Zonal"
         self.df_combinado_energia["Zonal"] = self.df_combinado_energia["Zonal"].replace(
             np.nan, "na"
-        ) # Replace NaN with na in column Zonal
+        )
 
-        # Replaces and type conversion
-        self.df_cargos_sistemas_nt["Segmento"] = self.df_cargos_sistemas_nt[
-            "Segmento"
-        ].replace(np.nan, "na")
+        # Reemplazar valores NaN con 'na' en la columna "Segmento" de 'df_cargos_sistemas_nt'
+        self.df_cargos_sistemas_nt["Segmento"] = self.df_cargos_sistemas_nt["Segmento"].replace(np.nan, "na")
 
-        self.df_combinado_energia["Nivel Tensión Zonal"] = self.df_combinado_energia[
-            "Nivel Tensión Zonal"
-        ].replace(np.nan, "-")
-        self.df_cargos_sistemas_nt["Nivel Tensión [kV]"] = self.df_cargos_sistemas_nt[
-            "Nivel Tensión [kV]"
-        ].replace(np.nan, "-")
+        # Reemplazar valores NaN con '-' en las columnas "Nivel Tensión Zonal" y "Nivel Tensión [kV]"
+        self.df_combinado_energia["Nivel Tensión Zonal"] = self.df_combinado_energia["Nivel Tensión Zonal"].replace(np.nan, "-")
+        self.df_cargos_sistemas_nt["Nivel Tensión [kV]"] = self.df_cargos_sistemas_nt["Nivel Tensión [kV]"].replace(np.nan, "-")
 
-        self.df_combinado_energia["Nivel Tensión Zonal"] = self.df_combinado_energia[
-            "Nivel Tensión Zonal"
-        ].astype(str)
-        self.df_cargos_sistemas_nt["Nivel Tensión [kV]"] = self.df_cargos_sistemas_nt[
-            "Nivel Tensión [kV]"
-        ].astype(str)
+        # Convertir las columnas "Nivel Tensión Zonal" y "Nivel Tensión [kV]" a tipo string
+        self.df_combinado_energia["Nivel Tensión Zonal"] = self.df_combinado_energia["Nivel Tensión Zonal"].astype(str)
+        self.df_cargos_sistemas_nt["Nivel Tensión [kV]"] = self.df_cargos_sistemas_nt["Nivel Tensión [kV]"].astype(str)
 
-        # Merge df_combinado_energia with df_cargos_sistemas_nt based in columns Zonal, Nivel Tensión Zonal and Mes Consumo Formato Datetime    
+        # Realizar un merge entre 'df_combinado_energia' y 'df_cargos_sistemas_nt' basado en las columnas "Zonal", "Nivel Tensión Zonal" y "Mes Consumo Formato Datetime"
         self.df_combinado_energia = self.df_combinado_energia.merge(
             self.df_cargos_sistemas_nt,
             left_on=["Zonal", "Nivel Tensión Zonal", "Mes Consumo Formato Datetime"],
@@ -948,17 +1087,16 @@ class ComparadorRecaudacionEnergia:
             how="left",
         )
 
-       
-
-        # New Column Cargo Acumulado = Cargo Acumulado Individualizados if Cliente Individualizado = 1 else Cargo Acumulado No Individualizados
+        # Crear una nueva columna "Cargo Acumulado" basada en la columna "Cliente Individualizado"
+        # Si "Cliente Individualizado" es 1, usar "Cargo Acumulado Individualizado", de lo contrario, usar "Cargo Acumulado No Individualizado"
         self.df_combinado_energia["Cargo Acumulado"] = np.where(
             self.df_combinado_energia["Cliente Individualizado"] == 1,
             self.df_combinado_energia["Cargo Acumulado Individualizado"],
             self.df_combinado_energia["Cargo Acumulado No Individualizado"],
         )
 
-         # New Column Recaudación[$] = Diferencia Energía [kWh] * Cargo Acumulado Individualizados  if Cliente Individualizado = 1 else Diferencia Energía [kWh] * Cargo Acumulado No Individualizados
-        
+        # Crear una nueva columna "Recaudación [$]" calculada como el producto de "Diferencia Energía [kWh]" y "Cargo Acumulado"
+        # Si "Cliente Individualizado" es 1, usar "Cargo Acumulado Individualizado", de lo contrario, usar "Cargo Acumulado No Individualizado"
         self.df_combinado_energia["Recaudación [$]"] = np.where(
             self.df_combinado_energia["Cliente Individualizado"] == 1,
             self.df_combinado_energia["Diferencia Energía [kWh]"]
@@ -967,7 +1105,7 @@ class ComparadorRecaudacionEnergia:
             * self.df_combinado_energia["Cargo Acumulado No Individualizado"],
         ).round(4)
 
-        # Drop columns Cargo Acumulado Individualizados and Cargo Acumulado No Individualizados Segmento Nivel Tensión [kV] Mes de Consumo Formato Datetime and Mes de Consumo
+        # Eliminar columnas innecesarias después del merge y los cálculos
         self.df_combinado_energia = self.df_combinado_energia.drop(
             columns=[
                 "Cargo Acumulado Individualizado",
@@ -978,8 +1116,6 @@ class ComparadorRecaudacionEnergia:
                 "Mes Consumo Formato Datetime",
             ]
         )
-
-        print("Cargando datos energía...")
 
     def guardar_datos(self):
 

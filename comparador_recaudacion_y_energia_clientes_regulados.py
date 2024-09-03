@@ -4,65 +4,111 @@ import numpy as np
 
 
 class ComparadorRecaudacionEnergia:
+    """
+    Esta clase se encarga de cargar, procesar y organizar los datos de recaudación y energía
+    de clientes regulados a partir de archivos CSV. El objetivo principal es comparar la energía
+    facturada con la energía balanceada de cada cliente, para luego clasificarlos en categorías
+    según la diferencia entre ambas. Finalmente, el resultado se guarda en un archivo CSV.
+
+    Atributos
+    ----------
+    carpeta_salida : Carpeta de salida donde se almacenarán los resultados de las revisiones
+    carpeta_recaudacion : Carpeta donde se encuentran los archivos de recaudación para revisión histórica
+    carpeta_energia : Carpeta donde se encuentran los archivos de energía con los listados de clientes y retiros históricos
+
+    Metodos
+    -------
+    cargar_datos_energia: Carga los datos de energía de clientes regulados desde un archivo CSV
+    cargar_datos_recaudacion: Carga los datos de recaudación de clientes regulados desde un archivo CSV
+    combinar_datos: Combina los datos de energía y recaudación, y clasifica a los clientes en categorías
+    """
+
     def __init__(self):
-        # Carpeta de salida
+        # Define la carpeta de salida donde se almacenarán los resultados de las revisiones
         self.carpeta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Balance-Recaudación\\"
-        # Carpeta de recaudación
+
+        # Define la carpeta donde se encuentran los archivos de recaudación para revisión histórica
         self.carpeta_recaudacion = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\\Revisiones\\Revisión Recaudación\\Revisión Histórica\\"
-        # Carpeta de energía
+
+        # Define la carpeta donde se encuentran los archivos de energía con los listados de clientes y retiros históricos
         self.carpeta_energia = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\\02 Repartición\Balances\\Listados de Clientes\\Retiros Históricos Clientes\\"
 
     def cargar_datos_energia(self):
+        """
+        Cargar los datos de energía de clientes regulados desde un archivo CSV
+
+        """
+        # Leer el archivo CSV "Retiros_Históricos_Clientes_R.csv" con separador ";" y codificación "UTF-8"
         self.df_energia = pd.read_csv(
             self.carpeta_energia + "Retiros_Históricos_Clientes_R.csv",
             sep=";",
             encoding="UTF-8",
         )
+
+        # Crear columna "Suministrador-Mes" combinando "Suministrador_final" y "Mes"
         self.df_energia["Suministrador-Mes"] = (
             self.df_energia["Suministrador_final"].astype(str)
             + "-_-"
             + self.df_energia["Mes"].astype(str)
         )
+
+        # Reemplazar comas por puntos en la columna "Medida 2" y convertir a tipo float
         self.df_energia["Medida 2"] = (
             self.df_energia["Medida 2"].str.replace(",", ".").astype(float)
         )
+
+        # Multiplicar los valores de "Medida 2" por -1
         self.df_energia["Medida 2"] = self.df_energia["Medida 2"] * -1
+
+        # Renombrar la columna "Medida 2" a "Energía Balance [kWh]"
         self.df_energia.rename(
             columns={"Medida 2": "Energía Balance [kWh]"}, inplace=True
         )
+
+        # Seleccionar solo las columnas "Suministrador-Mes" y "Energía Balance [kWh]"
         self.df_energia = self.df_energia[
             ["Suministrador-Mes", "Energía Balance [kWh]"]
         ]
+
+        # Agrupar por "Suministrador-Mes" y sumar los valores de "Energía Balance [kWh]"
         self.df_energia = (
             self.df_energia.groupby(["Suministrador-Mes"])
             .agg({"Energía Balance [kWh]": "sum"})
             .reset_index()
         )
+
+        # Devolver el DataFrame resultante
         return self.df_energia
 
     def cargar_datos_recaudacion(self):
+        """
+        Cargar los datos de recaudación de clientes regulados desde un archivo CSV.
+        """
+        # Leer el archivo CSV "BDD Clientes Regulados Históricos.csv" con separador ";" y codificación "UTF-8"
         self.df_recaudacion = pd.read_csv(
             self.carpeta_recaudacion + "BDD Clientes Regulados Históricos.csv",
             sep=";",
             encoding="UTF-8",
         )
 
-        # Mantener Columnas Recaudador y Energía facturada [kWh]
+        # Mantener columnas Recaudador, Mes de consumo y Energía facturada [kWh]
         self.df_recaudacion = self.df_recaudacion[
             ["Recaudador", "Mes de consumo", "Energía facturada [kWh]"]
         ]
 
-        # Columnas Mes de consumo de formato fecha d%m%Y
+        # Convertir la columna Mes de consumo a formato de fecha d%m%Y
         self.df_recaudacion["Mes de consumo"] = pd.to_datetime(
             self.df_recaudacion["Mes de consumo"], format="%d-%m-%Y"
         ).dt.strftime("%d-%m-%Y")
 
+        # Crear columna Suministrador-Mes combinando Recaudador y Mes de consumo
         self.df_recaudacion["Suministrador-Mes"] = (
             self.df_recaudacion["Recaudador"].astype(str)
             + "-_-"
             + self.df_recaudacion["Mes de consumo"].astype(str)
         )
 
+        # Limpiar y convertir la columna Energía facturada [kWh] a tipo float
         self.df_recaudacion["Energía facturada [kWh]"] = (
             self.df_recaudacion["Energía facturada [kWh]"]
             .str.replace(",", ".")
@@ -72,24 +118,28 @@ class ComparadorRecaudacionEnergia:
             .astype(float)
         )
 
+        # Agrupar por Suministrador-Mes y sumar los valores de Energía facturada [kWh]
         self.df_recaudacion = (
             self.df_recaudacion.groupby(["Suministrador-Mes"])
-            .agg(
-                {
-                    "Energía facturada [kWh]": "sum",
-                }
-            )
+            .agg({"Energía facturada [kWh]": "sum"})
             .reset_index()
         )
 
-        # Filtrar Energia 0
+        # Filtrar filas donde Energía facturada [kWh] es mayor que 0
         self.df_recaudacion = self.df_recaudacion[
             self.df_recaudacion["Energía facturada [kWh]"] > 0
         ]
 
+        # Devolver el DataFrame resultante
         return self.df_recaudacion
 
     def combinar_datos(self):
+        """
+        Combinar los datos de recaudación y energía, clasificar a los clientes regulados
+        en categorías según la diferencia entre la energía facturada y la energía balanceada,
+        y guardar el resultado en un archivo CSV.
+        """
+        # Combinar los DataFrames df_recaudacion y df_energia en df_combinado_regulados usando "Suministrador-Mes" como clave
         df_combinado_regulados = pd.merge(
             self.df_recaudacion,
             self.df_energia,
@@ -97,7 +147,7 @@ class ComparadorRecaudacionEnergia:
             how="left",
         ).reset_index(drop=True)
 
-        # Separa Suministrador de Mes y elimina columna
+        # Separar "Suministrador" y "Mes" de la columna "Suministrador-Mes" y eliminar la columna original
         df_combinado_regulados["Suministrador"] = df_combinado_regulados[
             "Suministrador-Mes"
         ].apply(lambda x: x.split("-_-")[0])
@@ -111,7 +161,7 @@ class ComparadorRecaudacionEnergia:
             ["Suministrador", "Mes", "Energía facturada [kWh]", "Energía Balance [kWh]"]
         ]
 
-        # Eliminar decimales de Energía Balance y Energía Facturada
+        # Eliminar decimales de "Energía Balance [kWh]" y "Energía facturada [kWh]"
         df_combinado_regulados["Energía facturada [kWh]"] = (
             df_combinado_regulados["Energía facturada [kWh]"].fillna(0).astype(int)
         )
@@ -120,13 +170,13 @@ class ComparadorRecaudacionEnergia:
             df_combinado_regulados["Energía Balance [kWh]"].fillna(0).astype(int)
         )
 
-        # Diferencia Energía Balance Menos Facturada
+        # Calcular la diferencia entre "Energía Balance [kWh]" y "Energía facturada [kWh]"
         df_combinado_regulados["Diferencia Energía [kWh]"] = (
             df_combinado_regulados["Energía Balance [kWh]"]
             - df_combinado_regulados["Energía facturada [kWh]"]
         )
 
-        # Diferencia Energía Balance Menos Facturada porcentual
+        # Calcular la diferencia porcentual de energía
         df_combinado_regulados["Diferencia Energía [%]"] = (
             df_combinado_regulados["Diferencia Energía [kWh]"]
             / df_combinado_regulados["Energía Balance [kWh]"]
@@ -138,6 +188,7 @@ class ComparadorRecaudacionEnergia:
             df_combinado_regulados["Diferencia Energía [%]"].fillna(0).round(2)
         )
 
+        # Clasificar los registros según la diferencia porcentual de energía
         df_combinado_regulados["Tipo"] = df_combinado_regulados.apply(
             lambda x: (
                 "Suministrador No Informado En Mes"
@@ -151,7 +202,7 @@ class ComparadorRecaudacionEnergia:
                         else (
                             "Diferencia Energía con Diferencias Con Menor Facturación"
                             if x["Diferencia Energía [%]"] > 20
-                            else "Other"  # You need to add an else condition here
+                            else "Other"  # Condición else adicional
                         )
                     )
                 )
@@ -159,7 +210,13 @@ class ComparadorRecaudacionEnergia:
             axis=1,
         )
 
-        df_combinado_regulados.to_csv(self.carpeta_salida + "df_revision_energia_regulados.csv", sep=";", encoding="UTF-8", index=False)
+        # Guardar el DataFrame resultante en un archivo CSV
+        df_combinado_regulados.to_csv(
+            self.carpeta_salida + "df_revision_energia_regulados.csv",
+            sep=";",
+            encoding="UTF-8",
+            index=False,
+        )
 
     def run(self):
         self.cargar_datos_energia()
