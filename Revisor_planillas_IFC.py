@@ -16,18 +16,12 @@ import openpyxl
 import warnings
 import funciones as func  # Se importa un módulo personalizado llamado Funciones
 
-# Versiones de las librerías utilizadas
-# python version: 3.9.13
-# openpyxl version: 3.0.10
-# pandas version: 1.4.4
 warning_messages = [
     "Data Validation extension is not supported and will be removed",
     "The default value of regex will change from True to False in a future version.",
 ]
 for message in warning_messages:
     warnings.filterwarnings("ignore", message=message)
-
-
 class PlanillaRevisor:
 
     def __init__(
@@ -107,234 +101,235 @@ class PlanillaRevisor:
                 # Load the Excel file
                 xls = pd.ExcelFile(excel_file_path)
 
-                # Get dathe sheet names
+                # Obtener las hojas del archivo
                 sheet_names = xls.sheet_names
 
                 # Obtener el nombre de la empresa
                 nombre_empresa = re.findall(r"FIFC_(.*?)_RCUT", file_name)
 
                 # todo Dataframe Hoja 'Detalle-Clientes L'
-                df = pd.read_excel(
+                
+                df_detalle_clientes_libres = pd.read_excel(
                     xls,
                     sheet_name="Detalle-Clientes L",
                     engine="openpyxl",
                     header=None,
                 )
 
-                df = func.ObtencionDatos().obtencion_Tablas(df, 11, 2)
-                Columnas_energía = df.columns[9:]
+                df_detalle_clientes_libres = func.ObtencionDatos().obtencion_Tablas(df_detalle_clientes_libres, 11, 2)
+                Columnas_energía = df_detalle_clientes_libres.columns[9:]
 
-                df[Columnas_energía] = df[Columnas_energía].replace({0: np.nan})
-                df[Columnas_energía] = df[Columnas_energía].replace({np.nan: None})
-                df[Columnas_energía] = df[Columnas_energía].replace({None: np.nan})
-                df = df.dropna(subset=Columnas_energía, how="all")
+                df_detalle_clientes_libres[Columnas_energía] = df_detalle_clientes_libres[Columnas_energía].replace({0: np.nan})
+                df_detalle_clientes_libres[Columnas_energía] = df_detalle_clientes_libres[Columnas_energía].replace({np.nan: None})
+                df_detalle_clientes_libres[Columnas_energía] = df_detalle_clientes_libres[Columnas_energía].replace({None: np.nan})
+                df_detalle_clientes_libres = df_detalle_clientes_libres.dropna(subset=Columnas_energía, how="all")
 
-                df[Columnas_energía] = df[Columnas_energía].replace({np.nan: ""})
+                df_detalle_clientes_libres[Columnas_energía] = df_detalle_clientes_libres[Columnas_energía].replace({np.nan: ""})
 
                 # Procesar columnas numéricas para reemplazar '.' con ','
                 # Convertir nombres de columnas de fecha
-                timestamps = df.columns[9:]
-                df.columns.values[9:] = [
+                timestamps = df_detalle_clientes_libres.columns[9:]
+                df_detalle_clientes_libres.columns.values[9:] = [
                     datetime.strftime(timestamp, "%d-%m-%Y") for timestamp in timestamps
                 ]
 
                 # Seleccionar columnas relevantes y derretir el dataframe
-                selected_columns = df.columns[:9].tolist()
+                selected_columns = df_detalle_clientes_libres.columns[:9].tolist()
 
-                df = pd.melt(
-                    df,
+                df_detalle_clientes_libres = pd.melt(
+                    df_detalle_clientes_libres,
                     id_vars=selected_columns,
                     var_name="Mes Consumo",
                     value_name="Energía [kWh]",
                 )
                 # Filtrar filas con valores no nulos
-                df = df[(~df["Energía [kWh]"].isnull()) & (df["Energía [kWh]"] != "")]
-                df["Energía [kWh]"] = (
-                    df["Energía [kWh]"].astype(str).str.replace(".", ",", regex=False)
+                df_detalle_clientes_libres = df_detalle_clientes_libres[(~df_detalle_clientes_libres["Energía [kWh]"].isnull()) & (df_detalle_clientes_libres["Energía [kWh]"] != "")]
+                df_detalle_clientes_libres["Energía [kWh]"] = (
+                    df_detalle_clientes_libres["Energía [kWh]"].astype(str).str.replace(".", ",", regex=False)
                 )
 
                 # Reemplazar valor SISTEMA por Sistema
-                df["Zonal"] = (
-                    df["Zonal"]
+                df_detalle_clientes_libres["Zonal"] = (
+                    df_detalle_clientes_libres["Zonal"]
                     .astype(str)
                     .str.replace(r"\bSISTEMA\b", "Sistema", regex=True)
                 )
 
                 # Agregar columnas
-                df = df.assign(mes_repartición=mes_rep)
-                df = df.assign(Empresa_Planilla=nombre_empresa[0])
+                df_detalle_clientes_libres = df_detalle_clientes_libres.assign(mes_repartición=mes_rep)
+                df_detalle_clientes_libres = df_detalle_clientes_libres.assign(Empresa_Planilla=nombre_empresa[0])
 
                  # Convertir a mayúsculas
-                df["Empresa_Planilla"] = df["Empresa_Planilla"].str.upper()
-                df["Recaudador"] = df["Recaudador"].str.upper()
+                df_detalle_clientes_libres["Empresa_Planilla"] = df_detalle_clientes_libres["Empresa_Planilla"].str.upper()
+                df_detalle_clientes_libres["Recaudador"] = df_detalle_clientes_libres["Recaudador"].str.upper()
 
-                df["Empresa_Planilla_Recauda_Cliente"] = np.where(
-                    df["Recaudador"] == df["Empresa_Planilla"], 1, 0
+                df_detalle_clientes_libres["Empresa_Planilla_Recauda_Cliente"] = np.where(
+                    df_detalle_clientes_libres["Recaudador"] == df_detalle_clientes_libres["Empresa_Planilla"], 1, 0
                 )
                
                 # Revisor para ver que el suministrador informa al recaudador
-                df["Energía [kWh]"] = df["Energía [kWh]"].replace(["-", ""], np.nan)
-                df["Energía [kWh]"] = pd.to_numeric(
-                    df["Energía [kWh]"].astype(str).str.replace(",", "."),
+                df_detalle_clientes_libres["Energía [kWh]"] = df_detalle_clientes_libres["Energía [kWh]"].replace(["-", ""], np.nan)
+                df_detalle_clientes_libres["Energía [kWh]"] = pd.to_numeric(
+                    df_detalle_clientes_libres["Energía [kWh]"].astype(str).str.replace(",", "."),
                     errors="coerce",
                 )
-                # df["Energía [kWh]"] = df["Energía [kWh]"].str.replace(",", ".").astype(float)
-                df["Recaudador No Informado"] = np.where(
-                    (df["Energía [kWh]"] > 0) & (df["Energía [kWh]"].isin(["", "-"])),
+                # df_detalle_clientes_libres["Energía [kWh]"] = df_detalle_clientes_libres["Energía [kWh]"].str.replace(",", ".").astype(float)
+                df_detalle_clientes_libres["Recaudador No Informado"] = np.where(
+                    (df_detalle_clientes_libres["Energía [kWh]"] > 0) & (df_detalle_clientes_libres["Energía [kWh]"].isin(["", "-"])),
                     1,
                     0,
                 )
-                df["Energía [kWh]"] = (
-                    df["Energía [kWh]"].astype(str).str.replace(".", ",", regex=False)
+                df_detalle_clientes_libres["Energía [kWh]"] = (
+                    df_detalle_clientes_libres["Energía [kWh]"].astype(str).str.replace(".", ",", regex=False)
                 )
 
                 # Eliminar filas con valores nulos en las columnas Barra, Clave y Suministrador
-                df.dropna(subset=["Barra", "Clave", "Suministrador"], inplace=True)
+                df_detalle_clientes_libres.dropna(subset=["Barra", "Clave", "Suministrador"], inplace=True)
                 # Agregar el dataframe a la lista
-                dataframes.append(df)
+                dataframes.append(df_detalle_clientes_libres)
 
                 # todo Dataframe Hoja 'Detalle- Nvs Clientes L'
-                df_Nvs = pd.read_excel(
+                df_detalle_nuevos_clientes_libres = pd.read_excel(
                     xls,
                     sheet_name="Detalle-Nvs Clientes L",
                     engine="openpyxl",
                     header=None,
                 )
-                df_Nvs = func.ObtencionDatos().obtencion_Tablas(df_Nvs, 11, 2)
-                Columnas_energía = df_Nvs.columns[9:]
-                df_Nvs[Columnas_energía] = df_Nvs[Columnas_energía].replace({0: np.nan})
-                df_Nvs[Columnas_energía] = df_Nvs[Columnas_energía].replace(
+                df_detalle_nuevos_clientes_libres = func.ObtencionDatos().obtencion_Tablas(df_detalle_nuevos_clientes_libres, 11, 2)
+                Columnas_energía = df_detalle_nuevos_clientes_libres.columns[9:]
+                df_detalle_nuevos_clientes_libres[Columnas_energía] = df_detalle_nuevos_clientes_libres[Columnas_energía].replace({0: np.nan})
+                df_detalle_nuevos_clientes_libres[Columnas_energía] = df_detalle_nuevos_clientes_libres[Columnas_energía].replace(
                     {np.nan: None}
                 )
-                df_Nvs[Columnas_energía] = df_Nvs[Columnas_energía].replace(
+                df_detalle_nuevos_clientes_libres[Columnas_energía] = df_detalle_nuevos_clientes_libres[Columnas_energía].replace(
                     {None: np.nan}
                 )
-                df_Nvs = df_Nvs.dropna(subset=Columnas_energía, how="all")
-                df_Nvs[Columnas_energía] = df_Nvs[Columnas_energía].replace(
+                df_detalle_nuevos_clientes_libres = df_detalle_nuevos_clientes_libres.dropna(subset=Columnas_energía, how="all")
+                df_detalle_nuevos_clientes_libres[Columnas_energía] = df_detalle_nuevos_clientes_libres[Columnas_energía].replace(
                     {np.nan: ""}
                 )
 
                 # Procesar columnas numéricas para reemplazar '.' con ','
-                for column in df_Nvs.columns[9:]:
-                    df_Nvs[column] = (
-                        df_Nvs[column].astype(str).str.replace(".", ",", regex=False)
+                for column in df_detalle_nuevos_clientes_libres.columns[9:]:
+                    df_detalle_nuevos_clientes_libres[column] = (
+                        df_detalle_nuevos_clientes_libres[column].astype(str).str.replace(".", ",", regex=False)
                     )
 
                 # Convertir nombres de columnas de fecha
-                timestamps = df_Nvs.columns[9:]
-                df_Nvs.columns.values[9:] = [
+                timestamps = df_detalle_nuevos_clientes_libres.columns[9:]
+                df_detalle_nuevos_clientes_libres.columns.values[9:] = [
                     datetime.strftime(timestamp, "%d-%m-%Y") for timestamp in timestamps
                 ]
 
                 # Seleccionar columnas relevantes y derretir el dataframe
-                columnas_melt = df_Nvs.columns[:9].tolist()
+                columnas_melt = df_detalle_nuevos_clientes_libres.columns[:9].tolist()
 
-                df_Nvs = pd.melt(
-                    df_Nvs,
+                df_detalle_nuevos_clientes_libres = pd.melt(
+                    df_detalle_nuevos_clientes_libres,
                     id_vars=columnas_melt,
                     var_name="Mes Consumo",
                     value_name="Energía [kWh]",
                 )
 
                 # Filtrar filas con valores no nulos
-                df_Nvs = df_Nvs[
-                    (~df_Nvs["Energía [kWh]"].isnull())
-                    & (df_Nvs["Energía [kWh]"] != "")
+                df_detalle_nuevos_clientes_libres = df_detalle_nuevos_clientes_libres[
+                    (~df_detalle_nuevos_clientes_libres["Energía [kWh]"].isnull())
+                    & (df_detalle_nuevos_clientes_libres["Energía [kWh]"] != "")
                 ]
 
-                df_Nvs["Zonal"] = (
-                    df_Nvs["Zonal"]
+                df_detalle_nuevos_clientes_libres["Zonal"] = (
+                    df_detalle_nuevos_clientes_libres["Zonal"]
                     .astype(str)
                     .str.replace(r"\bSISTEMA\b", "Sistema", regex=True)
                 )
 
-                df_Nvs = df_Nvs.assign(mes_repartición=mes_rep)
-                df_Nvs = df_Nvs.assign(Empresa_Planilla=nombre_empresa[0])
+                df_detalle_nuevos_clientes_libres = df_detalle_nuevos_clientes_libres.assign(mes_repartición=mes_rep)
+                df_detalle_nuevos_clientes_libres = df_detalle_nuevos_clientes_libres.assign(Empresa_Planilla=nombre_empresa[0])
 
-                df_Nvs["Empresa_Planilla_Recauda_Cliente"] = np.where(
-                    df_Nvs["Recaudador"] == df_Nvs["Empresa_Planilla"], 1, 0
+                df_detalle_nuevos_clientes_libres["Empresa_Planilla_Recauda_Cliente"] = np.where(
+                    df_detalle_nuevos_clientes_libres["Recaudador"] == df_detalle_nuevos_clientes_libres["Empresa_Planilla"], 1, 0
                 )
-                df_Nvs["Empresa_Planilla_Recauda_Cliente"] = np.where(
-                    df_Nvs["Recaudador"] == df_Nvs["Empresa_Planilla"], 1, 0
+                df_detalle_nuevos_clientes_libres["Empresa_Planilla_Recauda_Cliente"] = np.where(
+                    df_detalle_nuevos_clientes_libres["Recaudador"] == df_detalle_nuevos_clientes_libres["Empresa_Planilla"], 1, 0
                 )
 
                 # Revisor para ver que el suministrador informa al recaudador
-                df_Nvs["Energía [kWh]"] = (
-                    df_Nvs["Energía [kWh]"].str.replace(",", ".").astype(float)
+                df_detalle_nuevos_clientes_libres["Energía [kWh]"] = (
+                    df_detalle_nuevos_clientes_libres["Energía [kWh]"].str.replace(",", ".").astype(float)
                 )
-                df_Nvs["Recaudador No Informado"] = np.where(
-                    (df_Nvs["Energía [kWh]"] > 0)
-                    & (df_Nvs["Energía [kWh]"].isin(["", "-"])),
+                df_detalle_nuevos_clientes_libres["Recaudador No Informado"] = np.where(
+                    (df_detalle_nuevos_clientes_libres["Energía [kWh]"] > 0)
+                    & (df_detalle_nuevos_clientes_libres["Energía [kWh]"].isin(["", "-"])),
                     1,
                     0,
                 )
-                df_Nvs["Energía [kWh]"] = (
-                    df_Nvs["Energía [kWh]"].astype(str).str.replace(".", ",")
+                df_detalle_nuevos_clientes_libres["Energía [kWh]"] = (
+                    df_detalle_nuevos_clientes_libres["Energía [kWh]"].astype(str).str.replace(".", ",")
                 )
 
                 # Eliminar filas con valores nulos en las columnas Barra, Clave y Suministrador
-                df_Nvs.dropna(subset=["Barra", "Clave", "Suministrador"], inplace=True)
+                df_detalle_nuevos_clientes_libres.dropna(subset=["Barra", "Clave", "Suministrador"], inplace=True)
 
                 # Agregar el dataframe a la lista
-                dataframes_Nvs.append(df_Nvs)
+                dataframes_Nvs.append(df_detalle_nuevos_clientes_libres)
 
                 # todo Dataframe Hoja 'Formulario-Clientes L'
 
-                df_FCL = pd.read_excel(
+                df_formulario_clientes_libres = pd.read_excel(
                     xls,
                     sheet_name="Formulario-Clientes L",
                     engine="openpyxl",
                     header=None,
                 )
-                df_FCL = func.ObtencionDatos().obtencion_Tablas(df_FCL, 19, 3)
+                df_formulario_clientes_libres = func.ObtencionDatos().obtencion_Tablas(df_formulario_clientes_libres, 19, 3)
 
                 # Procesar datos de Clientes Libres
-                df_FCL_E = df_FCL.iloc[:, :11]
-                df_FCL_E = df_FCL_E[
-                    (~df_FCL_E["Observación"].isnull())
-                    & (df_FCL_E["Observación"] != "")
+                df_formulario_clientes_libres_energia = df_formulario_clientes_libres.iloc[:, :11]
+                df_formulario_clientes_libres_energia = df_formulario_clientes_libres_energia[
+                    (~df_formulario_clientes_libres_energia["Observación"].isnull())
+                    & (df_formulario_clientes_libres_energia["Observación"] != "")
                 ]
 
-                df_FCL_E[
+                df_formulario_clientes_libres_energia[
                     ["Cargo [$/kWh]", "Recaudación [$]", "Energía facturada [kWh]"]
-                ] = df_FCL_E[
+                ] = df_formulario_clientes_libres_energia[
                     ["Cargo [$/kWh]", "Recaudación [$]", "Energía facturada [kWh]"]
                 ].astype(
                     str
                 )
 
-                df_FCL_E["Cargo [$/kWh]"] = (
-                    df_FCL_E["Cargo [$/kWh]"]
+                df_formulario_clientes_libres_energia["Cargo [$/kWh]"] = (
+                    df_formulario_clientes_libres_energia["Cargo [$/kWh]"]
                     .astype(str)
                     .str.replace(".", ",", regex=False)
                 )
 
-                df_FCL_E["Energía facturada [kWh]"] = (
-                    df_FCL_E["Energía facturada [kWh]"]
+                df_formulario_clientes_libres_energia["Energía facturada [kWh]"] = (
+                    df_formulario_clientes_libres_energia["Energía facturada [kWh]"]
                     .astype(str)
                     .str.replace(".", ",", regex=False)
                 )
 
-                df_FCL_E["Recaudación [$]"] = (
-                    df_FCL_E["Recaudación [$]"]
+                df_formulario_clientes_libres_energia["Recaudación [$]"] = (
+                    df_formulario_clientes_libres_energia["Recaudación [$]"]
                     .astype(str)
                     .str.replace(".", ",", regex=False)
                 )
 
-                df_FCL_E = df_FCL_E.assign(mes_repartición=mes_rep)
-                df_FCL_E = df_FCL_E.assign(Recaudador=nombre_empresa[0])
+                df_formulario_clientes_libres_energia = df_formulario_clientes_libres_energia.assign(mes_repartición=mes_rep)
+                df_formulario_clientes_libres_energia = df_formulario_clientes_libres_energia.assign(Recaudador=nombre_empresa[0])
 
                 # Revisor de Formulario Clientes Libres
-                df_FCL_R = df_FCL.iloc[:, 15:18]
-                df_FCL_R = df_FCL_R[
-                    (~df_FCL_R["Observación"].isnull())
-                    & (df_FCL_R["Observación"] != "")
+                df_formulario_clientes_libres_revision = df_formulario_clientes_libres.iloc[:, 15:18]
+                df_formulario_clientes_libres_revision = df_formulario_clientes_libres_revision[
+                    (~df_formulario_clientes_libres_revision["Observación"].isnull())
+                    & (df_formulario_clientes_libres_revision["Observación"] != "")
                 ]
-                df_FCL_R = df_FCL_R.assign(mes_repartición=mes_rep)
-                df_FCL_R = df_FCL_R.assign(Recaudador=nombre_empresa[0])
+                df_formulario_clientes_libres_revision = df_formulario_clientes_libres_revision.assign(mes_repartición=mes_rep)
+                df_formulario_clientes_libres_revision = df_formulario_clientes_libres_revision.assign(Recaudador=nombre_empresa[0])
 
-                df_FCL_R["Observación"] = (
-                    df_FCL_R["Observación"]
+                df_formulario_clientes_libres_revision["Observación"] = (
+                    df_formulario_clientes_libres_revision["Observación"]
                     .astype(str)
                     .str.replace(".", ",", regex=False)
                 )
@@ -342,116 +337,116 @@ class PlanillaRevisor:
                 # todo Intentar leer la hoja 'Formulario-Clientes R' si existe
                 # Dataframe Hoja 'Formulario-Clientes R'
 
-                df_FCR_E = None  # Inicializar a None
-                df_FCR_R = None  # Inicializar a None
+                df_formulario_clientes_regulados_energia = None  # Inicializar a None
+                df_formulario_clientes_regulados_revision = None  # Inicializar a None
 
                 if "Formulario-Clientes R" in sheet_names:
-                    df_FCR = pd.read_excel(
+                    df_formulario_clientes_regulados = pd.read_excel(
                         xls,
                         sheet_name="Formulario-Clientes R",
                         engine="openpyxl",
                         header=None,
                     )
-                    df_FCR = func.ObtencionDatos().obtencion_Tablas(df_FCR, 19, 3)
+                    df_formulario_clientes_regulados = func.ObtencionDatos().obtencion_Tablas(df_formulario_clientes_regulados, 19, 3)
 
                     # Procesar datos de Clientes Regulados
-                    df_FCR_E = df_FCR.iloc[:, :11]
+                    df_formulario_clientes_regulados_energia = df_formulario_clientes_regulados.iloc[:, :11]
 
-                    df_FCR_E = df_FCR_E.assign(mes_repartición=mes_rep)
-                    df_FCR_E = df_FCR_E.assign(Recaudador=nombre_empresa[0])
+                    df_formulario_clientes_regulados_energia = df_formulario_clientes_regulados_energia.assign(mes_repartición=mes_rep)
+                    df_formulario_clientes_regulados_energia = df_formulario_clientes_regulados_energia.assign(Recaudador=nombre_empresa[0])
 
                     # Columnas a string
-                    df_FCR_E[
+                    df_formulario_clientes_regulados_energia[
                         ["Cargo [$/kWh]", "Recaudación [$]", "Energía facturada [kWh]"]
-                    ] = df_FCR_E[
+                    ] = df_formulario_clientes_regulados_energia[
                         ["Cargo [$/kWh]", "Recaudación [$]", "Energía facturada [kWh]"]
                     ].astype(
                         str
                     )
 
-                    df_FCR_E["Cargo [$/kWh]"] = (
-                        df_FCR_E["Cargo [$/kWh]"].astype(str).str.replace(".", ",")
+                    df_formulario_clientes_regulados_energia["Cargo [$/kWh]"] = (
+                        df_formulario_clientes_regulados_energia["Cargo [$/kWh]"].astype(str).str.replace(".", ",")
                     )
-                    df_FCR_E["Energía facturada [kWh]"] = (
-                        df_FCR_E["Energía facturada [kWh]"]
+                    df_formulario_clientes_regulados_energia["Energía facturada [kWh]"] = (
+                        df_formulario_clientes_regulados_energia["Energía facturada [kWh]"]
                         .astype(str)
                         .str.replace(".", ",")
                     )
-                    df_FCR_E["Recaudación [$]"] = (
-                        df_FCR_E["Recaudación [$]"].astype(str).str.replace(".", ",")
+                    df_formulario_clientes_regulados_energia["Recaudación [$]"] = (
+                        df_formulario_clientes_regulados_energia["Recaudación [$]"].astype(str).str.replace(".", ",")
                     )
 
                     dataframes_regulados.append(
-                        df_FCR_E[
-                            (df_FCR_E["Segmento"] == "Nacional")
+                        df_formulario_clientes_regulados_energia[
+                            (df_formulario_clientes_regulados_energia["Segmento"] == "Nacional")
                             & ~(
-                                df_FCR_E["Energía facturada [kWh]"].isnull()
-                                | df_FCR_E["Energía facturada [kWh]"]
+                                df_formulario_clientes_regulados_energia["Energía facturada [kWh]"].isnull()
+                                | df_formulario_clientes_regulados_energia["Energía facturada [kWh]"]
                                 == 0
                             )
                         ]
                     )
 
-                    df_FCR_E = df_FCR_E[
-                        (~df_FCL_E["Observación"].isnull())
-                        & (df_FCR_E["Observación"] != "")
+                    df_formulario_clientes_regulados_energia = df_formulario_clientes_regulados_energia[
+                        (~df_formulario_clientes_libres_energia["Observación"].isnull())
+                        & (df_formulario_clientes_regulados_energia["Observación"] != "")
                     ]
 
-                    df_FCR_R = df_FCR.iloc[:, 14:22]
+                    df_formulario_clientes_regulados_revision = df_formulario_clientes_regulados.iloc[:, 14:22]
                     # si existe columns llamada Observación_2 cambiar el nombre a Observación
-                    if "Observación_2" in df_FCR_R.columns:
-                        df_FCR_R = df_FCR_R.rename(columns={"Observación_2": "SSCC"})
+                    if "Observación_2" in df_formulario_clientes_regulados_revision.columns:
+                        df_formulario_clientes_regulados_revision = df_formulario_clientes_regulados_revision.rename(columns={"Observación_2": "SSCC"})
 
-                    df_FCR_R = df_FCR_R[
-                        (~df_FCR_R["Observación"].isnull())
-                        & (df_FCR_R["Observación"] != "")
+                    df_formulario_clientes_regulados_revision = df_formulario_clientes_regulados_revision[
+                        (~df_formulario_clientes_regulados_revision["Observación"].isnull())
+                        & (df_formulario_clientes_regulados_revision["Observación"] != "")
                     ]
 
-                    df_FCR_R = df_FCR_R.assign(mes_repartición=mes_rep)
-                    df_FCR_R = df_FCR_R.assign(Recaudador=nombre_empresa[0])
+                    df_formulario_clientes_regulados_revision = df_formulario_clientes_regulados_revision.assign(mes_repartición=mes_rep)
+                    df_formulario_clientes_regulados_revision = df_formulario_clientes_regulados_revision.assign(Recaudador=nombre_empresa[0])
 
-                    df_FCR_R["Nacional"] = (
-                        df_FCR_R["Nacional"].astype(str).str.replace(".", ",")
+                    df_formulario_clientes_regulados_revision["Nacional"] = (
+                        df_formulario_clientes_regulados_revision["Nacional"].astype(str).str.replace(".", ",")
                     )
 
-                    df_FCR_R["Exenciones Peajes de Inyección"] = (
-                        df_FCR_R["Exenciones Peajes de Inyección"]
+                    df_formulario_clientes_regulados_revision["Exenciones Peajes de Inyección"] = (
+                        df_formulario_clientes_regulados_revision["Exenciones Peajes de Inyección"]
                         .astype(str)
                         .str.replace(".", ",")
                     )
 
-                    df_FCR_R["Pago Peajes de Retiros"] = (
-                        df_FCR_R["Pago Peajes de Retiros"]
+                    df_formulario_clientes_regulados_revision["Pago Peajes de Retiros"] = (
+                        df_formulario_clientes_regulados_revision["Pago Peajes de Retiros"]
                         .astype(str)
                         .str.replace(".", ",")
                     )
 
-                    df_FCR_R["Zonal"] = (
-                        df_FCR_R["Zonal"].astype(str).str.replace(".", ",")
+                    df_formulario_clientes_regulados_revision["Zonal"] = (
+                        df_formulario_clientes_regulados_revision["Zonal"].astype(str).str.replace(".", ",")
                     )
 
-                    df_FCR_R["SSCC"] = (
-                        df_FCR_R["SSCC"].astype(str).str.replace(".", ",")
+                    df_formulario_clientes_regulados_revision["SSCC"] = (
+                        df_formulario_clientes_regulados_revision["SSCC"].astype(str).str.replace(".", ",")
                     )
 
-                    df_FCR_R["Dedicado"] = (
-                        df_FCR_R["Dedicado"].astype(str).str.replace(".", ",")
+                    df_formulario_clientes_regulados_revision["Dedicado"] = (
+                        df_formulario_clientes_regulados_revision["Dedicado"].astype(str).str.replace(".", ",")
                     )
 
-                    dataframes_regulados_E.append(df_FCR_E)
-                    dataframes_regulados_R.append(df_FCR_R)
+                    dataframes_regulados_E.append(df_formulario_clientes_regulados_energia)
+                    dataframes_regulados_R.append(df_formulario_clientes_regulados_revision)
 
-                    del df_FCR, df_FCR_E, df_FCR_R
+                    del df_formulario_clientes_regulados, df_formulario_clientes_regulados_energia, df_formulario_clientes_regulados_revision
 
                 # Agregar dataframes a las listas correspondientes
-                dataframes_libres_E.append(df_FCL_E)
-                dataframes_libres_R.append(df_FCL_R)
+                dataframes_libres_E.append(df_formulario_clientes_libres_energia)
+                dataframes_libres_R.append(df_formulario_clientes_libres_revision)
 
                 # Close excel file
                 xls.close
 
                 # Eliminar dataframes para liberar memoria
-                del df, df_FCL_E, df_FCL_R
+                del df_detalle_clientes_libres, df_formulario_clientes_libres_energia, df_formulario_clientes_libres_revision
 
             # Define the list of dataframes and corresponding output file names
             dataframes_list = [

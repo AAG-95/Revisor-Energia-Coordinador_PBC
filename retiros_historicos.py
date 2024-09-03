@@ -10,24 +10,62 @@ warnings.filterwarnings("ignore", category=pd.errors.DtypeWarning)
 
 
 class ProcesadorRetirosHistoricos:
+    """
+    Esta clase se encarga de cargar, procesar y organizar los datos de retiros históricos
+    de energía de clientes libres y regulados. El objetivo principal es actualizar los registros
+    históricos de retiros de energía de los clientes libres y regulados, y guardar los cambios
+    en archivos CSV. Además, se actualiza el registro de cambios de los clientes libres y regulados.
+
+    Atributos:
+    - primer_año: año inicial para el procesamiento de datos históricos
+    - último_año: año final para el procesamiento de datos históricos
+    - primer_mes_primer_año: mes inicial del primer año para el procesamiento de datos históricos
+    - último_mes_último_año: mes final del último año para el procesamiento de datos históricos
+    - ruta_balances_clientes_libres: ruta donde se encuentran los balances mensuales de clientes libres
+    - ruta_balances_historicos_clientes_L: ruta donde se encuentran los balances históricos de clientes libres
+    - ruta_balances_historicos_clientes_R: ruta donde se encuentran los balances históricos de clientes regulados
+    - ruta_registro_cambios_clientes_L: ruta del archivo de registro de cambios de clientes libres
+    - ruta_registro_cambios_clientes_R: ruta del archivo de registro de cambios de clientes regulados
+    - pares_lista: lista de pares de año y mes desde el primer año y mes hasta el último año y mes
+
+    Métodos:
+    - carga_informacion_historica: carga la información histórica de retiros de energía de clientes libres y regulados
+    - procesamiento_mensual: procesa los balances mensuales de clientes libres y regulados
+    - carga_datos_historicos: carga los datos históricos de retiros de energía de clientes libres y regulados
+
+    """
+
     def __init__(
-        self, primer_año,  último_año, primer_mes_primer_año, último_mes_último_año
+        self, primer_año, último_año, primer_mes_primer_año, último_mes_último_año
     ):
+        # Ruta donde se encuentran los balances mensuales de clientes libres
         self.ruta_balances_clientes_libres = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Retiros Mensuales"
+
+        # Ruta donde se encuentran los balances históricos de clientes libres
         self.ruta_balances_historicos_clientes_L = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Retiros Históricos Clientes"
+
+        # Ruta donde se encuentran los balances históricos de clientes regulados
         self.ruta_balances_historicos_clientes_R = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Retiros Históricos Clientes"
+
+        # Ruta del archivo de registro de cambios de clientes libres
         self.ruta_registro_cambios_clientes_L = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Registro de Cambios\Registro_de_Cambios_Clientes_Libres.csv"
+
+        # Ruta del archivo de registro de cambios de clientes regulados
         self.ruta_registro_cambios_clientes_R = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Registro de Cambios\Registro_de_Cambios_Clientes_Regulados.csv"
+
+        # Año inicial para el procesamiento de datos históricos
         self.primer_año = primer_año
+
+        # Mes inicial del primer año para el procesamiento de datos históricos
         self.primer_mes_primer_año = primer_mes_primer_año
+
+        # Año final para el procesamiento de datos históricos
         self.último_año = último_año
+
+        # Mes final del último año para el procesamiento de datos históricos
         self.último_mes_último_año = último_mes_último_año
-        self.pares_lista = fc.ConversionDatos().generar_pares(
-            self.primer_año,
-            self.último_año,
-            self.primer_mes_primer_año,
-            self.último_mes_último_año,
-        )
+
+        # Genera una lista de pares de año y mes desde el primer año y mes hasta el último año y mes
         self.pares_lista = fc.ConversionDatos().generar_pares(
             self.primer_año,
             self.último_año,
@@ -36,124 +74,178 @@ class ProcesadorRetirosHistoricos:
         )
 
     def carga_informacion_historica(self):
-
+        """
+        Carga la información histórica de retiros de energía de clientes libres y regulados.
+        """
         #! Dataframes históricos Clientes Libres
+        # Verificar si el archivo "Retiros_Históricos_Clientes_L.csv" existe en la ruta especificada
         if os.path.isfile(
             self.ruta_balances_historicos_clientes_L
             + "\Retiros_Históricos_Clientes_L.csv"
         ):
 
+            # Leer el archivo CSV "Retiros_Históricos_Clientes_L.csv" con separador ";" y codificación "UTF-8"
             df_historico_clientes_L = pd.read_csv(
                 self.ruta_balances_historicos_clientes_L
                 + "\Retiros_Históricos_Clientes_L.csv",
                 sep=";",
                 encoding="UTF-8",
             )
+
+            # Obtener los valores únicos de la columna "Mes"
             self.valores_mes = df_historico_clientes_L["Mes"].unique()
         else:
+            # Imprimir mensaje de error si el archivo no existe
             print(
                 f"No existe BDD de Retiros de Energía Histórica en: {self.ruta_balances_historicos_clientes_L}"
             )
+
+            # Crear un DataFrame vacío y una lista vacía para valores_mes
             df_historico_clientes_L = pd.DataFrame()
             self.valores_mes = []
 
         #! Dataframes históricos Clientes Regulados
+        # Verificar si el archivo "Retiros_Históricos_Clientes_R.csv" existe en la ruta especificada
         if os.path.isfile(
             self.ruta_balances_historicos_clientes_R
             + "\Retiros_Históricos_Clientes_R.csv"
         ):
 
+            # Leer el archivo CSV "Retiros_Históricos_Clientes_R.csv" con separador ";" y codificación "UTF-8"
             df_historico_clientes_R = pd.read_csv(
                 self.ruta_balances_historicos_clientes_R
                 + "\Retiros_Históricos_Clientes_R.csv",
                 sep=";",
                 encoding="UTF-8",
             )
+
+            # Obtener los valores únicos de la columna "Mes"
             self.valores_mes = df_historico_clientes_R["Mes"].unique()
         else:
+            # Imprimir mensaje de error si el archivo no existe
             print(
                 f"No existe BDD de Retiros de Energía Histórica en: {self.ruta_balances_historicos_clientes_R}"
             )
+
+            # Crear un DataFrame vacío y una lista vacía para valores_mes
             df_historico_clientes_R = pd.DataFrame()
             self.valores_mes = []
 
     def procesamiento_mensual(self):
-        #! Listado meses Clientes L
-        # Convert values
-        self.dataframe_clientes_L = []
-        for pair in self.pares_lista:
+        """
+        Procesa los balances mensuales de clientes libres y regulados para obtener los listados de clientes
+        correspondientes a cada mes. Los datos procesados se almacenan en los atributos dataframe_clientes_L y
+        dataframe_clientes_R.
 
+        """
+        #! Listado meses Clientes L
+        # Convertir valores
+        self.dataframe_clientes_L = []
+
+        # Iterar sobre cada par en pares_lista
+        for pair in self.pares_lista:
             i = pair[1]
+
+            # Leer el archivo Excel correspondiente a cada par
             df_mes_clientes_L = pd.read_excel(
                 self.ruta_balances_clientes_libres + f"\Retiros_{i}.xlsx",
                 sheet_name="Listado_Clientes_L",
             )
-            # Get first 18 columns
+
+            # Obtener las primeras 18 columnas
             df_mes_clientes_L = df_mes_clientes_L.iloc[:, :18]
-            # Erase emprty rows
+
+            # Eliminar filas vacías
             df_mes_clientes_L = df_mes_clientes_L.dropna(how="all")
+
+            # Agregar el DataFrame procesado a la lista dataframe_clientes_L
             self.dataframe_clientes_L.append(df_mes_clientes_L)
 
         #! Listado meses Clientes R
-        # Convert values
+        # Convertir valores
         self.dataframe_clientes_R = []
-        for pair in self.pares_lista:
 
+        # Iterar sobre cada par en pares_lista
+        for pair in self.pares_lista:
             i = pair[1]
+
+            # Leer el archivo Excel correspondiente a cada par
             df_mes_clientes_R = pd.read_excel(
                 self.ruta_balances_clientes_libres + f"\Retiros_{i}.xlsx",
                 sheet_name="Listado_Clientes_R",
             )
-            # Get first 18 columns
+
+            # Obtener las primeras 18 columnas
             df_mes_clientes_R = df_mes_clientes_R.iloc[:, :18]
-            # Erase emprty rows
+
+            # Eliminar filas vacías
             df_mes_clientes_R = df_mes_clientes_R.dropna(how="all")
+
+            # Agregar el DataFrame procesado a la lista dataframe_clientes_R
             self.dataframe_clientes_R.append(df_mes_clientes_R)
 
     # ? Update Registros Históricos Clientes Libres--------------------------------------------------------------
 
     def carga_datos_historicos(self):
+        """
+        Carga los datos históricos de retiros de energía de clientes libres y regulados, procesa los balances mensuales
+        y actualiza los registros históricos de retiros de energía de los clientes libres y regulados. Además, guarda los
+        cambios en archivos CSV y actualiza el registro de cambios de los clientes libres y regulados.
+        """
 
         #! Dataframes históricos Clientes Libres
+        # Verificar si el archivo "Retiros_Históricos_Clientes_L.csv" existe en la ruta especificada
         if os.path.isfile(
             self.ruta_balances_historicos_clientes_L
             + "\Retiros_Históricos_Clientes_L.csv"
         ):
 
+            # Leer el archivo CSV "Retiros_Históricos_Clientes_L.csv" con separador ";" y codificación "UTF-8"
             df_historico_clientes_L = pd.read_csv(
                 self.ruta_balances_historicos_clientes_L
                 + "\Retiros_Históricos_Clientes_L.csv",
                 sep=";",
                 encoding="UTF-8",
             )
+
+            # Obtener los valores únicos de la columna "Mes"
             self.valores_mes = df_historico_clientes_L["Mes"].unique()
         else:
+            # Imprimir mensaje de error si el archivo no existe
             print(
                 f"No existe BDD de Retiros de Energía Histórica en: {self.ruta_balances_historicos_clientes_L}"
             )
+
+            # Crear un DataFrame vacío y una lista vacía para valores_mes
             df_historico_clientes_L = pd.DataFrame()
             self.valores_mes = []
 
         #! Dataframes históricos Clientes Regulados
+        # Verificar si el archivo "Retiros_Históricos_Clientes_R.csv" existe en la ruta especificada
         if os.path.isfile(
             self.ruta_balances_historicos_clientes_R
             + "\Retiros_Históricos_Clientes_R.csv"
         ):
 
+            # Leer el archivo CSV "Retiros_Históricos_Clientes_R.csv" con separador ";" y codificación "UTF-8"
             df_historico_clientes_R = pd.read_csv(
                 self.ruta_balances_historicos_clientes_R
                 + "\Retiros_Históricos_Clientes_R.csv",
                 sep=";",
                 encoding="UTF-8",
             )
+
+            # Obtener los valores únicos de la columna "Mes"
             self.valores_mes = df_historico_clientes_R["Mes"].unique()
         else:
+            # Imprimir mensaje de error si el archivo no existe
             print(
                 f"No existe BDD de Retiros de Energía Histórica en: {self.ruta_balances_historicos_clientes_R}"
             )
+
+            # Crear un DataFrame vacío y una lista vacía para valores_mes
             df_historico_clientes_R = pd.DataFrame()
             self.valores_mes = []
-        # Verificar si el mes de cada df de mes ya se encuentra en el histórico
 
         #! Unión de Dataframes
         for df_clientes_L in self.dataframe_clientes_L:
@@ -162,7 +254,7 @@ class ProcesadorRetirosHistoricos:
                 + "\Retiros_Históricos_Clientes_L.csv"
             ):
 
-                # Obtain Month unique in column Mes
+                # Obtener el mes único en la columna Mes
                 mes_fecha = pd.Timestamp(df_clientes_L["Mes"].unique()[0]).strftime(
                     "%m-%d-%Y"
                 )
@@ -174,13 +266,12 @@ class ProcesadorRetirosHistoricos:
                     encoding="UTF-8",
                 )
 
-                # If value in first row is
-                # Convert column Mes to datetime with format datetime.datetime(2023, 9, 1, 0, 0)
+                # Convertir la columna Mes a formato datetime con formato "%m-%d-%Y"
                 df_historico_clientes_L["Mes"] = pd.to_datetime(
                     df_historico_clientes_L["Mes"]
                 ).dt.strftime("%m-%d-%Y")
                 df_clientes_L["Mes"] = pd.to_datetime(df_clientes_L["Mes"])
-                
+
                 if mes_fecha not in df_historico_clientes_L["Mes"].unique().tolist():
                     print(
                         "Se actualiza el archivo Registro de Cambios Históricos Libre con registro mes: "
@@ -200,9 +291,9 @@ class ProcesadorRetirosHistoricos:
                         "(0/1).2",
                         "Error",
                         "Cálculo",
-                    ]  # replace with your column names
+                    ]  # reemplazar con los nombres de tus columnas
 
-                    # Replace "." with "," in the selected columns
+                    # Reemplazar "." con "," en las columnas seleccionadas
                     for column in columnas_numericas:
                         df_retiros_historico_L_final[column] = (
                             df_retiros_historico_L_final[column]
@@ -210,9 +301,12 @@ class ProcesadorRetirosHistoricos:
                             .str.replace(".", ",")
                         )
 
-                    df_retiros_historico_L_final["Mes"] = pd.to_datetime(df_retiros_historico_L_final["Mes"]).dt.strftime("%m-%d-%Y")
+                    df_retiros_historico_L_final["Mes"] = pd.to_datetime(
+                        df_retiros_historico_L_final["Mes"]
+                    ).dt.strftime("%m-%d-%Y")
 
-                    # Rewrite df_registro_cambios_empresas_final into ruta_registro_cambios_Empresas
+                    #! Salida de archivo retiros históricos Clientes Libres
+                    # Reescribir df_retiros_historico_L_final en la ruta especificada
                     df_retiros_historico_L_final.to_csv(
                         self.ruta_balances_historicos_clientes_L
                         + "\Retiros_Históricos_Clientes_L.csv",
@@ -220,7 +314,7 @@ class ProcesadorRetirosHistoricos:
                         index=False,
                     )
 
-                    # ? Update and save Registro Cambios Clientes
+                    # Actualizar y guardar Registro Cambios Clientes
                     df_registro_cambios_clientes_L = (
                         df_retiros_historico_L_final.reset_index(drop=True)
                     )
@@ -243,26 +337,26 @@ class ProcesadorRetirosHistoricos:
                         .transform("last")
                     )
 
-                    # Replaces Na column with -
+                    # Reemplazar valores NaN en la columna Nombre con "-"
                     df_registro_cambios_clientes_L["Nombre"] = (
                         df_registro_cambios_clientes_L["Nombre"].fillna("-")
                     )
 
-                    # Replace whitespace with a special character
+                    # Reemplazar espacios en blanco con un carácter especial
                     cols = ["Nombre", "Clave", "Suministrador_final"]
                     for col in cols:
                         df_registro_cambios_clientes_L[col] = (
                             df_registro_cambios_clientes_L[col].str.replace(" ", "##_#")
                         )
 
-                    # Perform your operations
+                    # Realizar operaciones necesarias
                     df_registro_cambios_clientes_L = (
                         df_registro_cambios_clientes_L.drop_duplicates(
                             subset=cols, keep="last"
                         )
                     )
 
-                    # Replaces Na column with -
+                    # Reemplazar valores NaN en la columna Nombre con "-"
                     df_registro_cambios_clientes_L["Nombre"] = (
                         df_registro_cambios_clientes_L["Nombre"].fillna("-")
                     )
@@ -280,7 +374,7 @@ class ProcesadorRetirosHistoricos:
                         )
                     )
 
-                    # Replace the special character back to whitespace
+                    # Reemplazar el carácter especial de nuevo a espacios en blanco
                     for col in cols:
                         df_registro_cambios_clientes_L[col] = (
                             df_registro_cambios_clientes_L[col].str.replace("##_#", " ")
@@ -290,6 +384,7 @@ class ProcesadorRetirosHistoricos:
                         columns={"Nombre": "Cliente"}, inplace=True
                     )
 
+                    #! Salida de archivo registro cambios Clientes Libres
                     df_registro_cambios_clientes_L.to_csv(
                         self.ruta_registro_cambios_clientes_L,
                         sep=";",
@@ -310,7 +405,7 @@ class ProcesadorRetirosHistoricos:
                 self.ruta_balances_historicos_clientes_R
                 + "\Retiros_Históricos_Clientes_R.csv"
             ):
-                # Obtain Month unique in column Mes
+                # Obtener el mes único en la columna Mes
                 mes_fecha = pd.Timestamp(df_clientes_R["Mes"].unique()[0]).strftime(
                     "%m-%d-%Y"
                 )
@@ -321,8 +416,7 @@ class ProcesadorRetirosHistoricos:
                     encoding="UTF-8",
                 )
 
-                # If value in first row is
-                # Convert column Mes to datetime with format datetime.datetime(2023, 9, 1, 0, 0)
+                # Convertir la columna Mes a formato datetime con formato "%m-%d-%Y"
                 df_historico_clientes_R["Mes"] = pd.to_datetime(
                     df_historico_clientes_R["Mes"]
                 ).dt.strftime("%m-%d-%Y")
@@ -347,9 +441,9 @@ class ProcesadorRetirosHistoricos:
                         "(0/1).2",
                         "Error",
                         "Cálculo",
-                    ]  # replace with your column names
+                    ]  # reemplazar con los nombres de tus columnas
 
-                    # Replace "." with "," in the selected columns
+                    # Reemplazar "." con "," en las columnas seleccionadas
                     for column in columnas_numericas:
                         df_retiros_historico_R_final[column] = (
                             df_retiros_historico_R_final[column]
@@ -363,7 +457,9 @@ class ProcesadorRetirosHistoricos:
                     df_retiros_historico_R_final["Mes"] = df_retiros_historico_R_final[
                         "Mes"
                     ].dt.strftime("%m-%d-%Y")
-                    # Rewrite df_registro_cambios_empresas_final into ruta_registro_cambios_Empresas
+
+                    #! Salida de archivo retiros históricos Clientes Regulados
+                    # Reescribir df_retiros_historico_R_final en la ruta especificada
                     df_retiros_historico_R_final.to_csv(
                         self.ruta_balances_historicos_clientes_R
                         + "\Retiros_Históricos_Clientes_R.csv",
@@ -371,7 +467,7 @@ class ProcesadorRetirosHistoricos:
                         index=False,
                     )
 
-                    # ? Update and save Registro Cambios Clientes
+                    # Actualizar y guardar Registro Cambios Clientes
                     df_registro_cambios_clientes_R = (
                         df_retiros_historico_R_final.reset_index(drop=True)
                     )
@@ -394,26 +490,26 @@ class ProcesadorRetirosHistoricos:
                         .transform("last")
                     )
 
-                    # Replaces Na column with -
+                    # Reemplazar valores NaN en la columna Nombre con "-"
                     df_registro_cambios_clientes_R["Nombre"] = (
                         df_registro_cambios_clientes_R["Nombre"].fillna("-")
                     )
 
-                    # Replace whitespace with a special character
+                    # Reemplazar espacios en blanco con un carácter especial
                     cols = ["Nombre", "Clave", "Suministrador_final"]
                     for col in cols:
                         df_registro_cambios_clientes_R[col] = (
                             df_registro_cambios_clientes_R[col].str.replace(" ", "##_#")
                         )
 
-                    # Perform your operations
+                    # Realizar operaciones necesarias
                     df_registro_cambios_clientes_R = (
                         df_registro_cambios_clientes_R.drop_duplicates(
                             subset=cols, keep="last"
                         )
                     )
 
-                    # Replaces Na column with -
+                    # Reemplazar valores NaN en la columna Nombre con "-"
                     df_registro_cambios_clientes_R["Nombre"] = (
                         df_registro_cambios_clientes_R["Nombre"].fillna("-")
                     )
@@ -431,7 +527,7 @@ class ProcesadorRetirosHistoricos:
                         )
                     )
 
-                    # Replace the special character back to whitespace
+                    # Reemplazar el carácter especial de nuevo a espacios en blanco
                     for col in cols:
                         df_registro_cambios_clientes_R[col] = (
                             df_registro_cambios_clientes_R[col].str.replace("##_#", " ")
@@ -441,6 +537,7 @@ class ProcesadorRetirosHistoricos:
                         columns={"Nombre": "Cliente"}, inplace=True
                     )
 
+                    #! Salida de archivo registro cambios Clientes Regulados
                     df_registro_cambios_clientes_R.to_csv(
                         self.ruta_registro_cambios_clientes_R,
                         sep=";",
@@ -454,26 +551,8 @@ class ProcesadorRetirosHistoricos:
                         + " ya fue actualizado anteriormente"
                     )
 
-                """ df_historico = pd.concat([df_historico, i])
-                print(f"Se incorpora el mes {mes} en el histórico del balance de energía") """
-
-        #! Salida de archivo retiros históricos
-        """ ruta_salida = r"\\nas-cen1\D.Peajes\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Retiros Históricos Clientes"
-        """
-
-        """ df_historico.to_csv(
-            ruta_salida + "\\" + "Retiros_Históricos_Clientes_L" + ".csv",
-            sep=";", encoding="UTF-8", index=False)
-        """
-
-        """ df_historico.to_csv(
-                ruta_salida + "\\" + "Retiros_Históricos_Clientes_R" + ".csv",
-                sep=";", encoding="UTF-8", index=False)
-            """
-
     def run(self):
         self.carga_informacion_historica()
         self.procesamiento_mensual()
         self.carga_datos_historicos()
         print("Process completed successfully")
-
