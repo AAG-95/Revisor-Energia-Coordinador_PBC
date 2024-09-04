@@ -420,6 +420,6 @@ body {
     background-size: 100% 100%; /* Smaller shine effect */
     background-clip: text;
     -webkit-background-clip: text;
-    -webkit-text-fill-color: rgba(0, 0, 0, 0.39); /* Keep the text color black */
+    -webkit-text-fill-color: rgba(76, 29, 93, 0.365); /* Keep the text color black */
     animation: shine 1s infinite;
 }

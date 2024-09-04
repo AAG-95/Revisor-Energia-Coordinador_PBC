@@ -45,7 +45,7 @@ class SeleccionProcesos:
         self.ventana = tk.Tk()
         self.ventana.title("Ingreso de Datos")
 
-        # Checkboxes for code blocks to run
+        # Crear los checkboxes para seleccionar los procesos a correr
         self.run_code1 = tk.BooleanVar()
         self.checkbox_code1 = tk.Checkbutton(self.ventana, text="Revisor Planillas Recaudación Mensuales", variable=self.run_code1)
         self.checkbox_code1.pack()
@@ -107,5 +107,5 @@ class SeleccionProcesos:
         # Iniciar la interfaz gráfica
         self.ventana.mainloop()
 
-        # Return the state of the checkboxes
+        # Retornar los valores de los checkboxes
         return {'revisor_recaudacion_mensual': self.code1, 'revisor_recaudacion_historico': self.code2, 'revisor_clientes_balance_mensual': self.code3, 'revisor_retiros_historico': self.code4, 'comparador_recaudacion_clientes_libres': self.code5, 'comparador_recaudacion_clientes_regulados': self.code6, 'comparador_sistemas': self.code7, 'comparador_clientes_ind': self.code8, 'visualizador': self.code9}

@@ -40,7 +40,6 @@ if (
     primer_año, ultimo_año, primer_mes, ultimo_mes = datos_fechas.años_y_meses(lista_meses)
 
     # Ejecutar los procesos seleccionados por el usuario
-
     # Revisor de recaudación mensual
     if codigos_a_correr["revisor_recaudacion_mensual"]:
         print("Entrando a revisor_planillas_IFC.py...")
@@ -66,7 +65,6 @@ if (
         print("Saliendo de retiros_historicos.py...")
 
 # Ejecutar otros procesos basados en la selección del usuario
-
 # Comparador de recaudación de clientes libres
 if codigos_a_correr["comparador_recaudacion_clientes_libres"]:
     print("Entrando a comparador_recaudacion_y_energia_clientes_libres.py...")

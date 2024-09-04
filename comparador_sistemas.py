@@ -96,6 +96,9 @@ class ComparadorSistemas:
             "Zonal Definitivo"
         ].apply(lambda x: (x if x in self.sistemas_zonales_permitidos else "na"))
 
+        # Convertir columna "Nivel Tensión Definitivo" a tipo string
+        self.df_sistemas["Nivel Tensión Definitivo"] = self.df_sistemas["Nivel Tensión Definitivo"].astype(str)
+
         # Filtrar y normalizar el campo "Nivel Tensión Definitivo" según los niveles de tensión permitidos
         self.df_sistemas["Nivel Tensión Definitivo"] = self.df_sistemas[
             "Nivel Tensión Definitivo"
