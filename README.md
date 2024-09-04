@@ -38,4 +38,32 @@ El actual proyecto tiene como objetivo, automatizar diversos proceso dentro del 
 
 14 - README.md: Explicación general del proyecto. 
 
+## Configuración del entorno de desarrollo
+
+Este proyecto utiliza Python 3.9.13 Asegúrate de tenerlo instalado en tu sistema.
+
+1. Clona el repositorio:
+    ```
+    git clone https://github.com/usuario/mi-proyecto.git
+    cd mi-proyecto
+    ```
+
+2. Crea un entorno virtual en la carpeta del proyecto (En caso de no existir):
+    ```
+    python -m venv venv
+    ```
+
+3. Activa el entorno virtual:
+    - En Windows:
+        ```
+        venv\Scripts\activate
+        ```
+    - En Unix o MacOS:
+        ```
+        source venv/bin/activate
+        ```
+
+4. Instala las dependencias del proyecto:
+    ```
+    pip install -r requirements.txt
 
