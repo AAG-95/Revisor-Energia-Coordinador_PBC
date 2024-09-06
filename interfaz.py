@@ -1,6 +1,5 @@
 import tkinter as tk
 
-
 class VentanaIngresoDatos:
     def __init__(self):
         self.mes_reparticion = None

@@ -1,5 +1,4 @@
 import pandas as pd
-import glob
 import funciones as fc
 import os
 import warnings

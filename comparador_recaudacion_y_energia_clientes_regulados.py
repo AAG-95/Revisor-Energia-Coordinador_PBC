@@ -171,7 +171,7 @@ class ComparadorRecaudacionEnergia:
         )
 
         # Calcular la diferencia entre "Energía Balance [kWh]" y "Energía facturada [kWh]"
-        df_combinado_regulados["Diferencia Energía [kWh]"] = (
+        df_combinado_regulados["Diferencia Energía [kWh]"] = -(
             df_combinado_regulados["Energía Balance [kWh]"]
             - df_combinado_regulados["Energía facturada [kWh]"]
         )

@@ -3,5 +3,8 @@ dash-core-components==2.0.0
 dash-html-components==2.0.0
 dash-table==5.0.0
 numpy==1.24.3
+openpyxl==3.0.10
 pandas==1.4.4
 plotly==5.18.0
+python-dateutil==2.8.2
+xlrd==2.0.1
