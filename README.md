@@ -67,3 +67,11 @@ Este proyecto utiliza Python 3.9.13 Asegúrate de tenerlo instalado en tu sistem
     ```
     pip install -r requirements.txt
 
+5. En caso de problemas con la instalación con alguna librería, usar el siguiente código (reemplazar pandas con la librería rerquerida con la versión específicada):
+    ```
+    pip install pandas==1.4.4 --trusted-host pypi.org --trusted-host files.pythonhosted.org mysql-connector-python
+
+  Posteriormente se debe comentar la librería ya instalada con el código anterior con pip install -r requirements.txt
+
+
+
