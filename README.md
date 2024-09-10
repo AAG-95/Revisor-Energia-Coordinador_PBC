@@ -50,7 +50,7 @@ Este proyecto utiliza Python 3.9.13 Asegúrate de tenerlo instalado en tu sistem
 
 2. Crea un entorno virtual en la carpeta del proyecto (En caso de no existir):
     ```
-    python -m venv venv
+    python3.9 -m venv venv
     ```
 
 3. Activa el entorno virtual:
@@ -73,5 +73,8 @@ Este proyecto utiliza Python 3.9.13 Asegúrate de tenerlo instalado en tu sistem
 
   Posteriormente se debe comentar la librería ya instalada con el código anterior con pip install -r requirements.txt
 
+  En ocasiones, tmbn hay problemas con las versiones de ciertas librerías por lo que se recomientsa descargar numpy y pandas como: 
+    ```
+    pip install pandas --trusted-host pypi.org --trusted-host files.pythonhosted.org mysql-connector-python
 
-
+  
