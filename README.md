@@ -73,8 +73,14 @@ Este proyecto utiliza Python 3.9.13 Asegúrate de tenerlo instalado en tu sistem
 
   Posteriormente se debe comentar la librería ya instalada con el código anterior con pip install -r requirements.txt
 
-  En ocasiones, tmbn hay problemas con las versiones de ciertas librerías por lo que se recomientsa descargar numpy y pandas como: 
+  En ocasiones, también hay problemas con las versiones de ciertas librerías por lo que se recomienda descargar pandas como: 
     ```
     pip install pandas --trusted-host pypi.org --trusted-host files.pythonhosted.org mysql-connector-python
+
+  Posteriormente, se debe descarga la versión de numpy asociada, la cual puede ser la 1.24.3 como: 
+    ```
+    pip install numpy=1.24.3 --trusted-host pypi.org --trusted-host files.pythonhosted.org mysql-connector-python
+
+      
 
   
