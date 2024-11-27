@@ -1,5 +1,5 @@
 import visualizador as vs
-import revisor_planillas_IFC as rpi
+import revisor_planillas_ifc as rpi
 import recaudaciones_historicas as rech
 import creador_listado_clientes_energia as clc
 import retiros_historicos as reth   

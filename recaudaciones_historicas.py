@@ -261,7 +261,7 @@ class ProcesadorRecaudacionesHistoricas:
             self.dataframe_revisor_clientes_R.append(df_revisor_clientes_R)
 
             # Convertir la columna "mes_repartición" a formato datetime y luego a string con formato "%m-%d-%Y"
-            mes_rep = datetime.strptime(df_clientes_R["mes_repartición"].unique()[0], "%d-%m-%Y")
+            mes_rep = datetime.strptime(df_clientes_R["mes_repartición"].unique()[0], "%m-%d-%Y")
 
             # Reformatear la fecha a 'DD-MM-YYYY'
             mes_rep = mes_rep.strftime("%d-%m-%Y")
@@ -340,14 +340,17 @@ class ProcesadorRecaudacionesHistoricas:
                 # Verificar que el dataframe no esté vacío
                 df_vacio = False
                 meses_unicos = i["mes_repartición"].unique()
+
                 if len(meses_unicos) > 0:
-                    # Parse the date string in 'YYYY-MM-DD' format
-                    mes_df = datetime.strptime(
-                        str(i["mes_repartición"].unique()[0]), "%d-%m-%Y"
-                    )
+                    
+                    # Change the date string format to 'MM-DD-YYYY'
+                    i["mes_repartición"] = i["mes_repartición"].apply(lambda x: datetime.strptime(x, "%m-%d-%Y"))
+
+                    i["mes_repartición"] = i["mes_repartición"].dt.strftime("%d-%m-%Y")
 
                     # Format the date as 'DD-MM-YYYY'
-                    mes_df = mes_df.strftime("%d-%m-%Y")
+                    mes_df = i["mes_repartición"].unique()[0]
+
                 else:
                     df_vacio = True
 

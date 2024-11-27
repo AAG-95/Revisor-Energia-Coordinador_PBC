@@ -151,7 +151,9 @@ class CreadorListaClientesBalance:
                     print("Archivo " + i + " Analizado en " + str(mes) + ":", end="")
                     # Para cada ruta posible en ZIP
                     for path in self.rutas_posibles:
+                       
                         try:
+                            print(f" Ruta en ZIP: {path}", end="")
                             with myzip.open(path + i + mes_numeral + ".xls") as myfile:
                                 df_balance_fisico = pd.read_excel(myfile)
                                 print(f" Ruta en ZIP EXISTE con {path}")
