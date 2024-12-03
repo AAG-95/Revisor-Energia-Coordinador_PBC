@@ -149,7 +149,7 @@ class ProcesadorRecaudacionesHistoricas:
             # Convertir la columna "Mes de consumo" a formato datetime y luego a string con formato "%m-%d-%Y"
             df_clientes_R["Mes de consumo"] = pd.to_datetime(
                 df_clientes_R["Mes de consumo"]
-            ).dt.strftime("%m-%d-%Y")
+            ).dt.strftime("%d-%m-%Y")
 
             # Convertir la columna "mes_repartición" a formato datetime y luego a string con formato "%m-%d-%Y"
             df_clientes_R["mes_repartición"] = pd.to_datetime(
