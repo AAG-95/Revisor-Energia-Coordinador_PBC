@@ -7,7 +7,7 @@ import comparador_recaudacion_y_energia_clientes_libres as cre
 import comparador_recaudacion_y_energia_clientes_regulados as crr
 import comparador_cliente_individualizado as cci
 import comparador_sistemas as csi
-import interfaz as gui      
+import interfaz as gui 
 import funciones as fc
 import pandas as pd
 
