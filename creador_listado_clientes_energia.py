@@ -89,6 +89,11 @@ class CreadorListaClientesBalance:
             "REVISION_RES_NORTE_DX",
             "REVISION_DX_NORTE_",
             "REVISION_RES_NORTE_",
+            "REVISOR_NORTE_",
+            "REVISOR_NORTE_DX_",
+            "REVISOR_SUR_",
+            "REVISOR_SUR_DX_",
+            "REVISION_TFE_RES_NORTE_DX_",
         ]
         self.rutas_posibles = [
             "01 Resultados/02 Balance Físico/",
