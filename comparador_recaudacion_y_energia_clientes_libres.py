@@ -131,6 +131,7 @@ class ComparadorRecaudacionEnergia:
             )
         ]
 
+
         # Filtrar empresas recaudadoras
         self.df_recaudacion = self.df_recaudacion[
             self.df_recaudacion["Empresa_Planilla_Recauda_Cliente"] == 1
@@ -154,6 +155,7 @@ class ComparadorRecaudacionEnergia:
             .replace("na", np.nan)
             .astype(float)
         )
+
 
         # Agrupar por "Barra-Clave-Mes" y agregar los valores
         self.df_recaudacion = self.df_recaudacion.groupby("Barra-Clave-Mes").agg(
@@ -186,6 +188,7 @@ class ComparadorRecaudacionEnergia:
             lambda x: "-" if x == "na" else x
         )
 
+
         # Reemplazar "Cliente Individualizado" con 0 si no es 0 o 1
         self.df_recaudacion["Cliente Individualizado"] = self.df_recaudacion[
             "Cliente Individualizado"
@@ -193,7 +196,7 @@ class ComparadorRecaudacionEnergia:
 
         return self.df_recaudacion
 
-
+    
     def cargar_datos_revision_clientes(self):
         """
         Carga los datos de revisión de clientes desde el archivo "Revisores RCUT.xlsm" y procesa los datos
@@ -542,6 +545,8 @@ class ComparadorRecaudacionEnergia:
 
         return self.df_revision_clientes
 
+
+
     def filtro_clientes(self):
         """
         Filtra los clientes en los DataFrames de recaudación y energía según las homologaciones y diferencias de clientes.
@@ -597,6 +602,7 @@ class ComparadorRecaudacionEnergia:
             )
         )
 
+        
         # 3. Homologación de Claves en df_energia
         # Similar a la homologación en df_recaudacion, se reemplazan los valores de "Barra-Clave-Mes" en df_energia.
         self.df_energia["Barra-Clave-Mes"] = self.df_energia["Barra-Clave-Mes"].apply(
@@ -610,6 +616,7 @@ class ComparadorRecaudacionEnergia:
             )
         )
 
+        
         # 4. Homologación de Claves usando df_homologa_clientes_barras en df_recaudacion
         # Se reemplazan los valores de "Barra-Clave-Mes" en df_recaudacion con "Barra Homologada-Clave Homologada-Mes".
         # Esto ocurre cuando "Barra-Clave-Mes" coincide con "Barra Original-Clave Original-Mes".
@@ -643,6 +650,7 @@ class ComparadorRecaudacionEnergia:
             )
         )
 
+
         # 6. Unión y Reemplazo con Clientes Cruzados
         # Se realiza una unión (join) entre df_recaudacion y df_homologa_clientes_cruzados basada en "Barra-Clave-Mes".
         # Luego se reemplaza "Barra-Clave-Mes" con "Barra Homologada-Clave Homologada-Mes" si hay coincidencias.
@@ -658,6 +666,7 @@ class ComparadorRecaudacionEnergia:
         self.df_recaudacion["Barra-Clave-Mes"] = self.df_recaudacion[
             "Barra Homologada-Clave Homologada-Mes"
         ].fillna(self.df_recaudacion["Barra-Clave-Mes"])
+
 
         # 7. Agrupación de Datos en df_recaudacion
         # Se agrupan los datos por "Barra-Clave-Mes" y se suman los valores de "Energía [kWh]".
@@ -679,6 +688,8 @@ class ComparadorRecaudacionEnergia:
             .reset_index()
         )
 
+        
+
         # 8. Agrupación de Datos en df_energia
         # Similar a la agrupación en df_recaudacion, se agrupan los datos por "Barra-Clave-Mes".
         self.df_energia = (
@@ -693,6 +704,9 @@ class ComparadorRecaudacionEnergia:
             )
             .reset_index()
         )
+
+
+
 
         # 9. Retorno de Resultados
         # Se retorna el dataframe df_recaudacion actualizado.
@@ -719,6 +733,30 @@ class ComparadorRecaudacionEnergia:
         Returns:
             None
         """
+
+
+        ###
+
+        claves_energia = self.df_energia["Barra-Clave-Mes"]
+
+        # Filtrar las filas de df_recaudacion que no están en df_energia
+        datos_excluidos = self.df_recaudacion[
+            ~self.df_recaudacion["Barra-Clave-Mes"].isin(claves_energia)
+        ].copy()
+
+        # Reemplazar comas por puntos en la columna "Barra-Clave-Mes"
+        datos_excluidos["Barra-Clave-Mes"] = datos_excluidos["Barra-Clave-Mes"].str.replace(',', '.')
+
+
+        # Exportar a un archivo CSV
+        #datos_excluidos.to_csv("datos_excluidos.csv", index=False)
+        #self.df_recaudacion.to_csv("self_df_recaudacion.csv", index=False)
+        #self.df_energia.to_csv("self_df_energia.csv", index=False)
+
+        ###
+
+
+
         # Combinar df_energia con df_recaudacion utilizando la columna "Barra-Clave-Mes" como clave
         self.df_combinado_energia = pd.merge(
             self.df_energia,
@@ -736,7 +774,32 @@ class ComparadorRecaudacionEnergia:
             ],
             on="Barra-Clave-Mes",  # Realizar la unión en base a la columna "Barra-Clave-Mes"
             how="left"  # Usar un 'left join' para mantener todas las filas de df_energia
+            #indicator=True  # Añade una columna indicando el origen de cada fila
         ).reset_index(drop=True)  # Reiniciar el índice después de la combinación
+        
+        ###
+        
+        # Asegurarse de que las columnas coincidan, renombrando "Suministrador" a "Suministrador_final"
+        datos_excluidos = datos_excluidos.rename(columns={"Suministrador": "Suministrador_final"})
+        
+        # Asegurarse de que las columnas coincidan
+        columnas_datos_excluidos = [
+            "Barra-Clave-Mes", "Energía [kWh]", "Suministrador_final", "Recaudador",
+            "mes_repartición", "Recaudador No Informado", "Cliente Individualizado",
+            "Zonal", "Nivel Tensión Zonal"
+        ]
+
+        # Seleccionar solo las columnas relevantes de datos_excluidos
+        datos_a_anexar = datos_excluidos[columnas_datos_excluidos]
+
+        # Anexar al DataFrame combinado
+        self.df_combinado_energia = pd.concat([self.df_combinado_energia, datos_a_anexar], ignore_index=True)
+        
+        
+        #self.df_combinado_energia.to_csv("self_df_combinado_energia.csv", index=False)
+        
+        ###
+
 
         # Renombrar la columna "Energía [kWh]" a "Energía Declarada [kWh]" para clarificar su uso
         self.df_combinado_energia.rename(
@@ -750,7 +813,8 @@ class ComparadorRecaudacionEnergia:
             .str.replace(",", ".")
             .astype(float)
         )
-        
+
+
         # Rellenar valores nulos en "Energía Balance [kWh]" con 0
         self.df_combinado_energia["Energía Balance [kWh]"] = self.df_combinado_energia[
             "Energía Balance [kWh]"
