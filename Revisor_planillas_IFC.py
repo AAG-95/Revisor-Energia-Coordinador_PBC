@@ -384,10 +384,10 @@ class PlanillaRevisor:
 
                 ###
 
-                df_detalle_nuevos_clientes_libres["Clave"] = df_detalle_nuevos_clientes_libres["Clave"].astype(str).str.strip()
-
-                # Llena la información de las claves no informadas (vacías) con el nombre "Pendiente"
+                 # Llena la información de las claves no informadas (vacías) con el nombre "Pendiente"
                 df_detalle_nuevos_clientes_libres["Clave"] = df_detalle_nuevos_clientes_libres["Clave"].fillna("Pendiente")
+
+                df_detalle_nuevos_clientes_libres["Clave"] = df_detalle_nuevos_clientes_libres["Clave"].astype(str).str.strip()
                 
 
                 if not df_detalle_nuevos_clientes_libres.empty:
