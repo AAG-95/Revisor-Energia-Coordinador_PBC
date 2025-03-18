@@ -171,8 +171,8 @@ class ComparadorRecaudacionEnergia:
             }
         ).reset_index()
 
-        print("\nPrimero\n")
-        print(self.df_recaudacion["Zonal"].unique())
+        #print("\nPrimero\n")
+        #print(self.df_recaudacion["Zonal"].unique())
 
         # Diccionario de homologaciones
         homologaciones_sistemas = {
@@ -198,23 +198,23 @@ class ComparadorRecaudacionEnergia:
             .str.lower()  # Convierte a minúsculas
         )
 
-        print("\nModificado\n")
-        print(self.df_recaudacion["Zonal"].unique())
+        #print("\nModificado\n")
+        #print(self.df_recaudacion["Zonal"].unique())
 
         # Aplicar homologaciones
         self.df_recaudacion["Zonal"] = self.df_recaudacion["Zonal"].replace(homologaciones_sistemas)
 
-        print("\nHomologado\n")
-        print(self.df_recaudacion["Zonal"].unique())
+        #print("\nHomologado\n")
+        #print(self.df_recaudacion["Zonal"].unique())
 
         # Validar si "Zonal" está en sistemas zonales permitidos, si no, asignar "na"
         self.df_recaudacion["Zonal"] = self.df_recaudacion["Zonal"].apply(
             lambda x: x if x in self.sistemas_zonales_permitidos or pd.isna(x) else "na"
         )
 
-        print("\nPermitidos nan si no na\n")
+        #print("\nPermitidos nan si no na\n")
         
-        print(self.df_recaudacion["Zonal"].unique())
+        #print(self.df_recaudacion["Zonal"].unique())
 
         # Diccionario de homologaciones nivel de tensión
         homologaciones_nivel_de_tension = {
@@ -893,6 +893,37 @@ class ComparadorRecaudacionEnergia:
         self.df_combinado_energia["Energía Declarada [kWh]"] = (
             self.df_combinado_energia["Energía Declarada [kWh]"].fillna(0)
         )
+
+        ###
+        
+        #self.df_combinado_energia.to_csv("self_df_combinado_energia.csv", index=False)
+
+
+        self.df_corrige_casos_revisados = func.ObtencionDatos().obtencion_tablas_clientes(
+        self.df_revision_clientes, 5, 43, 46
+        )
+
+        # Asegúrate de que la columna 'Mes Consumo' esté en formato datetime
+        self.df_corrige_casos_revisados['Mes Consumo'] = pd.to_datetime(self.df_corrige_casos_revisados['Mes Consumo'])
+
+        # Luego, puedes formatear la columna 'Mes Consumo' en el formato 'día-mes-año'
+        self.df_corrige_casos_revisados['Mes Consumo'] = self.df_corrige_casos_revisados['Mes Consumo'].dt.strftime('%d-%m-%Y')
+        
+        self.df_corrige_casos_revisados["Barra-Clave-Mes"] = (
+            self.df_corrige_casos_revisados["Barra"].astype(str) + "-_-" +
+            self.df_corrige_casos_revisados["Clave"].astype(str) + "-_-" +
+            self.df_corrige_casos_revisados["Mes Consumo"].astype(str)
+        )
+
+        #self.df_corrige_casos_revisados.to_csv("corrige_casos_revisados.csv", index=False)
+
+        # Asegúrate de que ambas columnas 'Barra-Clave-Mes' sean comparables
+        casos_revisados = self.df_combinado_energia['Barra-Clave-Mes'].isin(self.df_corrige_casos_revisados['Barra-Clave-Mes'])
+
+        # Para las filas coincidentes, actualiza la columna 'Energía Declarada [kWh]' con los valores de 'Energía Balance [kWh]' dentro del mismo DataFrame
+        self.df_combinado_energia.loc[casos_revisados, 'Energía Declarada [kWh]'] = self.df_combinado_energia.loc[casos_revisados, 'Energía Balance [kWh]']
+
+        ###
         
         # Calcular la diferencia entre "Energía Balance [kWh]" y "Energía Declarada [kWh]"
         self.df_combinado_energia["Diferencia Energía [kWh]"] = -(
@@ -906,6 +937,9 @@ class ComparadorRecaudacionEnergia:
             / self.df_combinado_energia["Energía Balance [kWh]"]
         )
         
+        #self.df_combinado_energia.to_csv("self_df_combinado_energia.csv", index=False)
+
+
         # Clasificar el tipo de registro basado en condiciones especificadas
         self.df_combinado_energia["Tipo"] = self.df_combinado_energia.apply(
             lambda x: (
