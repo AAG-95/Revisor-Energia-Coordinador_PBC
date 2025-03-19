@@ -151,7 +151,7 @@ class ComparadorRecaudacionEnergia:
             self.df_recaudacion["Energía [kWh]"]
             .str.replace(",", ".")
             .replace("-", np.nan, regex=False)
-            .replace("[^0-9.]", np.nan, regex=True)
+            .replace("[^0-9.-]", np.nan, regex=True)
             .replace("na", np.nan)
             .astype(float)
         )
@@ -171,10 +171,77 @@ class ComparadorRecaudacionEnergia:
             }
         ).reset_index()
 
+        print("\nPrimero\n")
+        print(self.df_recaudacion["Zonal"].unique())
+
+        # Diccionario de homologaciones
+        homologaciones_sistemas = {
+        "sistemaa": "Sistema A",
+        "sistemab": "Sistema B",
+        "sistemac": "Sistema C",
+        "sistemad": "Sistema D",
+        "sistemae": "Sistema E",
+        "sistemaf": "Sistema F",
+        "a": "Sistema A",
+        "b": "Sistema B",
+        "c": "Sistema C",
+        "d": "Sistema D",
+        "e": "Sistema E",
+        "f": "Sistema F",
+        }
+
+        # Eliminar todos los espacios en blanco de la cadena
+        self.df_recaudacion["Zonal"] = (
+        self.df_recaudacion["Zonal"]
+            .astype(str)
+            .str.replace(r"\s+", "", regex=True)  # Elimina todos los espacios en blanco
+            .str.lower()  # Convierte a minúsculas
+        )
+
+        print("\nModificado\n")
+        print(self.df_recaudacion["Zonal"].unique())
+
+        # Aplicar homologaciones
+        self.df_recaudacion["Zonal"] = self.df_recaudacion["Zonal"].replace(homologaciones_sistemas)
+
+        print("\nHomologado\n")
+        print(self.df_recaudacion["Zonal"].unique())
+
         # Validar si "Zonal" está en sistemas zonales permitidos, si no, asignar "na"
         self.df_recaudacion["Zonal"] = self.df_recaudacion["Zonal"].apply(
             lambda x: x if x in self.sistemas_zonales_permitidos or pd.isna(x) else "na"
         )
+
+        print("\nPermitidos nan si no na\n")
+        
+        print(self.df_recaudacion["Zonal"].unique())
+
+        # Diccionario de homologaciones nivel de tensión
+        homologaciones_nivel_de_tension = {
+        "tx<25": "Tx < 25",
+        "t<25": "Tx < 25",
+        "tx<26": "Tx < 25",
+        "tx<27": "Tx < 25",
+        "tx<66": "Tx < 25",
+        "066": "66",
+        "66.0": "66",
+        "110.0": "110",
+        "220.0": "220",
+        "154.0": "154",
+        "44.0": "44",
+        }
+
+        # Eliminar todos los espacios en blanco de la cadena
+        self.df_recaudacion["Nivel Tensión Zonal"] = (
+        self.df_recaudacion["Nivel Tensión Zonal"]
+            .astype(str)
+            .str.replace(r"\s+", "", regex=True)  # Elimina todos los espacios en blanco
+            .str.lower()  # Convierte a minúsculas
+        )
+
+        # Aplicar homologaciones
+        self.df_recaudacion["Nivel Tensión Zonal"] = self.df_recaudacion["Nivel Tensión Zonal"].replace(homologaciones_nivel_de_tension)
+
 
         # Validar si "Nivel Tensión Zonal" está en niveles de tensión permitidos, si no, asignar "-"
         self.df_recaudacion["Nivel Tensión Zonal"] = self.df_recaudacion[
@@ -194,8 +261,10 @@ class ComparadorRecaudacionEnergia:
             "Cliente Individualizado"
         ].apply(lambda x: 0 if x not in [0, 1] else x)
 
+       
         return self.df_recaudacion
-
+    
+        
     
     def cargar_datos_revision_clientes(self):
         """
