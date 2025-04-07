@@ -171,6 +171,9 @@ class ComparadorRecaudacionEnergia:
             }
         ).reset_index()
 
+        self.df_recaudacion.to_csv("recaudacion_exportada.csv", index=False, encoding='utf-8-sig', sep=';')
+
+
         #print("\nPrimero\n")
         #print(self.df_recaudacion["Zonal"].unique())
 
@@ -255,11 +258,29 @@ class ComparadorRecaudacionEnergia:
             lambda x: "-" if x == "na" else x
         )
 
+        self.df_recaudacion.to_csv("recaudacion_antes_final.csv", index=False, encoding="latin1", sep=",")
 
         # Reemplazar "Cliente Individualizado" con 0 si no es 0 o 1
-        self.df_recaudacion["Cliente Individualizado"] = self.df_recaudacion[
+        '''self.df_recaudacion["Cliente Individualizado"] = self.df_recaudacion[
             "Cliente Individualizado"
         ].apply(lambda x: 0 if x not in [0, 1] else x)
+        '''
+
+
+        '''
+        self.df_recaudacion["Cliente Individualizado"] = self.df_recaudacion[
+            "Cliente Individualizado"
+        ].apply(lambda x: int(x) if float(x) in [0.0, 1.0] else 0)
+        '''
+
+        self.df_recaudacion["Cliente Individualizado"] = self.df_recaudacion[
+            "Cliente Individualizado"
+        ].apply(lambda x: 1 if str(x).strip().replace(",", ".") in ["1", "1.0"] else 0)
+
+
+
+
+        self.df_recaudacion.to_csv("recaudacion_final.csv", index=False, encoding="latin1", sep=",")
 
        
         return self.df_recaudacion
@@ -1015,7 +1036,7 @@ class ComparadorRecaudacionEnergia:
         self.df_combinado_energia.loc[casos_sistema_tension, "Nivel Tensión Zonal"] = self.df_combinado_energia.loc[casos_sistema_tension, "Barra-Clave-Mes"].map(mapeo_nivel_tension)
 
 
-        self.df_combinado_energia.to_csv("self_df_combinado_energia.csv", index=False)
+        #ñself.df_combinado_energia.to_csv("self_df_combinado_energia.csv", index=False)
         
         ###
 
@@ -1066,7 +1087,7 @@ class ComparadorRecaudacionEnergia:
         # Reiniciar el índice del DataFrame después de las modificaciones
         self.df_combinado_energia = self.df_combinado_energia.reset_index(drop=True)
         
-        self.df_combinado_energia.to_csv("self_df_combinado_energia_Salida_1.csv", index=False)
+        #self.df_combinado_energia.to_csv("self_df_combinado_energia_Salida_1.csv", index=False)
 
         #self.df_combinado_energia.to_csv("self_df_combinado_energia_Salida_2.csv", index=False)
 
