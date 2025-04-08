@@ -170,10 +170,7 @@ class ComparadorRecaudacionEnergia:
                 "Nivel Tensión Zonal": lambda x: x.iloc[0],
             }
         ).reset_index()
-
-        self.df_recaudacion.to_csv("recaudacion_exportada.csv", index=False, encoding='utf-8-sig', sep=';')
-
-
+        
         #print("\nPrimero\n")
         #print(self.df_recaudacion["Zonal"].unique())
 
@@ -258,31 +255,13 @@ class ComparadorRecaudacionEnergia:
             lambda x: "-" if x == "na" else x
         )
 
-        self.df_recaudacion.to_csv("recaudacion_antes_final.csv", index=False, encoding="latin1", sep=",")
-
+        
         # Reemplazar "Cliente Individualizado" con 0 si no es 0 o 1
-        '''self.df_recaudacion["Cliente Individualizado"] = self.df_recaudacion[
-            "Cliente Individualizado"
-        ].apply(lambda x: 0 if x not in [0, 1] else x)
-        '''
-
-
-        '''
-        self.df_recaudacion["Cliente Individualizado"] = self.df_recaudacion[
-            "Cliente Individualizado"
-        ].apply(lambda x: int(x) if float(x) in [0.0, 1.0] else 0)
-        '''
-
         self.df_recaudacion["Cliente Individualizado"] = self.df_recaudacion[
             "Cliente Individualizado"
         ].apply(lambda x: 1 if str(x).strip().replace(",", ".") in ["1", "1.0"] else 0)
 
 
-
-
-        self.df_recaudacion.to_csv("recaudacion_final.csv", index=False, encoding="latin1", sep=",")
-
-       
         return self.df_recaudacion
     
         
