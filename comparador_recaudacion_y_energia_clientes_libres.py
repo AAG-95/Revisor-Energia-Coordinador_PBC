@@ -171,6 +171,9 @@ class ComparadorRecaudacionEnergia:
             }
         ).reset_index()
 
+        self.df_recaudacion.to_csv("recaudacion_exportada.csv", index=False, encoding='utf-8-sig', sep=';')
+
+
         #print("\nPrimero\n")
         #print(self.df_recaudacion["Zonal"].unique())
 
@@ -255,11 +258,29 @@ class ComparadorRecaudacionEnergia:
             lambda x: "-" if x == "na" else x
         )
 
+        self.df_recaudacion.to_csv("recaudacion_antes_final.csv", index=False, encoding="latin1", sep=",")
 
         # Reemplazar "Cliente Individualizado" con 0 si no es 0 o 1
-        self.df_recaudacion["Cliente Individualizado"] = self.df_recaudacion[
+        '''self.df_recaudacion["Cliente Individualizado"] = self.df_recaudacion[
             "Cliente Individualizado"
         ].apply(lambda x: 0 if x not in [0, 1] else x)
+        '''
+
+
+        '''
+        self.df_recaudacion["Cliente Individualizado"] = self.df_recaudacion[
+            "Cliente Individualizado"
+        ].apply(lambda x: int(x) if float(x) in [0.0, 1.0] else 0)
+        '''
+
+        self.df_recaudacion["Cliente Individualizado"] = self.df_recaudacion[
+            "Cliente Individualizado"
+        ].apply(lambda x: 1 if str(x).strip().replace(",", ".") in ["1", "1.0"] else 0)
+
+
+
+
+        self.df_recaudacion.to_csv("recaudacion_final.csv", index=False, encoding="latin1", sep=",")
 
        
         return self.df_recaudacion
@@ -974,6 +995,54 @@ class ComparadorRecaudacionEnergia:
             axis=1,
         )
         
+        #self.df_combinado_energia.to_csv("self_df_combinado_energia.csv", index=False)
+
+        ###
+        # Implementación corrección de sistemas/nivel de tensión en revisor de energías
+        self.df_corrige_sistemas_nivel_de_tension = func.ObtencionDatos().obtencion_tablas_clientes(
+        self.df_revision_clientes, 5, 49, 54
+        )
+        #self.df_corrige_sistemas_nivel_de_tension["Nivel Tensión Zonal"] = self.df_corrige_sistemas_nivel_de_tension["Nivel Tensión Zonal"].astype(str)
+
+        # Columna 'Mes Consumo' formato datetime
+        self.df_corrige_sistemas_nivel_de_tension['Mes Consumo'] = pd.to_datetime(self.df_corrige_sistemas_nivel_de_tension['Mes Consumo'])
+
+        # Formatear columna 'Mes Consumo' en el formato 'día-mes-año'
+        self.df_corrige_sistemas_nivel_de_tension['Mes Consumo'] = self.df_corrige_sistemas_nivel_de_tension['Mes Consumo'].dt.strftime('%d-%m-%Y')
+
+        #Crear tripleta Brra-Clave-mes
+        self.df_corrige_sistemas_nivel_de_tension["Barra-Clave-Mes"] = (
+            self.df_corrige_sistemas_nivel_de_tension["Barra"].astype(str) + "-_-" +
+            self.df_corrige_sistemas_nivel_de_tension["Clave"].astype(str) + "-_-" +
+            self.df_corrige_sistemas_nivel_de_tension["Mes Consumo"].astype(str)
+        )
+
+
+        # Eliminar filas donde cualquier valor en las columnas 'Clave', 'Barra', 'Mes Consumo', 'Recaudador', o 'Zonal' sea NaN
+        self.df_corrige_sistemas_nivel_de_tension.dropna(subset=["Clave", "Barra", "Mes Consumo", "Recaudador", "Zonal"], inplace=True)
+        
+        #self.df_corrige_sistemas_nivel_de_tension.to_csv("corrige_sistemas_nivel_de_tension.csv", index=False, encoding="utf-8")
+
+
+        # Asegúrate de que ambas columnas 'Barra-Clave-Mes' sean comparables
+        casos_sistema_tension = self.df_combinado_energia['Barra-Clave-Mes'].isin(self.df_corrige_sistemas_nivel_de_tension['Barra-Clave-Mes'])
+
+        # Crear un diccionario de mapeo desde df_corrige_sistemas_nivel_de_tension
+        mapeo_zonal = dict(zip(self.df_corrige_sistemas_nivel_de_tension["Barra-Clave-Mes"], self.df_corrige_sistemas_nivel_de_tension["Zonal"]))
+        mapeo_nivel_tension = dict(zip(self.df_corrige_sistemas_nivel_de_tension["Barra-Clave-Mes"], self.df_corrige_sistemas_nivel_de_tension["Nivel Tensión Zonal"]))
+
+        # Reemplazar valores en self.df_combinado_energia usando el mapeo
+        self.df_combinado_energia.loc[casos_sistema_tension, "Zonal"] = self.df_combinado_energia.loc[casos_sistema_tension, "Barra-Clave-Mes"].map(mapeo_zonal)
+        self.df_combinado_energia.loc[casos_sistema_tension, "Nivel Tensión Zonal"] = self.df_combinado_energia.loc[casos_sistema_tension, "Barra-Clave-Mes"].map(mapeo_nivel_tension)
+
+
+        #ñself.df_combinado_energia.to_csv("self_df_combinado_energia.csv", index=False)
+        
+        ###
+
+
+
+
         # Separar la columna "Barra-Clave-Mes" en tres columnas: "Barra", "Clave" y "Mes Consumo"
         self.df_combinado_energia[["Barra", "Clave", "Mes Consumo"]] = (
             self.df_combinado_energia["Barra-Clave-Mes"].str.split("-_-", expand=True)
@@ -1017,6 +1086,11 @@ class ComparadorRecaudacionEnergia:
         
         # Reiniciar el índice del DataFrame después de las modificaciones
         self.df_combinado_energia = self.df_combinado_energia.reset_index(drop=True)
+        
+        #self.df_combinado_energia.to_csv("self_df_combinado_energia_Salida_1.csv", index=False)
+
+        #self.df_combinado_energia.to_csv("self_df_combinado_energia_Salida_2.csv", index=False)
+
 
         # Devolver el DataFrame combinado y modificado
         return self.df_combinado_energia
