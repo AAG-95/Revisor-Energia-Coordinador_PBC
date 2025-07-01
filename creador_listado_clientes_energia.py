@@ -73,6 +73,7 @@ class CreadorListaClientesBalance:
         self.ruta_registro_cambios_clientes_L = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Registro de Cambios\Registro_de_Cambios_Clientes_Libres.csv"
         self.ruta_registro_cambios_clientes_R = r"\\nas-cen1\D.Peajes\\Cargo por Transmisión\02 Repartición\Balances\Listados de Clientes\Registro de Cambios\Registro_de_Cambios_Clientes_Regulados.csv"
 
+
         # Listado de posibles nombres de hojas de balance físico y rutas posibles en los archivos ZIP
         self.lista_balance_fisico = [
             "REVISION_NORTE_",
@@ -90,11 +91,13 @@ class CreadorListaClientesBalance:
             "REVISION_DX_NORTE_",
             "REVISION_RES_NORTE_",
             "REVISION_TFE_RES_NORTE_DX_",
+            "Balance_B01D_",
         ]
         self.rutas_posibles = [
             "01 Resultados/02 Balance Físico/",
             "01 Resultados/01 Balance de Energía/02 Balance Físico/",
             "01 Resultados/01 Resultados/01 Balance de Energía/02 Balance Físico/",
+            "01 Resultados/",
         ]
 
 #! Main Program
@@ -155,7 +158,7 @@ class CreadorListaClientesBalance:
                        
                         try:
                             print(f" Ruta en ZIP: {path}", end="")
-                            with myzip.open(path + i + mes_numeral + ".xls") as myfile:
+                            with myzip.open(path + i + mes_numeral + ".xlsx") as myfile:
                                 df_balance_fisico = pd.read_excel(myfile)
                                 print(f" Ruta en ZIP EXISTE con {path}")
                                 ruta_correcta = path # Guardar la ruta correcta
@@ -166,11 +169,12 @@ class CreadorListaClientesBalance:
                         print(f" Ruta NO EXISTE para {i}")
                         continue  # Si no se encuentra el archivo, probar con el siguiente archivo
 
-                    with myzip.open(ruta_correcta + i + mes_numeral + ".xls") as myfile:
+                    with myzip.open(ruta_correcta + i + mes_numeral + ".xlsx") as myfile:
                         df_balance_fisico = pd.read_excel(
-                            myfile, sheet_name="Balance por Barra", header=None
+                            myfile, sheet_name="Balance Físico", header=None
                         )
 
+                        '''
                         # Obtener columnas 6, 2 y 17 de df_balance_fisico
                         df_balance_fisico.iloc[:, 11] = df_balance_fisico.iloc[:, 11].replace(
                             "(0/1)", "(0/1).1"
@@ -178,12 +182,15 @@ class CreadorListaClientesBalance:
                         df_balance_fisico.iloc[:, 13] = df_balance_fisico.iloc[:, 13].replace(
                             "(0/1)", "(0/1).2"
                         )
+                        '''
+
 
                         # Obtener fila 6 y columnas 2 a 17 de df_balance_fisico
                         df_clientes = fc.ObtencionDatos().obtencion_tablas_clientes(
-                            df_balance_fisico, 6, 2, 17
+                            df_balance_fisico, 1, 1, 25
                         )
 
+                        '''
                         # Eliminar
                         df_clientes = df_clientes.drop(columns="N")
 
@@ -197,18 +204,26 @@ class CreadorListaClientesBalance:
 
                         # Si la columna Barra tiene NaN, rellenar con el valor de la fila anterior
                         df_clientes["Barra"] = df_clientes["Barra"].ffill()
-
+                        '''
                         # Agregar Columna Mes
                         df_clientes["Mes"] = mes_fecha
 
+                        '''
                         # Botar filas con NaN en columnas Nombre y Tipo
                         df_clientes = df_clientes[df_clientes["Nombre"] != "TOTAL"]
                         df_clientes = df_clientes[df_clientes["Nombre"] != "NaN"]
+                        '''
+
+
+                        #Cambiar nombre de "nombre_corto" a "Propietario" para realizar las homologaciones
+                        df_clientes = df_clientes.rename(columns={"nombre_corto": "Propietario"})
+
 
                         # Si la columna Tipo tiene R, L o L_D, guardar en listado_clientes
                         retiros_clientes = df_clientes[
-                            df_clientes["Tipo"].isin(["R", "L", "L_D"])
+                            df_clientes["tipo_medidor"].isin(["R", "L", "L_D"])
                         ]
+
 
                         # Junta la columna Propietario con la homologación de propietarios
                         retiros_clientes = pd.merge(
@@ -217,6 +232,10 @@ class CreadorListaClientesBalance:
                             on="Propietario",
                             how="left",
                         )
+
+                        # Cambiar de vuelta "Propietario" a "nombre_corto" en retiros_clientes
+                        retiros_clientes = retiros_clientes.rename(columns={"Propietario": "nombre_corto"})
+
 
                         # Verificar si hay NaN en la columna Suministrador_final
                         if retiros_clientes["Suministrador_final"].isnull().values.any():
@@ -232,11 +251,11 @@ class CreadorListaClientesBalance:
 
                         # Reemplazar NaN en columnas Empresa y Suministrador_final por "Sin Información"
                         retiros_clientes_R = retiros_clientes[
-                            retiros_clientes["Tipo"].isin(["R"])
+                            retiros_clientes["tipo_medidor"].isin(["R"])
                         ]
 
                         retiros_clientes_L = retiros_clientes[
-                            retiros_clientes["Tipo"].isin(["L", "L_D"])
+                            retiros_clientes["tipo_medidor"].isin(["L", "L_D"])
                         ]
 
                         # Guardar en listado_clientes_R y listado_clientes_L
@@ -251,11 +270,13 @@ class CreadorListaClientesBalance:
             df_clientes_L = pd.concat(listado_clientes_L)
 
             # ? Reordenar Columnas
+            
+            '''
             # Obtener columnas de df_clientes
             cols = df_clientes_L.columns.tolist()
 
             # Alternar columnas Propietario y Suministrador_final
-            indice_propietario = cols.index("Propietario")
+            indice_propietario = cols.index("nombre_corto")
             indice_suministrador = cols.index("Suministrador_final")
 
             # Alternar columnas Propietario y Suministrador_final
@@ -263,6 +284,39 @@ class CreadorListaClientesBalance:
 
             # Reasignar columnas a df_clientes_L
             df_clientes_L = df_clientes_L[cols]
+            '''
+
+            orden_columnas = [
+                "barra",
+                "nivel_tension",
+                "nombre_medidor",
+                "clave_medidor",
+                "Suministrador_final",
+                "propietario_medidor",
+                "rut",
+                "numero_linea",
+                "calificacion_linea",
+                "linea_barra_inicial",
+                "linea_nivel_tension_inicial",
+                "linea_barra_final",
+                "linea_nivel_tension_final",
+                "medida1", "flag1",
+                "medida2", "flag2",
+                "medida2a", "flag2a",
+                "medida3", "flag3",
+                "error",
+                "tipo_medidor",
+                "calculo",
+                "zona",
+                "Mes",
+                "nombre_corto"
+            ]
+            
+            df_clientes_L = df_clientes_L[orden_columnas]
+
+            #Ordenar por "barra" y "nivel_tension"
+            df_clientes_L = df_clientes_L.sort_values(["barra", "nivel_tension"], ascending=[True, True])
+
 
             #! Salida-----------------------------------------------------------------
 

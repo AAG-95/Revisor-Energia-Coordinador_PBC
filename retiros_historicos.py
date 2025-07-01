@@ -152,7 +152,7 @@ class ProcesadorRetirosHistoricos:
             )
 
             # Obtener las primeras 18 columnas
-            df_mes_clientes_L = df_mes_clientes_L.iloc[:, :18]
+            df_mes_clientes_L = df_mes_clientes_L.iloc[:, :27]
 
             # Eliminar filas vacías
             df_mes_clientes_L = df_mes_clientes_L.dropna(how="all")
@@ -175,7 +175,7 @@ class ProcesadorRetirosHistoricos:
             )
 
             # Obtener las primeras 18 columnas
-            df_mes_clientes_R = df_mes_clientes_R.iloc[:, :18]
+            df_mes_clientes_R = df_mes_clientes_R.iloc[:, :27]
 
             # Eliminar filas vacías
             df_mes_clientes_R = df_mes_clientes_R.dropna(how="all")
@@ -282,14 +282,16 @@ class ProcesadorRetirosHistoricos:
                     )
 
                     columnas_numericas = [
-                        "Medida 1",
-                        "(0/1)",
-                        "Medida 2",
-                        "(0/1).1",
-                        "Medida 3",
-                        "(0/1).2",
-                        "Error",
-                        "Cálculo",
+                        "medida1",
+                        "flag1",
+                        "medida2",
+                        "flag2",
+                        "medida2a",
+                        "flag2a",
+                        "medida3",
+                        "flag3",
+                        "error",
+                        "calculo",
                     ]  # reemplazar con los nombres de tus columnas
 
                     # Reemplazar "." con "," en las columnas seleccionadas
@@ -319,30 +321,30 @@ class ProcesadorRetirosHistoricos:
                     )
 
                     df_registro_cambios_clientes_L = df_registro_cambios_clientes_L[
-                        ["Nombre", "Clave", "Suministrador_final", "Mes"]
+                        ["nombre_medidor", "clave_medidor", "Suministrador_final", "Mes"]
                     ]
 
                     df_registro_cambios_clientes_L[
                         "Nombre_Cliente_Actual_Para_Clave"
                     ] = (
                         df_registro_cambios_clientes_L.sort_values("Mes")
-                        .groupby("Clave")["Nombre"]
+                        .groupby("clave_medidor")["nombre_medidor"]
                         .transform("last")
                     )
 
                     df_registro_cambios_clientes_L["Mes_Actual_De_Nombre_Cliente"] = (
                         df_registro_cambios_clientes_L.sort_values("Mes")
-                        .groupby("Clave")["Mes"]
+                        .groupby("clave_medidor")["Mes"]
                         .transform("last")
                     )
 
                     # Reemplazar valores NaN en la columna Nombre con "-"
-                    df_registro_cambios_clientes_L["Nombre"] = (
-                        df_registro_cambios_clientes_L["Nombre"].fillna("-")
+                    df_registro_cambios_clientes_L["nombre_medidor"] = (
+                        df_registro_cambios_clientes_L["nombre_medidor"].fillna("-")
                     )
 
                     # Reemplazar espacios en blanco con un carácter especial
-                    cols = ["Nombre", "Clave", "Suministrador_final"]
+                    cols = ["nombre_medidor", "clave_medidor", "Suministrador_final"]
                     for col in cols:
                         df_registro_cambios_clientes_L[col] = (
                             df_registro_cambios_clientes_L[col].str.replace(" ", "##_#")
@@ -356,19 +358,19 @@ class ProcesadorRetirosHistoricos:
                     )
 
                     # Reemplazar valores NaN en la columna Nombre con "-"
-                    df_registro_cambios_clientes_L["Nombre"] = (
-                        df_registro_cambios_clientes_L["Nombre"].fillna("-")
+                    df_registro_cambios_clientes_L["nombre_medidor"] = (
+                        df_registro_cambios_clientes_L["nombre_medidor"].fillna("-")
                     )
 
                     df_registro_cambios_clientes_L = (
                         df_registro_cambios_clientes_L.dropna(
-                            subset=["Nombre", "Clave", "Suministrador_final"]
+                            subset=["nombre_medidor", "clave_medidor", "Suministrador_final"]
                         )
                     )
 
                     df_registro_cambios_clientes_L = (
                         df_registro_cambios_clientes_L.drop_duplicates(
-                            subset=["Nombre", "Clave", "Suministrador_final"],
+                            subset=["nombre_medidor", "clave_medidor", "Suministrador_final"],
                             keep="last",
                         )
                     )
@@ -380,7 +382,11 @@ class ProcesadorRetirosHistoricos:
                         )
 
                     df_registro_cambios_clientes_L.rename(
-                        columns={"Nombre": "Cliente"}, inplace=True
+                        columns={"nombre_medidor": "Cliente"}, inplace=True
+                    )
+
+                    df_registro_cambios_clientes_L.rename(
+                        columns={"clave_medidor": "Clave"}, inplace=True
                     )
 
                     #! Salida de archivo registro cambios Clientes Libres
@@ -432,14 +438,16 @@ class ProcesadorRetirosHistoricos:
                     )
 
                     columnas_numericas = [
-                        "Medida 1",
-                        "(0/1)",
-                        "Medida 2",
-                        "(0/1).1",
-                        "Medida 3",
-                        "(0/1).2",
-                        "Error",
-                        "Cálculo",
+                        "medida1",
+                        "flag1",
+                        "medida2",
+                        "flag2",
+                        "medida2a",
+                        "flag2a",
+                        "medida3",
+                        "flag3",
+                        "error",
+                        "calculo",
                     ]  # reemplazar con los nombres de tus columnas
 
                     # Reemplazar "." con "," en las columnas seleccionadas
@@ -472,30 +480,30 @@ class ProcesadorRetirosHistoricos:
                     )
 
                     df_registro_cambios_clientes_R = df_registro_cambios_clientes_R[
-                        ["Nombre", "Clave", "Suministrador_final", "Mes"]
+                        ["nombre_medidor", "clave_medidor", "Suministrador_final", "Mes"]
                     ]
 
                     df_registro_cambios_clientes_R[
                         "Nombre_Cliente_Actual_Para_Clave"
                     ] = (
                         df_registro_cambios_clientes_R.sort_values("Mes")
-                        .groupby("Clave")["Nombre"]
+                        .groupby("clave_medidor")["nombre_medidor"]
                         .transform("last")
                     )
 
                     df_registro_cambios_clientes_R["Mes_Actual_De_Nombre_Cliente"] = (
                         df_registro_cambios_clientes_R.sort_values("Mes")
-                        .groupby("Clave")["Mes"]
+                        .groupby("clave_medidor")["Mes"]
                         .transform("last")
                     )
 
                     # Reemplazar valores NaN en la columna Nombre con "-"
-                    df_registro_cambios_clientes_R["Nombre"] = (
-                        df_registro_cambios_clientes_R["Nombre"].fillna("-")
+                    df_registro_cambios_clientes_R["nombre_medidor"] = (
+                        df_registro_cambios_clientes_R["nombre_medidor"].fillna("-")
                     )
 
                     # Reemplazar espacios en blanco con un carácter especial
-                    cols = ["Nombre", "Clave", "Suministrador_final"]
+                    cols = ["nombre_medidor", "clave_medidor", "Suministrador_final"]
                     for col in cols:
                         df_registro_cambios_clientes_R[col] = (
                             df_registro_cambios_clientes_R[col].str.replace(" ", "##_#")
@@ -509,19 +517,19 @@ class ProcesadorRetirosHistoricos:
                     )
 
                     # Reemplazar valores NaN en la columna Nombre con "-"
-                    df_registro_cambios_clientes_R["Nombre"] = (
-                        df_registro_cambios_clientes_R["Nombre"].fillna("-")
+                    df_registro_cambios_clientes_R["nombre_medidor"] = (
+                        df_registro_cambios_clientes_R["nombre_medidor"].fillna("-")
                     )
 
                     df_registro_cambios_clientes_R = (
                         df_registro_cambios_clientes_R.dropna(
-                            subset=["Nombre", "Clave", "Suministrador_final"]
+                            subset=["nombre_medidor", "clave_medidor", "Suministrador_final"]
                         )
                     )
 
                     df_registro_cambios_clientes_R = (
                         df_registro_cambios_clientes_R.drop_duplicates(
-                            subset=["Nombre", "Clave", "Suministrador_final"],
+                            subset=["nombre_medidor", "clave_medidor", "Suministrador_final"],
                             keep="last",
                         )
                     )
@@ -533,7 +541,11 @@ class ProcesadorRetirosHistoricos:
                         )
 
                     df_registro_cambios_clientes_R.rename(
-                        columns={"Nombre": "Cliente"}, inplace=True
+                        columns={"nombre_medidor": "Cliente"}, inplace=True
+                    )
+                    
+                    df_registro_cambios_clientes_R.rename(
+                        columns={"clave_medidor": "Clave"}, inplace=True
                     )
 
                     #! Salida de archivo registro cambios Clientes Regulados
