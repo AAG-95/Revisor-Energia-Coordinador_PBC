@@ -129,7 +129,7 @@ class PlanillaRevisor:
                 )
 
                 # Filtrar columnas de energía
-                Columnas_energía = df_detalle_clientes_libres.columns[9:]
+                Columnas_energía = df_detalle_clientes_libres.columns[10:]
 
                 # Reemplazar 0 por NaN, NaN por None y None por NaN en las columnas de energía. Luego, eliminar filas con valores nulos
                 df_detalle_clientes_libres[Columnas_energía] = (
@@ -151,13 +151,13 @@ class PlanillaRevisor:
 
                 # Procesar columnas numéricas para reemplazar '.' con ','
                 # Convertir nombres de columnas de fecha
-                timestamps = df_detalle_clientes_libres.columns[9:]
-                df_detalle_clientes_libres.columns.values[9:] = [
+                timestamps = df_detalle_clientes_libres.columns[10:]
+                df_detalle_clientes_libres.columns.values[10:] = [
                     datetime.strftime(timestamp, "%d-%m-%Y") for timestamp in timestamps
                 ]
 
                 # Seleccionar columnas relevantes y derretir el dataframe
-                selected_columns = df_detalle_clientes_libres.columns[:9].tolist()
+                selected_columns = df_detalle_clientes_libres.columns[:10].tolist()
 
                 # Derretir el dataframe
                 df_detalle_clientes_libres = pd.melt(
@@ -262,7 +262,7 @@ class PlanillaRevisor:
                     )
                 )
                 # Filtrar columnas de energía
-                Columnas_energía = df_detalle_nuevos_clientes_libres.columns[9:]
+                Columnas_energía = df_detalle_nuevos_clientes_libres.columns[10:]
                 # Reemplazar 0 por NaN, NaN por None y None por NaN en las columnas de energía. Luego, eliminar filas con valores nulos
                 df_detalle_nuevos_clientes_libres[Columnas_energía] = (
                     df_detalle_nuevos_clientes_libres[Columnas_energía].replace(
@@ -291,7 +291,7 @@ class PlanillaRevisor:
                 )  # Reemplazar NaN por ""
 
                 # Procesar columnas numéricas para reemplazar '.' con ','
-                for column in df_detalle_nuevos_clientes_libres.columns[9:]:
+                for column in df_detalle_nuevos_clientes_libres.columns[10:]:
                     df_detalle_nuevos_clientes_libres[column] = (
                         df_detalle_nuevos_clientes_libres[column]
                         .astype(str)
@@ -299,13 +299,13 @@ class PlanillaRevisor:
                     )
 
                 # Convertir nombres de columnas de fecha
-                timestamps = df_detalle_nuevos_clientes_libres.columns[9:]
-                df_detalle_nuevos_clientes_libres.columns.values[9:] = [
+                timestamps = df_detalle_nuevos_clientes_libres.columns[10:]
+                df_detalle_nuevos_clientes_libres.columns.values[10:] = [
                     datetime.strftime(timestamp, "%d-%m-%Y") for timestamp in timestamps
                 ]
 
                 # Seleccionar columnas relevantes y derretir el dataframe
-                columnas_melt = df_detalle_nuevos_clientes_libres.columns[:9].tolist()
+                columnas_melt = df_detalle_nuevos_clientes_libres.columns[:10].tolist()
 
                 # Derretir el dataframe
                 df_detalle_nuevos_clientes_libres = pd.melt(
@@ -389,6 +389,7 @@ class PlanillaRevisor:
 
                 df_detalle_nuevos_clientes_libres["Clave"] = df_detalle_nuevos_clientes_libres["Clave"].astype(str).str.strip()
                 
+                df_detalle_nuevos_clientes_libres["Tensión"] = df_detalle_nuevos_clientes_libres["Tensión"].fillna(0)
 
                 if not df_detalle_nuevos_clientes_libres.empty:
                     df_detalle_nuevos_clientes_libres['Clave'] = df_detalle_nuevos_clientes_libres.apply(
@@ -406,7 +407,7 @@ class PlanillaRevisor:
 
                 # Eliminar filas con valores nulos en las columnas Barra, Clave y Suministrador
                 df_detalle_nuevos_clientes_libres.dropna(
-                    subset=["Barra", "Clave", "Suministrador"], inplace=True
+                    subset=["Barra", "Tensión", "Clave", "Suministrador"], inplace=True
                 )
 
                 # Agregar el dataframe a la lista

@@ -89,7 +89,7 @@ if codigos_a_correr["comparador_clientes_ind"]:
     cci.ComparadorClienteIndividualizado().run()
     print("Saliendo de comparador_cliente_individualizado.py...")
 
-# Visualizador de datos
+# Visualizador de datos11
 if codigos_a_correr["visualizador"]:
     print("Entrando a visualizador.py...")
 

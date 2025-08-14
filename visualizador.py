@@ -47,6 +47,14 @@ class DashBarChart:
         self.df_combinado_sistemas = df_combinado_sistemas
         self.df_clientes_ind = df_clientes_ind
         self.df_combinado_energia_clientes_r = df_combinado_energia_clientes_r
+
+        ###
+        # Combinar columnas 'Barra' y 'Tensión' para compatibilidad con el código existente
+        self.df_combinado_energia["Barra-Tensión"] = self.df_combinado_energia["Barra"].astype(str) + "_" + self.df_combinado_energia["Tension"].astype(str)
+        self.df_combinado_sistemas["Barra-Tensión"] = self.df_combinado_sistemas["Barra"].astype(str) + "_" + self.df_combinado_sistemas["Tensión"].astype(str)
+        ###
+
+
         self.df_dict = {}  # Lista de Fechas
         for value in df_combinado_energia["Mes Consumo"].unique():
             self.df_dict[value] = df_combinado_energia[
@@ -505,7 +513,7 @@ class DashBarChart:
         dropdown_barra = dcc.Dropdown(
             id="barra-dropdown_energia",
             options=[
-                {"label": i, "value": i} for i in df_combinado_energia["Barra"].unique()
+                {"label": i, "value": i} for i in df_combinado_energia["Barra-Tensión"].unique()
             ]
             + [{"label": "Select All", "value": "ALL"}],
             value=["ALL"],
@@ -786,7 +794,7 @@ class DashBarChart:
             id="barra-dropdown_sistemas",
             options=[
                 {"label": i, "value": i}
-                for i in df_combinado_sistemas["Barra"].unique()
+                for i in df_combinado_sistemas["Barra-Tensión"].unique()
             ]
             + [{"label": "Select All", "value": "ALL"}],
             value=["ALL"],
@@ -1066,7 +1074,7 @@ class DashBarChart:
                                 ),
                                 html.Div(
                                     [
-                                        html.Label("Barra", className="label_barra"),
+                                        html.Label("Barra-Tensión", className="label_barra"),
                                         dropdown_barra,
                                     ],
                                     className="label_barra-y-dropdown",
@@ -1178,7 +1186,7 @@ class DashBarChart:
                                 ),
                                 html.Div(
                                     [
-                                        html.Label("Barra", className="label_barra"),
+                                        html.Label("Barra-Tensión", className="label_barra"),
                                         dropdown_barra_sistemas,
                                     ],
                                     className="label_barra-y-dropdown",
@@ -1398,19 +1406,19 @@ class DashBarChart:
                 if "ALL" in selected_values:
                     return [
                         {"label": i, "value": i}
-                        for i in df_combinado_energia["Barra"].unique()
+                        for i in df_combinado_energia["Barra-Tensión"].unique()
                     ] + [{"label": "Select All", "value": "ALL"}], ["ALL"]
                 else:
                     return [
                         {"label": i, "value": i}
-                        for i in df_combinado_energia["Barra"].unique()
+                        for i in df_combinado_energia["Barra-Tensión"].unique()
                     ] + [{"label": "Select All", "value": "ALL"}], [
                         value for value in selected_values if value != "ALL"
                     ]  
             else:
                 return [
                     {"label": i, "value": i}
-                    for i in df_combinado_energia["Barra"].unique()
+                    for i in df_combinado_energia["Barra-Tensión"].unique()
                 ] + [
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values  
@@ -1534,7 +1542,7 @@ class DashBarChart:
                     )
 
                 if selected_barra == ["ALL"]:
-                    selected_barra = df_combinado_energia["Barra"].unique().tolist()
+                    selected_barra = df_combinado_energia["Barra-Tensión"].unique().tolist()
 
                 if selected_recaudador == ["ALL"]:
                     selected_recaudador = (
@@ -1549,7 +1557,7 @@ class DashBarChart:
 
                 df_combinado_filtrado = df_combinado_energia[
                     df_combinado_energia["Mes Consumo"].isin(selected_mes_consumo)
-                    & df_combinado_energia["Barra"].isin(selected_barra)
+                    & df_combinado_energia["Barra-Tensión"].isin(selected_barra)
                     & df_combinado_energia["Recaudador"].isin(selected_recaudador)
                     & df_combinado_energia["Clave"].isin(selected_clave)
                     & df_combinado_energia["Tipo"].isin(selected_tipo)
@@ -1784,7 +1792,7 @@ class DashBarChart:
                     )
 
                 if selected_barra == ["ALL"]:
-                    selected_barra = df_combinado_energia["Barra"].unique().tolist()
+                    selected_barra = df_combinado_energia["Barra-Tensión"].unique().tolist()
 
                 if selected_recaudador == ["ALL"]:
                     selected_recaudador = (
@@ -1799,7 +1807,7 @@ class DashBarChart:
 
                 df_combinado_filtrado = df_combinado_energia[
                     df_combinado_energia["Mes Consumo"].isin(selected_mes_consumo)
-                    & df_combinado_energia["Barra"].isin(selected_barra)
+                    & df_combinado_energia["Barra-Tensión"].isin(selected_barra)
                     & df_combinado_energia["Recaudador"].isin(selected_recaudador)
                     & df_combinado_energia["Clave"].isin(selected_clave)
                     & df_combinado_energia["Tipo"].isin(selected_tipo)
@@ -1902,7 +1910,7 @@ class DashBarChart:
                     )
 
                 if selected_barra == ["ALL"]:
-                    selected_barra = df_combinado_energia["Barra"].unique().tolist()
+                    selected_barra = df_combinado_energia["Barra-Tensión"].unique().tolist()
 
                 if selected_recaudador == ["ALL"]:
                     selected_recaudador = (
@@ -1917,7 +1925,7 @@ class DashBarChart:
 
                 df_combinado_filtrado = df_combinado_energia[
                     df_combinado_energia["Mes Consumo"].isin(selected_mes_consumo)
-                    & df_combinado_energia["Barra"].isin(selected_barra)
+                    & df_combinado_energia["Barra-Tensión"].isin(selected_barra)
                     & df_combinado_energia["Recaudador"].isin(selected_recaudador)
                     & df_combinado_energia["Clave"].isin(selected_clave)
                     & df_combinado_energia["Tipo"].isin(selected_tipo)
@@ -2034,19 +2042,19 @@ class DashBarChart:
                 if "ALL" in selected_values:
                     return [
                         {"label": i, "value": i}
-                        for i in df_combinado_sistemas["Barra"].unique()
+                        for i in df_combinado_sistemas["Barra-Tensión"].unique()
                     ] + [{"label": "Select All", "value": "ALL"}], ["ALL"]
                 else:
                     return [
                         {"label": i, "value": i}
-                        for i in df_combinado_sistemas["Barra"].unique()
+                        for i in df_combinado_sistemas["Barra-Tensión"].unique()
                     ] + [{"label": "Select All", "value": "ALL"}], [
                         value for value in selected_values if value != "ALL"
                     ]  
             else:
                 return [
                     {"label": i, "value": i}
-                    for i in df_combinado_sistemas["Barra"].unique()
+                    for i in df_combinado_sistemas["Barra-Tensión"].unique()
                 ] + [
                     {"label": "Select All", "value": "ALL"}
                 ], selected_values 
@@ -2169,7 +2177,7 @@ class DashBarChart:
                     )
 
                 if selected_barra == ["ALL"]:
-                    selected_barra = df_combinado_sistemas["Barra"].unique().tolist()
+                    selected_barra = df_combinado_sistemas["Barra-Tensión"].unique().tolist()
 
                 if selected_recaudador == ["ALL"]:
                     selected_recaudador = (
@@ -2184,7 +2192,7 @@ class DashBarChart:
 
                 df_combinado_filtrado = df_combinado_sistemas[
                     df_combinado_sistemas["Mes Consumo"].isin(selected_mes_consumo)
-                    & df_combinado_sistemas["Barra"].isin(selected_barra)
+                    & df_combinado_sistemas["Barra-Tensión"].isin(selected_barra)
                     & df_combinado_sistemas["Recaudador"].isin(selected_recaudador)
                     & df_combinado_sistemas["Clave"].isin(selected_clave)
                     & df_combinado_sistemas["Tipo"].isin(selected_tipo)
@@ -2398,7 +2406,7 @@ class DashBarChart:
                     )
 
                 if selected_barra == ["ALL"]:
-                    selected_barra = df_combinado_sistemas["Barra"].unique().tolist()
+                    selected_barra = df_combinado_sistemas["Barra-Tensión"].unique().tolist()
 
                 if selected_recaudador == ["ALL"]:
                     selected_recaudador = (
@@ -2413,7 +2421,7 @@ class DashBarChart:
 
                 df_combinado_filtrado = df_combinado_sistemas[
                     df_combinado_sistemas["Mes Consumo"].isin(selected_mes_consumo)
-                    & df_combinado_sistemas["Barra"].isin(selected_barra)
+                    & df_combinado_sistemas["Barra-Tensión"].isin(selected_barra)
                     & df_combinado_sistemas["Recaudador"].isin(selected_recaudador)
                     & df_combinado_sistemas["Clave"].isin(selected_clave)
                     & df_combinado_sistemas["Tipo"].isin(selected_tipo)

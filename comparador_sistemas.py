@@ -104,10 +104,14 @@ class ComparadorSistemas:
             "Nivel Tensión Definitivo"
         ].apply(lambda x: (x if x in self.niveles_de_tension_permitidos else "-"))
 
+        self.df_sistemas["Barra-Tension"] = self.df_sistemas["Barra"].astype(str) + "-_-" + self.df_sistemas["Tensión"].astype(str)
+
         # Seleccionar las columnas relevantes para el análisis
         self.df_sistemas = self.df_sistemas[
             [
+                "Barra-Tension", # Columna auxiliar para obtener el par "Barra-Tension"
                 "Barra",  # Nombre de la barra de energía
+                "Tensión", # Nivel de tensión barra de energía
                 "Zonal Definitivo",  # Sistema zonal definitivo
                 "Nivel Tensión Definitivo",  # Nivel de tensión definitivo del sistema zonal
             ]
@@ -159,10 +163,15 @@ class ComparadorSistemas:
             "Cliente Individualizado"
         ].apply(lambda x: 0 if x not in [0, 1] else x)
 
+
+        self.df_recaudacion["Barra-Tension"] = self.df_recaudacion["Barra"].astype(str) + "-_-" + self.df_recaudacion["Tensión"].astype(str)
+
         # Seleccionar las columnas relevantes para el análisis
         self.df_recaudacion = self.df_recaudacion[
             [
+                "Barra-Tension", # Columna auxiliar para obtener el par "Barra-Tension"
                 "Barra",  # Nombre de la barra de energía
+                "Tensión", # Nivel de tensión de la barra de energía
                 "Clave",  # Clave de identificación
                 "Mes Consumo",  # Mes de consumo de energía
                 "Suministrador",  # Empresa suministradora
@@ -195,7 +204,7 @@ class ComparadorSistemas:
         self.df_combinado_sistemas = pd.merge(
             self.df_recaudacion,
             self.df_sistemas,
-            on="Barra",
+            on="Barra-Tension",
             how="left",
         ).reset_index(drop=True)
 
@@ -423,17 +432,20 @@ class ComparadorSistemas:
 
         # Obtener tablas de clientes utilizando la función obtencion_tablas_clientes
         self.df_sistema_filtro = fc.ObtencionDatos().obtencion_tablas_clientes(
-            self.df_sistema_filtro, 5, 2, 12
+            self.df_sistema_filtro, 5, 2, 13
         )
 
         #! Clientes con diferencias de sistemas registrados
         # Eliminar filas donde todas las columnas (excluyendo la primera columna) son NaN
         self.df_sistema_filtro = self.df_sistema_filtro.dropna(how="all")
 
+
+
         # Mantener columnas Barra, Mes Inicial, Mes Final, Meses Particulares
         self.df_sistema_filtro = self.df_sistema_filtro[
             [
                 "Barra",
+                "Tensión",
                 "Clave",
                 "Mes Inicial",
                 "Zonal",
@@ -486,8 +498,10 @@ class ComparadorSistemas:
         ).explode("Mes_Consumo")
 
         # Crear columna Barra-Clave-Mes-Zonal-Tension
-        self.df_sistemas_filtro["Barra-Clave-Mes-Zonal-Tension"] = (
+        self.df_sistemas_filtro["Barra-Tension-Clave-Mes-Zonal-Tension"] = (
             self.df_sistemas_filtro["Barra"].astype(str)
+            + "-_-"
+            + self.df_sistemas_filtro["Tensión"].astype(str)
             + "-_-"
             + self.df_sistemas_filtro["Clave"].astype(str)
             + "-_-"
@@ -500,7 +514,7 @@ class ComparadorSistemas:
 
         # Eliminar otras columnas
         self.df_sistemas_filtro = self.df_sistemas_filtro[
-            ["Barra-Clave-Mes-Zonal-Tension"]
+            ["Barra-Tension-Clave-Mes-Zonal-Tension"]
         ]
 
     def filtro_sistemas(self):
@@ -512,8 +526,8 @@ class ComparadorSistemas:
         """
 
         # Crear columna Barra-Clave-Mes-Zonal-Tension en df_combinado_sistemas
-        self.df_combinado_sistemas["Barra-Clave-Mes-Zonal-Tension"] = (
-            self.df_combinado_sistemas["Barra"].astype(str)
+        self.df_combinado_sistemas["Barra-Tension-Clave-Mes-Zonal-Tension"] = (
+            self.df_combinado_sistemas["Barra-Tension"].astype(str)
             + "-_-"
             + self.df_combinado_sistemas["Clave"].astype(str)
             + "-_-"
@@ -527,18 +541,35 @@ class ComparadorSistemas:
         # Crear columna Filtro_Registro_Clave para marcar clientes filtrados y no filtrados
         self.df_combinado_sistemas[
             "Filtro_Registro_Clave"
-        ] = self.df_combinado_sistemas["Barra-Clave-Mes-Zonal-Tension"].apply(
+        ] = self.df_combinado_sistemas["Barra-Tension-Clave-Mes-Zonal-Tension"].apply(
             lambda x: (
                 "Clientes Filtrados"
-                if x in self.df_sistemas_filtro["Barra-Clave-Mes-Zonal-Tension"].values
+                if x in self.df_sistemas_filtro["Barra-Tension-Clave-Mes-Zonal-Tension"].values
                 else "Clientes No Filtrados"
             )
         )
 
         # Eliminar columna Barra-Clave-Mes-Zonal-Tension de df_combinado_sistemas
         self.df_combinado_sistemas = self.df_combinado_sistemas.drop(
-            columns=["Barra-Clave-Mes-Zonal-Tension"]
+            columns=["Barra-Tension-Clave-Mes-Zonal-Tension"]
         )
+
+        # Eliminar columnas duplicadas resultantes del merge
+        self.df_combinado_sistemas = self.df_combinado_sistemas.drop(
+            columns=["Barra_x", "Barra_y", "Tensión_x", "Tensión_y"], errors="ignore"
+        )
+
+        # Reconstruir columnas "Barra" y "Tensión" desde "Barra-Tension"
+        self.df_combinado_sistemas[["Barra", "Tensión"]] = self.df_combinado_sistemas["Barra-Tension"].str.split("-_-", expand=True)
+
+        # Eliminar columna "Barra-Tension"
+        self.df_combinado_sistemas = self.df_combinado_sistemas.drop(columns=["Barra-Tension"])
+
+        # Mover 'Barra' y 'Tensión' al inicio
+        for col in ["Tensión", "Barra"]:
+            self.df_combinado_sistemas.insert(0, col, self.df_combinado_sistemas.pop(col))
+
+
 
     def contador_tipos_historicos_sistemas(self):
         """

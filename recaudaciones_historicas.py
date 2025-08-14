@@ -108,7 +108,7 @@ class ProcesadorRecaudacionesHistoricas:
 
             # Marcar los nuevos clientes como nuevos
             df_nvs_clientes_L["Cliente Nuevo"] = 1
-
+            
             # Concatenar los DataFrames de clientes y nuevos clientes
             df_clientes_L_total = pd.concat(
                 [df_clientes_L, df_nvs_clientes_L], ignore_index=True
@@ -116,7 +116,7 @@ class ProcesadorRecaudacionesHistoricas:
 
             # Eliminar filas con valores nulos en las columnas Barra, Clave y Suministrador
             df_clientes_L_total.dropna(
-                subset=["Barra", "Clave", "Suministrador"], inplace=True
+                subset=["Barra", "Tensión", "Clave", "Suministrador"], inplace=True
             )
 
             # Parsear la cadena de fecha en formato 'YYYY-MM-DD'

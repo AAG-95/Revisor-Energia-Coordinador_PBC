@@ -53,16 +53,16 @@ class ComparadorRecaudacionEnergia:
         )
 
         # Reemplazar comas por puntos en la columna "Medida 2" y convertir a tipo float
-        self.df_energia["Medida 2"] = (
-            self.df_energia["Medida 2"].str.replace(",", ".").astype(float)
+        self.df_energia["medida2"] = (
+            self.df_energia["medida2"].str.replace(",", ".").astype(float)
         )
 
         # Multiplicar los valores de "Medida 2" por -1
-        self.df_energia["Medida 2"] = self.df_energia["Medida 2"] * -1
+        self.df_energia["medida2"] = self.df_energia["medida2"] * -1
 
         # Renombrar la columna "Medida 2" a "Energía Balance [kWh]"
         self.df_energia.rename(
-            columns={"Medida 2": "Energía Balance [kWh]"}, inplace=True
+            columns={"medida2": "Energía Balance [kWh]"}, inplace=True
         )
 
         # Seleccionar solo las columnas "Suministrador-Mes" y "Energía Balance [kWh]"
