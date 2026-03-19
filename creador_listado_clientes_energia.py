@@ -158,7 +158,7 @@ class CreadorListaClientesBalance:
                        
                         try:
                             print(f" Ruta en ZIP: {path}", end="")
-                            with myzip.open(path + i + mes_numeral + ".xlsx") as myfile:
+                            with myzip.open(path + i + mes_numeral + ".xlsm") as myfile:
                                 df_balance_fisico = pd.read_excel(myfile)
                                 print(f" Ruta en ZIP EXISTE con {path}")
                                 ruta_correcta = path # Guardar la ruta correcta
@@ -169,7 +169,7 @@ class CreadorListaClientesBalance:
                         print(f" Ruta NO EXISTE para {i}")
                         continue  # Si no se encuentra el archivo, probar con el siguiente archivo
 
-                    with myzip.open(ruta_correcta + i + mes_numeral + ".xlsx") as myfile:
+                    with myzip.open(ruta_correcta + i + mes_numeral + ".xlsm") as myfile:
                         df_balance_fisico = pd.read_excel(
                             myfile, sheet_name="Balance Físico", header=None
                         )
@@ -245,7 +245,7 @@ class CreadorListaClientesBalance:
                             print(
                                 retiros_clientes[
                                     retiros_clientes["Suministrador_final"].isnull()
-                                ]["Propietario"].to_list()
+                                ]["nombre_corto"].to_list()
                             )
                             sys.exit()
 
